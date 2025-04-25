@@ -4,16 +4,31 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx jest",
+    "build": "npx tsc",
+    "typecheck": "npx tsc --project tsconfig.test.json",
+    "lint": "npx eslint . --config .eslintrc.js",
+    "lintfix": "npx eslint . --fix --config .eslintrc.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^22.14.1",
-    "@types/pixi.js": "^4.8.9",
     "nengi": "^2.0.0-alpha.173",
+    "nengi-buffers": "^0.5.0",
+    "nengi-uws-instance-adapter": "^0.6.0",
+    "nengi-websocket-client-adapter": "^0.7.0",
     "pixi.js": "^8.9.1",
     "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "@types/pixi.js": "^4.8.9",
+    "@typescript-eslint/eslint-plugin": "^8.31.0",
+    "@typescript-eslint/parser": "^8.31.0",
+    "eslint": "^9.25.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "vite": "^6.3.3"
   }
 }
