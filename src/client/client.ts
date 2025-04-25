@@ -11,8 +11,10 @@ window.addEventListener('load', async () => {
     const interpolator = new Interpolator(client)
     try {
         const res = await client.connect('ws://localhost:9001', { token: 12345 })
+        console.log('Connected successfully:', res)
     } catch (err) {
         console.log('connection error', err)
+        return // Don't continue if connection failed
     }
 
     const tick = (delta: number) => {
@@ -20,27 +22,28 @@ window.addEventListener('load', async () => {
 
         while (client.network.messages.length > 0) {
             const message = client.network.messages.pop()
-            // TODO handle message
+            console.log('Received message:', message)
         }
 
-    istate.forEach(snapshot => {
-        snapshot.createEntities.forEach((entity: any) => {
-            // TODO create new entity on the client
-        })
+        istate.forEach(snapshot => {
+            snapshot.createEntities.forEach((entity: any) => {
+                // TODO create new entity on the client
+            })
 
-        snapshot.updateEntities.forEach((diff: any) => {
-            // TODO update existing entity
-        })
+            snapshot.updateEntities.forEach((diff: any) => {
+                // TODO update existing entity
+            })
 
-        snapshot.deleteEntities.forEach((nid: number) => {
-            // TODO remove existing entity
+            snapshot.deleteEntities.forEach((nid: number) => {
+                // TODO remove existing entity
+            })
         })
-    })
 
         // send command to server (hypothetical)
         // const { w, a, s, d } = inputState
-        // client.addCommand({ ntype: NType.Command, w, a, s, d, delta })
-        // client.flush()
+        client.addCommand({ ntype: NType.Command, w: true, a: true, s: true, d: true, delta })
+        client.addCommand({ ntype: NType.Command, w: false, a: false, s: false, d: false, delta })
+        client.flush()
     }
 
     // a standard rAF loop
