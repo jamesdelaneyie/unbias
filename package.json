@@ -10,8 +10,8 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build": "npx tsc",
     "typecheck": "npx tsc --project tsconfig.test.json",
-    "lint": "npx eslint . --config .eslintrc.js",
-    "lintfix": "npx eslint . --fix --config .eslintrc.js"
+    "lint": "eslint .",
+    "lintfix": "eslint . --fix"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +21,7 @@
     "nengi-buffers": "^0.5.0",
     "nengi-uws-instance-adapter": "^0.6.0",
     "nengi-websocket-client-adapter": "^0.7.0",
+    "pixi-tagged-text-plus": "^0.0.1-next.2",
     "pixi.js": "^8.0.0"
   },
   "devDependencies": {
@@ -29,6 +30,7 @@
     "@typescript-eslint/parser": "^8.31.0",
     "concurrently": "^8.2.2",
     "eslint": "^9.25.1",
+    "globals": "^16.0.0",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
