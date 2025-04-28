@@ -4,38 +4,11 @@ import TaggedTextPlus from 'pixi-tagged-text-plus';
 import { ncontext } from '@/common/ncontext';
 import { NType } from '@/common/NType';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
+import { createNotificationBox, addNotification } from './htmlUI';
 
 type EntityMap = Map<number, Container>;
 let entities: EntityMap = new Map();
 let reconnectTimeout: number | null = null;
-
-const createNotificationBox = () => {
-  const notificationBox = document.createElement('div');
-  notificationBox.style.position = 'fixed';
-  notificationBox.style.bottom = '5px';
-  notificationBox.style.left = '5px';
-  notificationBox.style.width = '300px';
-  notificationBox.style.maxHeight = '500px';
-  notificationBox.style.overflowY = 'auto';
-  notificationBox.style.backgroundColor = 'rgba(0,0,0,0.8)';
-  notificationBox.style.color = 'white';
-  notificationBox.style.padding = '10px';
-  notificationBox.style.borderRadius = '2px';
-  notificationBox.style.fontFamily = 'monospace';
-  notificationBox.style.fontSize = '10px';
-  notificationBox.style.zIndex = '1000';
-  document.body.appendChild(notificationBox);
-  return notificationBox;
-};
-
-const addNotification = (box: HTMLDivElement, message: string) => {
-  const notification = document.createElement('div');
-  notification.textContent = message;
-  notification.style.borderBottom = '1px solid rgba(255,255,255,0.2)';
-  notification.style.padding = '5px 0';
-  box.appendChild(notification);
-  box.scrollTop = box.scrollHeight;
-};
 
 const createPlayer = (entity: any, app: Application, entities: EntityMap) => {
   const playerSize = 30;
@@ -152,12 +125,13 @@ window.addEventListener('load', async () => {
 
   const attemptReconnect = async () => {
     if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-      addNotification(notificationBox, 'Max reconnection attempts reached');
+      addNotification(document, notificationBox, 'Max reconnection attempts reached');
       return;
     }
 
     reconnectAttempts++;
     addNotification(
+      document,
       notificationBox,
       `Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
     );
@@ -165,7 +139,7 @@ window.addEventListener('load', async () => {
     try {
       const res = await client.connect('ws://localhost:9001', { token: 12345 });
       if (res === 'accepted') {
-        addNotification(notificationBox, 'Reconnected to server');
+        addNotification(document, notificationBox, 'Reconnected to server');
         connected = true;
         reconnectAttempts = 0;
         if (reconnectTimeout) {
@@ -174,12 +148,12 @@ window.addEventListener('load', async () => {
         }
       } else {
         console.log(res);
-        addNotification(notificationBox, 'Reconnection failed: ' + res);
+        addNotification(document, notificationBox, 'Reconnection failed: ' + res);
         scheduleReconnect();
       }
     } catch (err) {
       console.log('empty err', err);
-      addNotification(notificationBox, 'Reconnection error');
+      addNotification(document, notificationBox, 'Reconnection error');
       scheduleReconnect();
     }
   };
@@ -193,15 +167,15 @@ window.addEventListener('load', async () => {
 
   client.setDisconnectHandler((reason: any, event: any) => {
     console.warn('Disconnected custom!', reason, event);
-    addNotification(notificationBox, 'Disconnected from server');
+    addNotification(document, notificationBox, 'Disconnected from server');
     connected = false;
     scheduleReconnect();
     cleanup();
   });
   const interpolator = new Interpolator(client);
 
-  const notificationBox = createNotificationBox();
-  addNotification(notificationBox, 'Window loaded');
+  const notificationBox = createNotificationBox(document);
+  addNotification(document, notificationBox, 'Window loaded');
 
   const keys: Record<'w' | 'a' | 's' | 'd', boolean> = {
     w: false,
@@ -225,15 +199,15 @@ window.addEventListener('load', async () => {
   try {
     const res = await client.connect('ws://localhost:9001', { token: 12345 });
     if (res === 'accepted') {
-      addNotification(notificationBox, 'Connected to server');
+      addNotification(document, notificationBox, 'Connected to server');
       connected = true;
     } else {
       console.log(res);
-      addNotification(notificationBox, 'Connection error: ' + res);
+      addNotification(document, notificationBox, 'Connection error: ' + res);
     }
   } catch (err) {
     console.log(err);
-    addNotification(notificationBox, 'Connection error: ' + err);
+    addNotification(document, notificationBox, 'Connection error: ' + err);
     return;
   }
 
@@ -265,7 +239,11 @@ window.addEventListener('load', async () => {
     });
 
     if (keys.w || keys.a || keys.s || keys.d) {
-      addNotification(notificationBox, 'Sending command ' + keys.w + keys.a + keys.s + keys.d);
+      addNotification(
+        document,
+        notificationBox,
+        'Sending command ' + keys.w + keys.a + keys.s + keys.d
+      );
       client.addCommand({
         ntype: NType.Command,
         w: keys.w,
