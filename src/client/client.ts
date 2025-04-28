@@ -5,7 +5,6 @@ import { ncontext } from '@/common/ncontext'
 import { NType } from '@/common/NType'
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter'
 
-
 type EntityMap = Map<number, Container>
 let entities: EntityMap = new Map()
 let reconnectTimeout: number | null = null
@@ -134,7 +133,6 @@ window.addEventListener('load', async () => {
 
     drawInitialUI(app, masterContainer)
 
-    
 
     let connected = false
     const serverTickRatePerSecond = 20

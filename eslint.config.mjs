@@ -6,14 +6,15 @@ import globals from 'globals'
 export default [
     eslint.configs.recommended,
     {
-        files: ['**/*.ts'],
+        files: ['src/**/*.ts'],
         languageOptions: {
             parser: tsparser,
             parserOptions: {
                 project: './tsconfig.json'
             },
             globals: {
-                ...globals.browser
+                ...globals.browser,
+                ...globals.node
             }
         },
         plugins: {
@@ -24,5 +25,8 @@ export default [
             '@typescript-eslint/no-unused-vars': 'off',
             "no-unused-vars": ["error", { "varsIgnorePattern": "^NType$" }]
         }
-    }
+    },
+    {
+        ignores: ['dist/**', 'node_modules/**']
+    },
 ]
