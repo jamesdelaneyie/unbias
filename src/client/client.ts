@@ -127,6 +127,13 @@ window.addEventListener('load', async () => {
 
   drawInitialUI(app, masterContainer);
 
+  const worldContainer = new Container();
+  worldContainer.width = app.screen.width;
+  worldContainer.height = app.screen.height;
+  worldContainer.scale.y = -1;
+  worldContainer.zIndex = 1200;
+  app.stage.addChild(worldContainer);
+
   const world = new p2.World({
     gravity: [0, -9.82],
   });
@@ -142,9 +149,9 @@ window.addEventListener('load', async () => {
   });
 
   const groundGraphics = new Graphics();
-  groundGraphics.rect(-500, 0, 1000, 5);
+  groundGraphics.rect(0, -200, app.screen.width, 5);
   groundGraphics.fill({ color: 0xffffff, alpha: 1 });
-  masterContainer.addChild(groundGraphics);
+  worldContainer.addChild(groundGraphics);
 
   ground.addShape(groundShape);
   world.addBody(ground);
@@ -152,7 +159,7 @@ window.addEventListener('load', async () => {
   const circle = new p2.Body({
     mass: 1,
     position: [100, 100],
-    angularVelocity: 1,
+    angularVelocity: 0,
   });
 
   const circleShape = new p2.Circle({
@@ -161,6 +168,11 @@ window.addEventListener('load', async () => {
 
   circle.addShape(circleShape);
   world.addBody(circle);
+
+  const circleGraphics = new Graphics();
+  circleGraphics.circle(700, -200, 10);
+  circleGraphics.fill({ color: 0xffffff, alpha: 1 });
+  worldContainer.addChild(circleGraphics);
 
   let connected = false;
   const serverTickRatePerSecond = 20;
@@ -267,11 +279,12 @@ window.addEventListener('load', async () => {
 
     world.step(1 / 60, delta, 3);
 
-    entities.forEach(entity => {
-      entity.position.x = circle.position[0];
-      entity.position.y = circle.position[1];
-      entity.rotation = circle.angle;
-    });
+    circleGraphics.position.x = circle.position[0];
+    circleGraphics.position.y = circle.position[1];
+    circleGraphics.rotation = circle.angle;
+
+    groundGraphics.position.x = ground.position[0];
+    groundGraphics.position.y = -ground.position[1];
 
     const istate = interpolator.getInterpolatedState(100);
 
