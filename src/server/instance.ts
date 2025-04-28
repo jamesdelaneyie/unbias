@@ -39,8 +39,9 @@ const update = () => {
 
             // handle connection here... for example:
             main.subscribe(user)
+            const viewSize = 2200
             // @ts-expect-error user view not typed
-            user.view = new AABB2D(0, 0, 2200, 2200)
+            user.view = new AABB2D(0, 0, viewSize, viewSize)
             // @ts-expect-error user view not typed
             space.subscribe(networkEvent.user, user.view)
 
@@ -50,16 +51,17 @@ const update = () => {
             const playerEntity = { 
                 nid: 0, 
                 ntype: NType.Entity, 
-                x: 50,
-                y: 50,
+                x: 700,
+                y: 400,
                 color: color,
-                name: 'Player'
+                username: 'J'
             }
 
             main.addEntity(playerEntity)
             space.addEntity(playerEntity)
             user.queueMessage({ myId: playerEntity.nid, ntype: NType.IdentityMessage })
-            console.log('user connected', user.id)
+            console.log('user connected', playerEntity.nid)
+            
         }
 
         if (networkEvent.type === NetworkEvent.CommandSet) {
@@ -67,7 +69,7 @@ const update = () => {
             if(commands.length > 0) {
                 commands.forEach((command: any) => {
                     if (command.ntype === NType.Command) {
-                        console.log('command!!')
+                        console.log('command', command)
                     }
                 })
             }
