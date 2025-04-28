@@ -1,8 +1,8 @@
 /* eslint-disable */
 enum NType {
-    Entity = 1,
-    IdentityMessage = 2,
-    Command = 3
+  Entity = 1,
+  IdentityMessage = 2,
+  Command = 3,
 }
 
-export { NType }; 
+export { NType };
