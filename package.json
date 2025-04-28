@@ -32,9 +32,12 @@
     "@typescript-eslint/parser": "^8.31.0",
     "concurrently": "^8.2.2",
     "eslint": "^9.25.1",
+    "eslint-config-prettier": "^10.1.2",
+    "eslint-plugin-prettier": "^5.2.6",
     "globals": "^16.0.0",
     "nodemon": "^3.1.0",
     "patch-package": "^8.0.0",
+    "prettier": "3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "vite": "^6.3.3"
