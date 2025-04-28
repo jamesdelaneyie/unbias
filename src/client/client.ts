@@ -5,10 +5,23 @@ import { ncontext } from '@/common/ncontext';
 import { NType } from '@/common/NType';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
 import { createNotificationBox, addNotification } from './htmlUI';
+import * as p2 from 'p2-es';
 
 type EntityMap = Map<number, Container>;
 let entities: EntityMap = new Map();
 let reconnectTimeout: number | null = null;
+
+const ligtenColor = (color: number, amount: number) => {
+  const r = (color >> 16) & 0xff;
+  const g = (color >> 8) & 0xff;
+  const b = color & 0xff;
+
+  const newR = Math.min(255, r + (255 - r) * amount);
+  const newG = Math.min(255, g + (255 - g) * amount);
+  const newB = Math.min(255, b + (255 - b) * amount);
+
+  return (newR << 16) + (newG << 8) + newB;
+};
 
 const createPlayer = (entity: any, app: Application, entities: EntityMap) => {
   const playerSize = 30;
@@ -16,7 +29,8 @@ const createPlayer = (entity: any, app: Application, entities: EntityMap) => {
   const playerContainer = new Container();
   const playerBody = new Graphics()
     .circle(0, 0, playerSize / 2)
-    .fill({ color: entity.color, alpha: 1 });
+    .fill({ color: entity.color, alpha: 1 })
+    .stroke({ color: ligtenColor(entity.color, 0.2), width: 1 });
   playerContainer.x = entity.x;
   playerContainer.y = entity.y;
   const username = new TaggedTextPlus(
@@ -38,7 +52,7 @@ const createPlayer = (entity: any, app: Application, entities: EntityMap) => {
   );
   username.x = 0;
   username.y = 0;
-  username.position.set(-1, -fontSize / 2);
+  username.position.set(-1.5, -fontSize / 2);
   username.width = playerSize;
   username.height = playerSize;
   username.update();
@@ -112,6 +126,41 @@ window.addEventListener('load', async () => {
   app.stage.addChild(masterContainer);
 
   drawInitialUI(app, masterContainer);
+
+  const world = new p2.World({
+    gravity: [0, -9.82],
+  });
+
+  const ground = new p2.Body({
+    mass: 0,
+    position: [0, 0],
+  });
+
+  const groundShape = new p2.Box({
+    width: 1000,
+    height: 20,
+  });
+
+  const groundGraphics = new Graphics();
+  groundGraphics.rect(-500, 0, 1000, 5);
+  groundGraphics.fill({ color: 0xffffff, alpha: 1 });
+  masterContainer.addChild(groundGraphics);
+
+  ground.addShape(groundShape);
+  world.addBody(ground);
+
+  const circle = new p2.Body({
+    mass: 1,
+    position: [100, 100],
+    angularVelocity: 1,
+  });
+
+  const circleShape = new p2.Circle({
+    radius: 10,
+  });
+
+  circle.addShape(circleShape);
+  world.addBody(circle);
 
   let connected = false;
   const serverTickRatePerSecond = 20;
@@ -216,6 +265,14 @@ window.addEventListener('load', async () => {
       return;
     }
 
+    world.step(1 / 60, delta, 3);
+
+    entities.forEach(entity => {
+      entity.position.x = circle.position[0];
+      entity.position.y = circle.position[1];
+      entity.rotation = circle.angle;
+    });
+
     const istate = interpolator.getInterpolatedState(100);
 
     while (client.network.messages.length > 0) {
@@ -255,6 +312,10 @@ window.addEventListener('load', async () => {
     }
 
     client.flush();
+
+    // Update ground graphics position
+    groundGraphics.position.x = ground.position[0];
+    groundGraphics.position.y = -ground.position[1];
   };
 
   // a standard rAF loop
