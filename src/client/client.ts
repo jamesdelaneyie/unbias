@@ -1,5 +1,6 @@
 import { Client, Interpolator } from 'nengi'
-import { Application, Graphics } from 'pixi.js';
+import { Application, Container, Graphics } from 'pixi.js';
+import TaggedTextPlus from 'pixi-tagged-text-plus'
 import { ncontext } from '@/common/ncontext'
 import { NType } from '@/common/NType'
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter'
@@ -35,7 +36,7 @@ const addNotification = (box: HTMLDivElement, message: string) => {
 const createPlayer = (entity: any, app: Application) => {
     const player = new Graphics()
         .circle(0, 0, 10)
-        .fill({ color: 0xffffff, alpha: 1 })
+        .fill({ color: entity.color, alpha: 1 })
     player.x = entity.x
     player.y = entity.y
     app.stage.addChild(player)
@@ -55,8 +56,75 @@ window.addEventListener('load', async () => {
     });
     document.body.appendChild(app.canvas);
 
+    const masterContainer = new Container()
+    app.stage.addChild(masterContainer)
+
+    const pageTitleText = 'BIAS 2'
+    const pageTitle = new TaggedTextPlus(pageTitleText, {
+        default: {
+            fontSize: "24px",
+            fill: "#fff",
+            align: "left",
+        },
+    })
+    pageTitle.x = 10
+    pageTitle.y = 10
+    masterContainer.addChild(pageTitle)
+
+    let connected = false
     const serverTickRatePerSecond = 20
     const client = new Client(ncontext, WebSocketClientAdapter, serverTickRatePerSecond)
+    
+    // Reconnection settings
+    const MAX_RECONNECT_ATTEMPTS = 5
+    const RECONNECT_DELAY = 2000 // 2 seconds
+    let reconnectAttempts = 0
+    let reconnectTimeout: number | null = null
+
+    const attemptReconnect = async () => {
+        if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+            addNotification(notificationBox, 'Max reconnection attempts reached')
+            return
+        }
+
+        reconnectAttempts++
+        addNotification(notificationBox, `Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`)
+
+        try {
+            const res = await client.connect('ws://localhost:9001', { token: 12345 })
+            if (res === 'accepted') {
+                addNotification(notificationBox, 'Reconnected to server')
+                connected = true
+                reconnectAttempts = 0
+                if (reconnectTimeout) {
+                    clearTimeout(reconnectTimeout)
+                    reconnectTimeout = null
+                }
+            } else {
+                console.log(res)
+                addNotification(notificationBox, 'Reconnection failed: ' + res)
+                scheduleReconnect()
+            }
+        } catch (err) {
+            console.log('empty err', err)
+            addNotification(notificationBox, 'Reconnection error')
+            scheduleReconnect()
+        }
+    }
+
+    const scheduleReconnect = () => {
+        if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout)
+        }
+        reconnectTimeout = window.setTimeout(attemptReconnect, RECONNECT_DELAY)
+    }
+
+    client.setDisconnectHandler((reason: any, event: any) => {
+        console.warn('Disconnected custom!', reason, event)
+        addNotification(notificationBox, 'Disconnected from server')
+        connected = false
+        scheduleReconnect()
+    })
     const interpolator = new Interpolator(client)
 
     const notificationBox = createNotificationBox()
@@ -71,6 +139,7 @@ window.addEventListener('load', async () => {
         const res = await client.connect('ws://localhost:9001', { token: 12345 })
         if(res==='accepted') {
             addNotification(notificationBox, 'Connected to server')
+            connected = true
         } else {
             console.log(res)
             addNotification(notificationBox, 'Connection error: ' + res)
@@ -82,6 +151,11 @@ window.addEventListener('load', async () => {
     }
 
     const tick = (delta: number) => {
+        // Only proceed if client is connected
+        if (!connected) {
+            return;
+        }
+
         const istate = interpolator.getInterpolatedState(100)
 
         while (client.network.messages.length > 0) {
@@ -112,11 +186,15 @@ window.addEventListener('load', async () => {
             addNotification(notificationBox, 'Sending command')
             client.addCommand({ ntype: NType.Command, w: true, a: true, s: true, d: true, delta })
             console.log('Sending command')
-            client.flush()
             sendCommand = false
         }
 
-        client.flush()
+        try {
+            client.flush()
+        } catch {
+            // Ignore flush errors when disconnected
+            console.log('Flush failed - likely disconnected')
+        }
     }
 
     // a standard rAF loop

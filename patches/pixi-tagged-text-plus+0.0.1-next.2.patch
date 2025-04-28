@@ -1,0 +1,59 @@
+diff --git a/node_modules/pixi-tagged-text-plus/dist/TaggedText.js b/node_modules/pixi-tagged-text-plus/dist/TaggedText.js
+index d804014..3b41eab 100644
+--- a/node_modules/pixi-tagged-text-plus/dist/TaggedText.js
++++ b/node_modules/pixi-tagged-text-plus/dist/TaggedText.js
+@@ -33,7 +33,7 @@ const DEFAULT_DESTROY_OPTIONS = {
+   children: true,
+   texture: true
+ };
+-class TaggedText extends PIXI.Sprite {
++class TaggedText extends PIXI.Container {
+   static get defaultStyles() {
+     return DEFAULT_STYLE_SET;
+   }
+@@ -230,7 +230,11 @@ class TaggedText extends PIXI.Sprite {
+     this
+   )(code, message);
+   constructor(text = "", tagStyles = {}, options = {}, texture) {
+-    super(texture);
++    super();
++    if (texture) {
++      this._backgroundSprite = new PIXI.Sprite(texture);
++      this.addChild(this._backgroundSprite);
++    }
+     this._textContainer = new PIXI.Container();
+     this._spriteContainer = new PIXI.Container();
+     this._decorationContainer = new PIXI.Container();
+@@ -255,6 +259,32 @@ class TaggedText extends PIXI.Sprite {
+     }
+     this.text = text;
+   }
++  // Add texture getter/setter
++  get texture() {
++    return this._backgroundSprite?.texture;
++  }
++  set texture(val) {
++    if (this._backgroundSprite) {
++      this._backgroundSprite.texture = val;
++    }
++  }
++  // Add width/height getters/setters
++  get width() {
++    return this._backgroundSprite?.width ?? 0;
++  }
++  set width(val) {
++    if (this._backgroundSprite) {
++      this._backgroundSprite.width = val;
++    }
++  }
++  get height() {
++    return this._backgroundSprite?.height ?? 0;
++  }
++  set height(val) {
++    if (this._backgroundSprite) {
++      this._backgroundSprite.height = val;
++    }
++  }
+   destroyImgMap() {
+     if (this.destroyed) {
+       throw new Error(

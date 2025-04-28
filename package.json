@@ -11,7 +11,8 @@
     "build": "npx tsc",
     "typecheck": "npx tsc --project tsconfig.test.json",
     "lint": "eslint .",
-    "lintfix": "eslint . --fix"
+    "lintfix": "eslint . --fix",
+    "postinstall": "patch-package"
   },
   "keywords": [],
   "author": "",
@@ -21,8 +22,9 @@
     "nengi-buffers": "^0.5.0",
     "nengi-uws-instance-adapter": "^0.6.0",
     "nengi-websocket-client-adapter": "^0.7.0",
+    "p2-es": "^1.2.3",
     "pixi-tagged-text-plus": "^0.0.1-next.2",
-    "pixi.js": "^8.0.0"
+    "pixi.js": "^8.9.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
@@ -32,6 +34,7 @@
     "eslint": "^9.25.1",
     "globals": "^16.0.0",
     "nodemon": "^3.1.0",
+    "patch-package": "^8.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "vite": "^6.3.3"

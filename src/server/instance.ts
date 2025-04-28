@@ -43,12 +43,17 @@ const update = () => {
             user.view = new AABB2D(0, 0, 2200, 2200)
             // @ts-expect-error user view not typed
             space.subscribe(networkEvent.user, user.view)
+
+            //generate a random color
+            const color = Math.random() * 0xFFFFFF
             
             const playerEntity = { 
                 nid: 0, 
                 ntype: NType.Entity, 
                 x: 50,
-                y: 50
+                y: 50,
+                color: color,
+                name: 'Player'
             }
 
             main.addEntity(playerEntity)

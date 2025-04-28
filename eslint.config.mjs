@@ -21,8 +21,8 @@ export default [
         },
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-unused-vars': 'off'
-        },
-        ignores: ["**/common/types/**"]
+            '@typescript-eslint/no-unused-vars': 'off',
+            "no-unused-vars": ["error", { "varsIgnorePattern": "^NType$" }]
+        }
     }
 ]
