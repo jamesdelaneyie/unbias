@@ -1,6 +1,10 @@
 import { Binary, defineSchema, Schema } from 'nengi'
 
 export const entitySchema: Schema = defineSchema({
+   //nid 
+   //ntype
    x: Binary.Float32,
-   y: Binary.Float32
+   y: Binary.Float32,
+   color: Binary.Float64,
+   name: Binary.String
 }) 

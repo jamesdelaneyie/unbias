@@ -3,10 +3,11 @@ import { ncontext } from '../common/ncontext'
 import { NType } from '../common/NType'
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter'
 
-const instance = new Instance(ncontext)
 const port = 9001
+const instance = new Instance(ncontext)
 const uws = new uWebSocketsInstanceAdapter(instance.network, { /* uws config */ })
 uws.listen(port, () => { console.log(`uws adapter is listening on ${port}`) })
+
 
 // a plain channel (everyone sees everything in it)
 const main = new Channel(instance.localState)
@@ -18,7 +19,6 @@ instance.onConnect = async (handshake: any) => {
     console.log('handshake received', handshake.token)
     return true
 }
-
 
 const queue = instance.queue
 

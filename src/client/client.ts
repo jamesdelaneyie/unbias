@@ -44,6 +44,7 @@ const createPlayer = (entity: any, app: Application) => {
 
 window.addEventListener('load', async () => {
 
+    // initialize the pixi app
     const app = new Application()
     await app.init({ 
         antialias: true,
@@ -54,12 +55,12 @@ window.addEventListener('load', async () => {
     });
     document.body.appendChild(app.canvas);
 
+    const serverTickRatePerSecond = 20
+    const client = new Client(ncontext, WebSocketClientAdapter, serverTickRatePerSecond)
+    const interpolator = new Interpolator(client)
+
     const notificationBox = createNotificationBox()
     addNotification(notificationBox, 'Window loaded')
-
-    const serverTickRate = 20 // 20 ticks per second
-    const client = new Client(ncontext, WebSocketClientAdapter, serverTickRate)
-    const interpolator = new Interpolator(client)
 
     let sendCommand = false
     setTimeout(() => {

@@ -5,5 +5,7 @@ export const commandSchema: Schema = defineSchema({
     a: Binary.Boolean,
     s: Binary.Boolean,
     d: Binary.Boolean,
+    space: Binary.Boolean,
+    click: Binary.Boolean,
     delta: Binary.Float32
 })
