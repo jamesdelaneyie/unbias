@@ -1,5 +1,5 @@
 import { Client, Interpolator } from 'nengi';
-import { Application, Container, Graphics } from 'pixi.js';
+import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import TaggedTextPlus from 'pixi-tagged-text-plus';
 import { ncontext } from '@/common/ncontext';
 import { NType } from '@/common/NType';
@@ -128,11 +128,21 @@ window.addEventListener('load', async () => {
   drawInitialUI(app, masterContainer);
 
   const worldContainer = new Container();
-  worldContainer.width = app.screen.width;
-  worldContainer.height = app.screen.height;
-  worldContainer.scale.y = -1;
-  worldContainer.zIndex = 1200;
+  worldContainer.position.x = app.screen.width / 2;
+  worldContainer.position.y = app.screen.height / 2;
+  worldContainer.scale.x = 100;
+  worldContainer.scale.y = -100;
   app.stage.addChild(worldContainer);
+
+  const worldContainerGraphics = new Graphics();
+  worldContainerGraphics.rect(
+    -app.screen.width / 2,
+    -app.screen.height / 2,
+    app.screen.width,
+    app.screen.height
+  );
+  worldContainerGraphics.fill({ color: 0xffffff, alpha: 0.1 });
+  worldContainer.addChild(worldContainerGraphics);
 
   const world = new p2.World({
     gravity: [0, -9.82],
@@ -140,16 +150,17 @@ window.addEventListener('load', async () => {
 
   const ground = new p2.Body({
     mass: 0,
-    position: [0, 0],
+    position: [0, -1],
+    angle: 0,
   });
 
   const groundShape = new p2.Box({
-    width: 1000,
-    height: 20,
+    width: 10,
+    height: 0.2,
   });
 
   const groundGraphics = new Graphics();
-  groundGraphics.rect(0, -200, app.screen.width, 5);
+  groundGraphics.rect(-5, -0.1, 10, 0.2);
   groundGraphics.fill({ color: 0xffffff, alpha: 1 });
   worldContainer.addChild(groundGraphics);
 
@@ -158,21 +169,30 @@ window.addEventListener('load', async () => {
 
   const circle = new p2.Body({
     mass: 1,
-    position: [100, 100],
-    angularVelocity: 0,
+    position: [0, 2],
+    angularVelocity: 0.5,
   });
 
   const circleShape = new p2.Circle({
-    radius: 10,
+    radius: 0.5,
   });
 
   circle.addShape(circleShape);
   world.addBody(circle);
 
+  const textureRadius = 100;
   const circleGraphics = new Graphics();
-  circleGraphics.circle(700, -200, 10);
+  circleGraphics.circle(textureRadius, textureRadius, textureRadius);
   circleGraphics.fill({ color: 0xffffff, alpha: 1 });
-  worldContainer.addChild(circleGraphics);
+  const circleTexture = app.renderer.generateTexture(circleGraphics);
+
+  const circleSprite = new Sprite(circleTexture);
+  circleSprite.anchor.set(0.5);
+  circleSprite.width = 1.0;
+  circleSprite.height = 1.0;
+  worldContainer.addChild(circleSprite);
+
+  app.renderer.resolution = window.devicePixelRatio;
 
   let connected = false;
   const serverTickRatePerSecond = 20;
@@ -277,14 +297,15 @@ window.addEventListener('load', async () => {
       return;
     }
 
-    world.step(1 / 60, delta, 3);
+    world.step(1 / 60, delta, 2);
 
-    circleGraphics.position.x = circle.position[0];
-    circleGraphics.position.y = circle.position[1];
-    circleGraphics.rotation = circle.angle;
+    circleSprite.position.x = circle.position[0];
+    circleSprite.position.y = circle.position[1];
+    circleSprite.rotation = circle.angle;
 
     groundGraphics.position.x = ground.position[0];
-    groundGraphics.position.y = -ground.position[1];
+    groundGraphics.position.y = ground.position[1];
+    groundGraphics.rotation = ground.angle;
 
     const istate = interpolator.getInterpolatedState(100);
 
@@ -325,10 +346,6 @@ window.addEventListener('load', async () => {
     }
 
     client.flush();
-
-    // Update ground graphics position
-    groundGraphics.position.x = ground.position[0];
-    groundGraphics.position.y = -ground.position[1];
   };
 
   // a standard rAF loop
