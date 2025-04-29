@@ -13,12 +13,13 @@ uws.listen(port, () => {
 
 const main = new Channel(instance.localState);
 const space = new ChannelAABB2D(instance.localState);
+const objects: Map<number, any> = new Map();
 
 const world = new p2.World({
-  gravity: [0, 9.82],
+  gravity: [0, 0.5],
 });
 
-const ground = new p2.Body({
+/*const ground = new p2.Body({
   mass: 0,
   position: [0, -1],
   angle: 0,
@@ -30,18 +31,59 @@ const groundShape = new p2.Box({
 });
 
 ground.addShape(groundShape);
-world.addBody(ground);
+world.addBody(ground);*/
 
 instance.onConnect = async (handshake: any) => {
   console.log('handshake received', handshake.token);
   return true;
 };
 
+const createPhysicalObject = (object: any) => {
+  const body = new p2.Body({
+    mass: 1,
+    position: [object.x, object.y],
+    angle: 0,
+    angularVelocity: 0.5,
+  });
+
+  const shape = new p2.Circle({
+    radius: object.width,
+  });
+
+  body.addShape(shape);
+  world.addBody(body);
+
+  return body;
+};
+
 const queue = instance.queue;
+let worldPopulated = false;
+
+const populateWorld = () => {
+  const color = Math.random() * 0xffffff;
+  const objectEntity = {
+    nid: 1,
+    ntype: NType.Object,
+    x: 1,
+    y: 1,
+    width: 1,
+    height: 1,
+    shape: 'circle',
+    color: color,
+  };
+  const objectBody = createPhysicalObject(objectEntity);
+  objects.set(objectEntity.nid, { entity: objectEntity, body: objectBody });
+  space.addEntity(objectEntity);
+};
 
 const update = () => {
   while (!queue.isEmpty()) {
     const networkEvent = queue.next();
+
+    if (!worldPopulated) {
+      populateWorld();
+      worldPopulated = true;
+    }
 
     // handle a user disconnecting
     if (networkEvent.type === NetworkEvent.UserDisconnected) {
@@ -61,6 +103,11 @@ const update = () => {
       // @ts-expect-error user view not typed
       space.subscribe(networkEvent.user, user.view);
 
+      // Re-add all persistent world objects to the channel for this user
+      objects.forEach(obj => {
+        space.addEntity(obj.entity);
+      });
+
       //generate a random color
       const color = Math.random() * 0xffffff;
 
@@ -77,18 +124,6 @@ const update = () => {
       space.addEntity(playerEntity);
       user.queueMessage({ myId: playerEntity.nid, ntype: NType.IdentityMessage });
 
-      const objectEntity = {
-        nid: 1,
-        ntype: NType.Object,
-        x: 2,
-        y: 1,
-        width: 1,
-        height: 1,
-        shape: 'circle',
-        color: color,
-      };
-      space.addEntity(objectEntity);
-
       console.log('user connected', playerEntity.nid);
     }
 
@@ -102,6 +137,11 @@ const update = () => {
         });
       }
     }
+
+    objects.forEach(object => {
+      object.entity.x = object.body.position[0];
+      object.entity.y = object.body.position[1];
+    });
 
     world.step(1 / 60);
   }

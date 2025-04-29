@@ -2,7 +2,7 @@ import { Client, Interpolator } from 'nengi';
 import { NType } from '@/common/NType';
 import { ncontext } from '@/common/ncontext';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
-import { Application, Container, Graphics } from 'pixi.js';
+import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import TaggedTextPlus from 'pixi-tagged-text-plus';
 import { createNotificationBox, addNotification, ligtenColor } from './UIUtils';
 
@@ -49,15 +49,27 @@ const createPlayer = (entity: any, app: Application, entities: EntityMap) => {
   entities.set(entity.nid, playerContainer);
 };
 
-const createObject = (object: any, worldContainer: Container, entities: EntityMap) => {
-  const objectContainer = new Graphics()
-    .circle(0, 0, object.width / 2)
+const createObject = (
+  app: Application,
+  object: any,
+  worldContainer: Container,
+  entities: EntityMap
+) => {
+  const objectGraphics = new Graphics()
+    .circle(0, 0, object.width * 100)
     .fill({ color: object.color, alpha: 1 })
     .stroke({ color: ligtenColor(object.color, 0.2), width: 1 });
-  objectContainer.x = object.x;
-  objectContainer.y = object.y;
-  worldContainer.addChild(objectContainer);
-  entities.set(object.nid, objectContainer);
+  const objectTexture = app.renderer.generateTexture(objectGraphics);
+
+  const objectSprite = new Sprite(objectTexture);
+  objectSprite.anchor.set(0.5);
+  objectSprite.width = 1.0;
+  objectSprite.height = 1.0;
+  objectSprite.x = object.x;
+  objectSprite.y = object.y;
+  worldContainer.addChild(objectSprite);
+
+  entities.set(object.nid, objectSprite);
 };
 
 const updatePlayer = (entity: any, app: Application, entities: EntityMap) => {
@@ -65,6 +77,17 @@ const updatePlayer = (entity: any, app: Application, entities: EntityMap) => {
   if (player) {
     player.x = entity.x;
     player.y = entity.y;
+  }
+};
+
+const updateObject = (entity: any, app: Application, entities: EntityMap) => {
+  const object = entities.get(entity.nid) as Sprite;
+  if (object) {
+    const property = entity.prop;
+    const value = entity.value;
+    if (property === 'x' || property === 'y') {
+      object[property as 'x' | 'y'] = value;
+    }
   }
 };
 
@@ -140,23 +163,6 @@ window.addEventListener('load', async () => {
   );
   worldContainerGraphics.fill({ color: 0xffffff, alpha: 0.1 });
   worldContainer.addChild(worldContainerGraphics);
-
-  /*const groundGraphics = new Graphics();
-  groundGraphics.rect(-5, -0.1, 10, 0.2);
-  groundGraphics.fill({ color: 0xffffff, alpha: 1 });
-  worldContainer.addChild(groundGraphics);
-
-  const textureRadius = 100;
-  const circleGraphics = new Graphics();
-  circleGraphics.circle(textureRadius, textureRadius, textureRadius);
-  circleGraphics.fill({ color: 0xffffff, alpha: 1 });
-  const circleTexture = app.renderer.generateTexture(circleGraphics);
-
-  const circleSprite = new Sprite(circleTexture);
-  circleSprite.anchor.set(0.5);
-  circleSprite.width = 1.0;
-  circleSprite.height = 1.0;
-  worldContainer.addChild(circleSprite);*/
 
   app.renderer.resolution = window.devicePixelRatio;
 
@@ -272,19 +278,23 @@ window.addEventListener('load', async () => {
 
     istate.forEach(snapshot => {
       snapshot.createEntities.forEach((entity: any) => {
+        console.log('createEntity', entity);
         if (entity.ntype === NType.Entity) {
           createPlayer(entity, app, entities);
         } else if (entity.ntype === NType.Object) {
+          createObject(app, entity, worldContainer, entities);
           console.log('createObject', entity);
-          createObject(entity, worldContainer, entities);
         }
       });
 
       snapshot.updateEntities.forEach((diff: any) => {
+        console.log('updateEntity', diff);
         updatePlayer(diff, app, entities);
+        updateObject(diff, app, entities);
       });
 
       snapshot.deleteEntities.forEach((nid: number) => {
+        console.log('deleteEntity', nid);
         deletePlayer(nid, app, entities);
       });
     });
