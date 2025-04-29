@@ -1,6 +1,7 @@
 import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel } from 'nengi';
 import { ncontext } from '../common/ncontext';
 import { NType } from '../common/NType';
+import { playerEntity } from '../server/playerEntity';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
 import * as p2 from 'p2-es';
 
@@ -13,25 +14,31 @@ uws.listen(port, () => {
 
 const main = new Channel(instance.localState);
 const space = new ChannelAABB2D(instance.localState);
-const objects: Map<number, any> = new Map();
+
+// dynamic objects react to p2 world gravity
+// and other entities in the p2 world
+// networked across clients by nengi
+type dynamicObject = {
+  entity: {
+    nid: number;
+    ntype: NType;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    shape: String;
+    color: number;
+  };
+  body: p2.Body;
+};
+const dynamicObjects: Map<number, dynamicObject> = new Map();
+
+// users
+const playerEntities: Map<number, playerEntity> = new Map();
 
 const world = new p2.World({
   gravity: [0, 0.5],
 });
-
-/*const ground = new p2.Body({
-  mass: 0,
-  position: [0, -1],
-  angle: 0,
-});
-
-const groundShape = new p2.Box({
-  width: 10,
-  height: 0.2,
-});
-
-ground.addShape(groundShape);
-world.addBody(ground);*/
 
 instance.onConnect = async (handshake: any) => {
   console.log('handshake received', handshake.token);
@@ -72,8 +79,15 @@ const populateWorld = () => {
     color: color,
   };
   const objectBody = createPhysicalObject(objectEntity);
-  objects.set(objectEntity.nid, { entity: objectEntity, body: objectBody });
+  dynamicObjects.set(objectEntity.nid, { entity: objectEntity, body: objectBody });
   space.addEntity(objectEntity);
+  worldPopulated = true;
+  /*
+    // add all the world objects to 2d space
+    dynamicObjects.forEach(obj => {
+      space.addEntity(obj.entity);
+    });
+  */
 };
 
 const update = () => {
@@ -82,49 +96,35 @@ const update = () => {
 
     if (!worldPopulated) {
       populateWorld();
-      worldPopulated = true;
     }
 
     // handle a user disconnecting
     if (networkEvent.type === NetworkEvent.UserDisconnected) {
       const { user } = networkEvent;
-      console.log('user disconnected', user.id);
+      const playerEntity = playerEntities.get(user.id);
+      if (playerEntity) {
+        main.removeEntity(playerEntity);
+        space.removeEntity(playerEntity);
+      }
     }
 
     // handle a user connecting
     if (networkEvent.type === NetworkEvent.UserConnected) {
       const { user } = networkEvent;
-
-      // handle connection here... for example:
+      const nextId = Object.entries(playerEntities).length;
+      const newPlayer = new playerEntity(nextId, user);
       main.subscribe(user);
+
       const viewSize = 2200;
-      // @ts-expect-error user view not typed
-      user.view = new AABB2D(0, 0, viewSize, viewSize);
-      // @ts-expect-error user view not typed
-      space.subscribe(networkEvent.user, user.view);
+      newPlayer.view = new AABB2D(0, 0, viewSize, viewSize);
+      space.subscribe(networkEvent.user, newPlayer.view);
 
-      // Re-add all persistent world objects to the channel for this user
-      objects.forEach(obj => {
-        space.addEntity(obj.entity);
-      });
+      main.addEntity(newPlayer);
+      space.addEntity(newPlayer);
 
-      //generate a random color
-      const color = Math.random() * 0xffffff;
+      playerEntities.set(newPlayer.nid, newPlayer);
 
-      const playerEntity = {
-        nid: 0,
-        ntype: NType.Entity,
-        x: 700,
-        y: 400,
-        color: color,
-        username: 'J',
-      };
-
-      main.addEntity(playerEntity);
-      space.addEntity(playerEntity);
-      user.queueMessage({ myId: playerEntity.nid, ntype: NType.IdentityMessage });
-
-      console.log('user connected', playerEntity.nid);
+      user.queueMessage({ myId: newPlayer.nid, ntype: NType.IdentityMessage });
     }
 
     if (networkEvent.type === NetworkEvent.CommandSet) {
@@ -138,7 +138,7 @@ const update = () => {
       }
     }
 
-    objects.forEach(object => {
+    dynamicObjects.forEach(object => {
       object.entity.x = object.body.position[0];
       object.entity.y = object.body.position[1];
     });
