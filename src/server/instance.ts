@@ -2,21 +2,35 @@ import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel } from 'nengi';
 import { ncontext } from '../common/ncontext';
 import { NType } from '../common/NType';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
+import * as p2 from 'p2-es';
 
 const port = 9001;
 const instance = new Instance(ncontext);
-const uws = new uWebSocketsInstanceAdapter(instance.network, {
-  /* uws config */
-});
+const uws = new uWebSocketsInstanceAdapter(instance.network, {});
 uws.listen(port, () => {
   console.log(`uws adapter is listening on ${port}`);
 });
 
-// a plain channel (everyone sees everything in it)
 const main = new Channel(instance.localState);
-
-// a spatial channel (users have a view and see positional objects within their view)
 const space = new ChannelAABB2D(instance.localState);
+
+const world = new p2.World({
+  gravity: [0, 9.82],
+});
+
+const ground = new p2.Body({
+  mass: 0,
+  position: [0, -1],
+  angle: 0,
+});
+
+const groundShape = new p2.Box({
+  width: 10,
+  height: 0.2,
+});
+
+ground.addShape(groundShape);
+world.addBody(ground);
 
 instance.onConnect = async (handshake: any) => {
   console.log('handshake received', handshake.token);
@@ -27,7 +41,6 @@ const queue = instance.queue;
 
 const update = () => {
   while (!queue.isEmpty()) {
-    // get the next event from the queue
     const networkEvent = queue.next();
 
     // handle a user disconnecting
@@ -63,6 +76,19 @@ const update = () => {
       main.addEntity(playerEntity);
       space.addEntity(playerEntity);
       user.queueMessage({ myId: playerEntity.nid, ntype: NType.IdentityMessage });
+
+      const objectEntity = {
+        nid: 1,
+        ntype: NType.Object,
+        x: 2,
+        y: 1,
+        width: 1,
+        height: 1,
+        shape: 'circle',
+        color: color,
+      };
+      space.addEntity(objectEntity);
+
       console.log('user connected', playerEntity.nid);
     }
 
@@ -76,6 +102,8 @@ const update = () => {
         });
       }
     }
+
+    world.step(1 / 60);
   }
   instance.step();
 };

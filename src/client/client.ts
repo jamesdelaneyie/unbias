@@ -1,27 +1,14 @@
 import { Client, Interpolator } from 'nengi';
-import { Application, Container, Graphics, Sprite } from 'pixi.js';
-import TaggedTextPlus from 'pixi-tagged-text-plus';
-import { ncontext } from '@/common/ncontext';
 import { NType } from '@/common/NType';
+import { ncontext } from '@/common/ncontext';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
-import { createNotificationBox, addNotification } from './htmlUI';
-import * as p2 from 'p2-es';
+import { Application, Container, Graphics } from 'pixi.js';
+import TaggedTextPlus from 'pixi-tagged-text-plus';
+import { createNotificationBox, addNotification, ligtenColor } from './UIUtils';
 
 type EntityMap = Map<number, Container>;
 let entities: EntityMap = new Map();
 let reconnectTimeout: number | null = null;
-
-const ligtenColor = (color: number, amount: number) => {
-  const r = (color >> 16) & 0xff;
-  const g = (color >> 8) & 0xff;
-  const b = color & 0xff;
-
-  const newR = Math.min(255, r + (255 - r) * amount);
-  const newG = Math.min(255, g + (255 - g) * amount);
-  const newB = Math.min(255, b + (255 - b) * amount);
-
-  return (newR << 16) + (newG << 8) + newB;
-};
 
 const createPlayer = (entity: any, app: Application, entities: EntityMap) => {
   const playerSize = 30;
@@ -60,6 +47,17 @@ const createPlayer = (entity: any, app: Application, entities: EntityMap) => {
   playerContainer.addChild(username);
   app.stage.addChild(playerContainer);
   entities.set(entity.nid, playerContainer);
+};
+
+const createObject = (object: any, worldContainer: Container, entities: EntityMap) => {
+  const objectContainer = new Graphics()
+    .circle(0, 0, object.width / 2)
+    .fill({ color: object.color, alpha: 1 })
+    .stroke({ color: ligtenColor(object.color, 0.2), width: 1 });
+  objectContainer.x = object.x;
+  objectContainer.y = object.y;
+  worldContainer.addChild(objectContainer);
+  entities.set(object.nid, objectContainer);
 };
 
 const updatePlayer = (entity: any, app: Application, entities: EntityMap) => {
@@ -110,8 +108,7 @@ const cleanup = () => {
 };
 
 window.addEventListener('load', async () => {
-  // initialize the pixi app
-  const app = new Application();
+  const app = new Application(); // pixi.js app
   await app.init({
     antialias: true,
     background: '#000000',
@@ -144,41 +141,10 @@ window.addEventListener('load', async () => {
   worldContainerGraphics.fill({ color: 0xffffff, alpha: 0.1 });
   worldContainer.addChild(worldContainerGraphics);
 
-  const world = new p2.World({
-    gravity: [0, -9.82],
-  });
-
-  const ground = new p2.Body({
-    mass: 0,
-    position: [0, -1],
-    angle: 0,
-  });
-
-  const groundShape = new p2.Box({
-    width: 10,
-    height: 0.2,
-  });
-
-  const groundGraphics = new Graphics();
+  /*const groundGraphics = new Graphics();
   groundGraphics.rect(-5, -0.1, 10, 0.2);
   groundGraphics.fill({ color: 0xffffff, alpha: 1 });
   worldContainer.addChild(groundGraphics);
-
-  ground.addShape(groundShape);
-  world.addBody(ground);
-
-  const circle = new p2.Body({
-    mass: 1,
-    position: [0, 2],
-    angularVelocity: 0.5,
-  });
-
-  const circleShape = new p2.Circle({
-    radius: 0.5,
-  });
-
-  circle.addShape(circleShape);
-  world.addBody(circle);
 
   const textureRadius = 100;
   const circleGraphics = new Graphics();
@@ -190,7 +156,7 @@ window.addEventListener('load', async () => {
   circleSprite.anchor.set(0.5);
   circleSprite.width = 1.0;
   circleSprite.height = 1.0;
-  worldContainer.addChild(circleSprite);
+  worldContainer.addChild(circleSprite);*/
 
   app.renderer.resolution = window.devicePixelRatio;
 
@@ -297,16 +263,6 @@ window.addEventListener('load', async () => {
       return;
     }
 
-    world.step(1 / 60, delta, 2);
-
-    circleSprite.position.x = circle.position[0];
-    circleSprite.position.y = circle.position[1];
-    circleSprite.rotation = circle.angle;
-
-    groundGraphics.position.x = ground.position[0];
-    groundGraphics.position.y = ground.position[1];
-    groundGraphics.rotation = ground.angle;
-
     const istate = interpolator.getInterpolatedState(100);
 
     while (client.network.messages.length > 0) {
@@ -316,8 +272,12 @@ window.addEventListener('load', async () => {
 
     istate.forEach(snapshot => {
       snapshot.createEntities.forEach((entity: any) => {
-        console.log('createEntities', entity);
-        createPlayer(entity, app, entities);
+        if (entity.ntype === NType.Entity) {
+          createPlayer(entity, app, entities);
+        } else if (entity.ntype === NType.Object) {
+          console.log('createObject', entity);
+          createObject(entity, worldContainer, entities);
+        }
       });
 
       snapshot.updateEntities.forEach((diff: any) => {

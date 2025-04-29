@@ -2,6 +2,7 @@
 import { Context } from 'nengi';
 import { NType } from './NType';
 import { entitySchema } from './schemas/entitySchema';
+import { objectSchema } from './schemas/objectSchema';
 import { identityMessageSchema } from './schemas/identityMessageSchema';
 import { commandSchema } from './schemas/commandSchema';
 
@@ -9,5 +10,5 @@ const ncontext = new Context();
 ncontext.register(NType.Entity, entitySchema);
 ncontext.register(NType.IdentityMessage, identityMessageSchema);
 ncontext.register(NType.Command, commandSchema);
-
+ncontext.register(NType.Object, objectSchema);
 export { ncontext };
