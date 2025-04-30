@@ -1,0 +1,13 @@
+diff --git a/node_modules/nengi/build/server/NDictionary.js b/node_modules/nengi/build/server/NDictionary.js
+index f0ff97c..083ca86 100644
+--- a/node_modules/nengi/build/server/NDictionary.js
++++ b/node_modules/nengi/build/server/NDictionary.js
+@@ -18,7 +18,7 @@ class NDictionary {
+         const indexToRemove = this.nidIndex.get(nid);
+         const lastIndex = this.array.length - 1;
+         // If the element to remove is not the last one, swap and pop.
+-        if (indexToRemove !== lastIndex) {
++        if (indexToRemove !== lastIndex  && indexToRemove !== undefined) {
+             const otherNid = this.array[lastIndex].nid;
+             [this.array[indexToRemove], this.array[lastIndex]] =
+                 [this.array[lastIndex], this.array[indexToRemove]];

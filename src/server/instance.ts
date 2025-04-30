@@ -1,4 +1,4 @@
-import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel, Binary } from 'nengi';
+import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel } from 'nengi';
 import { ncontext } from '../common/ncontext';
 import { NType } from '../common/NType';
 import { playerEntity } from '../server/playerEntity';
@@ -89,17 +89,37 @@ const populateWorld = () => {
   });
 };
 
-const createPlayerEntity = (user: any, username: Binary.String) => {
-  const nextId = Object.entries(playerEntities).length;
-  const viewSize = 1100;
-  const newUser = new playerEntity(nextId, user, username);
-  newUser.x = viewSize / 2;
-  newUser.y = viewSize / 2;
-  newUser.view = new AABB2D(0, 0, viewSize, viewSize);
-  playerEntities.set(newUser.nid, newUser);
-  space.addEntity(newUser);
-  space.subscribe(user, newUser.view);
-  user.queueMessage({ myId: newUser.nid, ntype: NType.IdentityMessage, username: username });
+const createPlayerEntity = (user: any, username: string) => {
+  try {
+    const viewSize = 1100;
+    const newUser = new playerEntity(user, username);
+    newUser.x = viewSize / 2 + Math.random() * 200;
+    newUser.y = viewSize / 2;
+    // creates a local view for the playerEntity for culling
+    newUser.view = new AABB2D(0, 0, viewSize, viewSize);
+    space.subscribe(user, newUser.view);
+    space.addEntity(newUser); // assigns an nid to the playerEntity
+    playerEntities.set(newUser.nid, newUser);
+    user.queueMessage({ myId: newUser.nid, ntype: NType.IdentityMessage, username: username });
+  } catch (error) {
+    console.error('Error creating player entity', error);
+  }
+};
+
+const deletePlayerEntity = (user: any) => {
+  try {
+    const playerEntity = Array.from(playerEntities.values()).find(entity => entity.id === user.id);
+    if (playerEntity) {
+      const nId = playerEntity.nid;
+      main.unsubscribe(user);
+      space.unsubscribe(user);
+      main.removeEntity(playerEntity);
+      space.removeEntity(playerEntity);
+      playerEntities.delete(nId);
+    }
+  } catch (error) {
+    console.error('Error deleting player entity', error);
+  }
 };
 
 const update = () => {
@@ -110,20 +130,16 @@ const update = () => {
       populateWorld();
     }
 
-    // handle a user disconnecting
-    if (networkEvent.type === NetworkEvent.UserDisconnected) {
-      const { user } = networkEvent;
-      const playerEntity = playerEntities.get(user.id);
-      if (playerEntity) {
-        main.removeEntity(playerEntity);
-        space.removeEntity(playerEntity);
-      }
-    }
-
     // handle a user connecting
     if (networkEvent.type === NetworkEvent.UserConnected) {
       const { user } = networkEvent;
       main.subscribe(user);
+    }
+
+    // handle a user disconnecting
+    if (networkEvent.type === NetworkEvent.UserDisconnected) {
+      const { user } = networkEvent;
+      deletePlayerEntity(user);
     }
 
     if (networkEvent.type === NetworkEvent.CommandSet) {
@@ -134,6 +150,13 @@ const update = () => {
             //console.log('command', command);
           }
           if (command.ntype === NType.UsernameCommand) {
+            const usernameTaken = Array.from(playerEntities.values()).find(
+              entity => entity.username === command.username
+            );
+            if (usernameTaken) {
+              console.log('Username already taken');
+              return;
+            }
             createPlayerEntity(user, command.username);
           }
         });

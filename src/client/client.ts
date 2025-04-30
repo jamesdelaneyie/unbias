@@ -33,11 +33,12 @@ const updateObject = (entity: any, entities: EntityMap) => {
   }
 };
 
-const deletePlayer = (entity: any, entities: EntityMap) => {
-  const player = entities.get(entity.nid);
+const deletePlayer = (nid: number, entities: EntityMap) => {
+  const player = entities.get(nid);
   if (player) {
-    player.destroy();
-    entities.delete(entity.nid);
+    player.parent?.removeChild(player);
+    player.destroy({ children: true });
+    entities.delete(nid);
   }
 };
 
@@ -139,22 +140,25 @@ window.addEventListener('load', async () => {
   function setupUsername(usernameField: HTMLInputElement) {
     const existingUsername = localStorage.getItem('username') || '';
     if (existingUsername) {
-      usernameField.value = existingUsername;
+      /*usernameField.value = existingUsername;
       client.addCommand({
         ntype: NType.UsernameCommand,
         username: existingUsername,
-      });
+      });*/
     }
 
+    let usernameSubmitted = false;
     usernameField.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && !usernameSubmitted) {
         const username = (e.target as HTMLInputElement).value.trim();
         if (username) {
+          usernameSubmitted = true;
           localStorage.setItem('username', username);
           client.addCommand({
             ntype: NType.UsernameCommand,
             username,
           });
+          usernameField.disabled = true;
         }
       }
     });
@@ -239,8 +243,8 @@ window.addEventListener('load', async () => {
 
     istate.forEach(snapshot => {
       snapshot.createEntities.forEach((entity: any) => {
-        console.log('createEntity', entity);
         if (entity.ntype === NType.Entity) {
+          console.log('createPlayerEntity', entity);
           createPlayerGraphics(entity, app, entities);
         } else if (entity.ntype === NType.Object) {
           console.log('createObjectGraphics', entity);
@@ -249,7 +253,7 @@ window.addEventListener('load', async () => {
       });
 
       snapshot.updateEntities.forEach((diff: any) => {
-        console.log('updateEntity', diff);
+        //console.log('updateEntity', diff);
         updatePlayer(diff, entities);
         updateObject(diff, entities);
       });

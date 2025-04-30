@@ -1,4 +1,4 @@
-import { User, AABB2D, Binary } from 'nengi';
+import { User, AABB2D } from 'nengi';
 import { NType } from '../common/NType';
 import * as p2 from 'p2-es';
 
@@ -13,15 +13,15 @@ export class playerEntity extends User {
   view: AABB2D | null;
   body: p2.Body | null;
 
-  constructor(nid: number, user: User, username: Binary.String) {
+  constructor(user: User, username: string) {
     super(user.socket, user.networkAdapter);
     this.id = user.socket.user.id;
-    this.nid = nid;
+    this.nid = 0;
     this.ntype = NType.Entity;
     this.x = 0;
     this.y = 0;
     this.size = 30;
-    this.username = username.toString();
+    this.username = username;
     this.color = this.generateColor();
     this.view = null;
     this.body = null;
