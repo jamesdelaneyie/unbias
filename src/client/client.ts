@@ -4,75 +4,14 @@ import { ncontext } from '@/common/ncontext';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import TaggedTextPlus from 'pixi-tagged-text-plus';
-import { createNotificationBox, addNotification, ligtenColor } from './UIUtils';
+import { createNotificationBox, addNotification, addUsernameField } from './UIUtils';
+import { createPlayerGraphics, createObjectGraphics } from './worldGraphicsUtils';
 
 type EntityMap = Map<number, Container>;
 let entities: EntityMap = new Map();
 let reconnectTimeout: number | null = null;
 
-const createPlayer = (entity: any, app: Application, entities: EntityMap) => {
-  const playerSize = 30;
-  const fontSize = playerSize / 1.5;
-  const playerContainer = new Container();
-  const playerBody = new Graphics()
-    .circle(0, 0, playerSize / 2)
-    .fill({ color: entity.color, alpha: 1 })
-    .stroke({ color: ligtenColor(entity.color, 0.2), width: 1 });
-  playerContainer.x = entity.x;
-  playerContainer.y = entity.y;
-  const username = new TaggedTextPlus(
-    entity.username,
-    {
-      default: {
-        fontSize: fontSize,
-        fill: '#fff',
-        align: 'center',
-        wordWrap: true,
-        wordWrapWidth: 2,
-        stroke: {
-          color: '#000',
-          width: 0,
-        },
-      },
-    },
-    { skipUpdates: true }
-  );
-  username.x = 0;
-  username.y = 0;
-  username.position.set(-1.5, -fontSize / 2);
-  username.width = playerSize;
-  username.height = playerSize;
-  username.update();
-  playerContainer.addChild(playerBody);
-  playerContainer.addChild(username);
-  app.stage.addChild(playerContainer);
-  entities.set(entity.nid, playerContainer);
-};
-
-const createObject = (
-  app: Application,
-  object: any,
-  worldContainer: Container,
-  entities: EntityMap
-) => {
-  const objectGraphics = new Graphics()
-    .circle(0, 0, object.width * 100)
-    .fill({ color: object.color, alpha: 1 })
-    .stroke({ color: ligtenColor(object.color, 0.2), width: 1 });
-  const objectTexture = app.renderer.generateTexture(objectGraphics);
-
-  const objectSprite = new Sprite(objectTexture);
-  objectSprite.anchor.set(0.5);
-  objectSprite.width = 1.0;
-  objectSprite.height = 1.0;
-  objectSprite.x = object.x;
-  objectSprite.y = object.y;
-  worldContainer.addChild(objectSprite);
-
-  entities.set(object.nid, objectSprite);
-};
-
-const updatePlayer = (entity: any, app: Application, entities: EntityMap) => {
+const updatePlayer = (entity: any, entities: EntityMap) => {
   const player = entities.get(entity.nid);
   if (player) {
     player.x = entity.x;
@@ -80,18 +19,21 @@ const updatePlayer = (entity: any, app: Application, entities: EntityMap) => {
   }
 };
 
-const updateObject = (entity: any, app: Application, entities: EntityMap) => {
+const updateObject = (entity: any, entities: EntityMap) => {
   const object = entities.get(entity.nid) as Sprite;
   if (object) {
     const property = entity.prop;
     const value = entity.value;
-    if (property === 'x' || property === 'y') {
-      object[property as 'x' | 'y'] = value;
+    if (property === 'x') {
+      object.position.set(value, object.position.y);
+    }
+    if (property === 'y') {
+      object.position.set(object.position.x, value);
     }
   }
 };
 
-const deletePlayer = (entity: any, app: Application, entities: EntityMap) => {
+const deletePlayer = (entity: any, entities: EntityMap) => {
   const player = entities.get(entity.nid);
   if (player) {
     player.destroy();
@@ -131,7 +73,7 @@ const cleanup = () => {
 };
 
 window.addEventListener('load', async () => {
-  const app = new Application(); // pixi.js app
+  const app = new Application(); // pixi app
   await app.init({
     antialias: true,
     background: '#000000',
@@ -164,9 +106,10 @@ window.addEventListener('load', async () => {
   worldContainerGraphics.fill({ color: 0xffffff, alpha: 0.1 });
   worldContainer.addChild(worldContainerGraphics);
 
-  app.renderer.resolution = window.devicePixelRatio;
+  const notificationBox = createNotificationBox(document);
 
-  let connected = false;
+  let connectedToServer = false;
+  let connectingToSpace = false;
   const serverTickRatePerSecond = 20;
   const client = new Client(ncontext, WebSocketClientAdapter, serverTickRatePerSecond);
 
@@ -193,7 +136,7 @@ window.addEventListener('load', async () => {
       const res = await client.connect('ws://localhost:9001', { token: 12345 });
       if (res === 'accepted') {
         addNotification(document, notificationBox, 'Reconnected to server');
-        connected = true;
+        connectedToServer = true;
         reconnectAttempts = 0;
         if (reconnectTimeout) {
           clearTimeout(reconnectTimeout);
@@ -221,14 +164,12 @@ window.addEventListener('load', async () => {
   client.setDisconnectHandler((reason: any, event: any) => {
     console.warn('Disconnected custom!', reason, event);
     addNotification(document, notificationBox, 'Disconnected from server');
-    connected = false;
+    connectedToServer = false;
     scheduleReconnect();
     cleanup();
   });
-  const interpolator = new Interpolator(client);
 
-  const notificationBox = createNotificationBox(document);
-  addNotification(document, notificationBox, 'Window loaded');
+  const interpolator = new Interpolator(client);
 
   const keys: Record<'w' | 'a' | 's' | 'd', boolean> = {
     w: false,
@@ -249,62 +190,82 @@ window.addEventListener('load', async () => {
     }
   });
 
+  addNotification(document, notificationBox, 'local app loaded');
+
+  const existingUsername = localStorage.getItem('username') || '';
+
   try {
-    const res = await client.connect('ws://localhost:9001', { token: 12345 });
+    const res = await client.connect('ws://localhost:9001', {
+      token: 12345,
+      username: existingUsername,
+    });
     if (res === 'accepted') {
       addNotification(document, notificationBox, 'Connected to server');
-      connected = true;
+      connectedToServer = true;
+      const usernameField = addUsernameField(document, notificationBox);
+      usernameField.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          const username = (e.target as HTMLInputElement).value.trim() as string;
+          client.addCommand({
+            ntype: NType.UsernameCommand,
+            username,
+          });
+          connectingToSpace = true;
+        }
+      });
     } else {
       console.log(res);
       addNotification(document, notificationBox, 'Connection error: ' + res);
+      attemptReconnect();
     }
   } catch (err) {
     console.log(err);
     addNotification(document, notificationBox, 'Connection error: ' + err);
+    attemptReconnect();
     return;
   }
 
   const tick = (delta: number) => {
-    if (!connected) {
-      return;
-    }
-
     const istate = interpolator.getInterpolatedState(100);
 
     while (client.network.messages.length > 0) {
       const message = client.network.messages.pop();
       console.log('Received message:', message);
+      if (message.ntype === NType.IdentityMessage) {
+        if (connectingToSpace) {
+          connectingToSpace = false;
+          localStorage.setItem('username', message.username);
+        }
+      }
     }
 
     istate.forEach(snapshot => {
       snapshot.createEntities.forEach((entity: any) => {
-        console.log('createEntity', entity);
         if (entity.ntype === NType.Entity) {
-          createPlayer(entity, app, entities);
-        } else if (entity.ntype === NType.Object) {
-          createObject(app, entity, worldContainer, entities);
-          console.log('createObject', entity);
+          createPlayerGraphics(entity, app, entities);
+        }
+        if (entity.ntype === NType.Object) {
+          console.log('createObjectGraphics', entity);
+          createObjectGraphics(app, entity, worldContainer, entities);
         }
       });
 
       snapshot.updateEntities.forEach((diff: any) => {
-        console.log('updateEntity', diff);
-        updatePlayer(diff, app, entities);
-        updateObject(diff, app, entities);
+        updatePlayer(diff, entities);
+        updateObject(diff, entities);
       });
 
       snapshot.deleteEntities.forEach((nid: number) => {
-        console.log('deleteEntity', nid);
-        deletePlayer(nid, app, entities);
+        deletePlayer(nid, entities);
       });
     });
 
     if (keys.w || keys.a || keys.s || keys.d) {
-      addNotification(
+      /*addNotification(
         document,
         notificationBox,
         'Sending command ' + keys.w + keys.a + keys.s + keys.d
-      );
+      );*/
       client.addCommand({
         ntype: NType.Command,
         w: keys.w,
@@ -318,17 +279,16 @@ window.addEventListener('load', async () => {
     client.flush();
   };
 
-  // a standard rAF loop
   let prev = performance.now();
   const loop = () => {
     window.requestAnimationFrame(loop);
     const now = performance.now();
     const delta = (now - prev) / 1000;
     prev = now;
-    // probably missing "if (connected)..."
-    tick(delta);
+    if (connectedToServer) {
+      tick(delta);
+    }
   };
 
-  // start the loop
   loop();
 });

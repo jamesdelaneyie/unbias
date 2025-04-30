@@ -1,4 +1,4 @@
-import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel } from 'nengi';
+import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel, Binary } from 'nengi';
 import { ncontext } from '../common/ncontext';
 import { NType } from '../common/NType';
 import { playerEntity } from '../server/playerEntity';
@@ -67,7 +67,7 @@ const queue = instance.queue;
 let worldPopulated = false;
 
 const populateWorld = () => {
-  const color = Math.random() * 0xffffff;
+  const color = 0xffffff;
   const objectEntity = {
     nid: 1,
     ntype: NType.Object,
@@ -82,12 +82,24 @@ const populateWorld = () => {
   dynamicObjects.set(objectEntity.nid, { entity: objectEntity, body: objectBody });
   space.addEntity(objectEntity);
   worldPopulated = true;
-  /*
-    // add all the world objects to 2d space
-    dynamicObjects.forEach(obj => {
-      space.addEntity(obj.entity);
-    });
-  */
+
+  // add all the world objects to 2d space
+  dynamicObjects.forEach(obj => {
+    space.addEntity(obj.entity);
+  });
+};
+
+const createPlayerEntity = (user: any, username: Binary.String) => {
+  const nextId = Object.entries(playerEntities).length;
+  const viewSize = 1100;
+  const newUser = new playerEntity(nextId, user, username);
+  newUser.x = viewSize / 2;
+  newUser.y = viewSize / 2;
+  newUser.view = new AABB2D(0, 0, viewSize, viewSize);
+  playerEntities.set(newUser.nid, newUser);
+  space.addEntity(newUser);
+  space.subscribe(user, newUser.view);
+  user.queueMessage({ myId: newUser.nid, ntype: NType.IdentityMessage, username: username });
 };
 
 const update = () => {
@@ -111,28 +123,18 @@ const update = () => {
     // handle a user connecting
     if (networkEvent.type === NetworkEvent.UserConnected) {
       const { user } = networkEvent;
-      const nextId = Object.entries(playerEntities).length;
-      const newPlayer = new playerEntity(nextId, user);
       main.subscribe(user);
-
-      const viewSize = 2200;
-      newPlayer.view = new AABB2D(0, 0, viewSize, viewSize);
-      space.subscribe(networkEvent.user, newPlayer.view);
-
-      main.addEntity(newPlayer);
-      space.addEntity(newPlayer);
-
-      playerEntities.set(newPlayer.nid, newPlayer);
-
-      user.queueMessage({ myId: newPlayer.nid, ntype: NType.IdentityMessage });
     }
 
     if (networkEvent.type === NetworkEvent.CommandSet) {
-      const { commands } = networkEvent;
+      const { user, commands } = networkEvent;
       if (commands.length > 0) {
         commands.forEach((command: any) => {
           if (command.ntype === NType.Command) {
-            console.log('command', command);
+            //console.log('command', command);
+          }
+          if (command.ntype === NType.UsernameCommand) {
+            createPlayerEntity(user, command.username);
           }
         });
       }

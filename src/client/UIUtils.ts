@@ -13,8 +13,11 @@ const ligtenColor = (color: number, amount: number) => {
 const createNotificationBox = (document: Document) => {
   const notificationBox = document.createElement('div');
   notificationBox.style.position = 'fixed';
-  notificationBox.style.bottom = '5px';
-  notificationBox.style.left = '5px';
+  //notificationBox.style.bottom = '50%';
+  //notificationBox.style.left = '50%';
+  //notificationBox.style.transform = 'translate(-50%,-50%)';
+  notificationBox.style.top = '10px';
+  notificationBox.style.right = '10px';
   notificationBox.style.width = '300px';
   notificationBox.style.maxHeight = '500px';
   notificationBox.style.overflowY = 'auto';
@@ -38,4 +41,14 @@ const addNotification = (document: Document, box: HTMLDivElement, message: strin
   box.scrollTop = box.scrollHeight;
 };
 
-export { ligtenColor, createNotificationBox, addNotification };
+const addUsernameField = (document: Document, box: HTMLDivElement) => {
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'enter username';
+  input.style.fontSize = '11px';
+  input.style.margin = '10px 0';
+  box.appendChild(input);
+  return input;
+};
+
+export { ligtenColor, createNotificationBox, addNotification, addUsernameField };

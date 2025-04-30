@@ -1,6 +1,5 @@
 import { Binary, defineSchema, Schema } from 'nengi';
 
-export const identityMessageSchema: Schema = defineSchema({
-  myId: Binary.UInt16,
+export const usernameSchema: Schema = defineSchema({
   username: Binary.String,
 });
