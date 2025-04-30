@@ -73,7 +73,7 @@ const cleanup = () => {
 };
 
 window.addEventListener('load', async () => {
-  const app = new Application(); // pixi app
+  const app = new Application();
   await app.init({
     antialias: true,
     background: '#000000',
@@ -107,70 +107,10 @@ window.addEventListener('load', async () => {
   worldContainer.addChild(worldContainerGraphics);
 
   const notificationBox = createNotificationBox(document);
+  const client = new Client(ncontext, WebSocketClientAdapter, 20);
+  let connected = false;
 
-  let connectedToServer = false;
-  let connectingToSpace = false;
-  const serverTickRatePerSecond = 20;
-  const client = new Client(ncontext, WebSocketClientAdapter, serverTickRatePerSecond);
-
-  // Reconnection settings
-  const MAX_RECONNECT_ATTEMPTS = 5;
-  const RECONNECT_DELAY = 2000; // 2 seconds
-  let reconnectAttempts = 0;
-  let reconnectTimeout: number | null = null;
-
-  const attemptReconnect = async () => {
-    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-      addNotification(document, notificationBox, 'Max reconnection attempts reached');
-      return;
-    }
-
-    reconnectAttempts++;
-    addNotification(
-      document,
-      notificationBox,
-      `Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
-    );
-
-    try {
-      const res = await client.connect('ws://localhost:9001', { token: 12345 });
-      if (res === 'accepted') {
-        addNotification(document, notificationBox, 'Reconnected to server');
-        connectedToServer = true;
-        reconnectAttempts = 0;
-        if (reconnectTimeout) {
-          clearTimeout(reconnectTimeout);
-          reconnectTimeout = null;
-        }
-      } else {
-        console.log(res);
-        addNotification(document, notificationBox, 'Reconnection failed: ' + res);
-        scheduleReconnect();
-      }
-    } catch (err) {
-      console.log('empty err', err);
-      addNotification(document, notificationBox, 'Reconnection error');
-      scheduleReconnect();
-    }
-  };
-
-  const scheduleReconnect = () => {
-    if (reconnectTimeout) {
-      clearTimeout(reconnectTimeout);
-    }
-    reconnectTimeout = window.setTimeout(attemptReconnect, RECONNECT_DELAY);
-  };
-
-  client.setDisconnectHandler((reason: any, event: any) => {
-    console.warn('Disconnected custom!', reason, event);
-    addNotification(document, notificationBox, 'Disconnected from server');
-    connectedToServer = false;
-    scheduleReconnect();
-    cleanup();
-  });
-
-  const interpolator = new Interpolator(client);
-
+  // Movement keys
   const keys: Record<'w' | 'a' | 's' | 'd', boolean> = {
     w: false,
     a: false,
@@ -190,82 +130,137 @@ window.addEventListener('load', async () => {
     }
   });
 
-  addNotification(document, notificationBox, 'local app loaded');
+  // Reconnection settings
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  const RECONNECT_DELAY = 2000; // 2 seconds
+  let reconnectAttempts = 0;
+  let reconnectTimeout: number | null = null;
 
-  const existingUsername = localStorage.getItem('username') || '';
+  function setupUsername(usernameField: HTMLInputElement) {
+    const existingUsername = localStorage.getItem('username') || '';
+    if (existingUsername) {
+      usernameField.value = existingUsername;
+      client.addCommand({
+        ntype: NType.UsernameCommand,
+        username: existingUsername,
+      });
+    }
 
-  try {
-    const res = await client.connect('ws://localhost:9001', {
-      token: 12345,
-      username: existingUsername,
-    });
-    if (res === 'accepted') {
-      addNotification(document, notificationBox, 'Connected to server');
-      connectedToServer = true;
-      const usernameField = addUsernameField(document, notificationBox);
-      usernameField.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          const username = (e.target as HTMLInputElement).value.trim() as string;
+    usernameField.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const username = (e.target as HTMLInputElement).value.trim();
+        if (username) {
+          localStorage.setItem('username', username);
           client.addCommand({
             ntype: NType.UsernameCommand,
             username,
           });
-          connectingToSpace = true;
         }
-      });
-    } else {
-      console.log(res);
-      addNotification(document, notificationBox, 'Connection error: ' + res);
-      attemptReconnect();
-    }
-  } catch (err) {
-    console.log(err);
-    addNotification(document, notificationBox, 'Connection error: ' + err);
-    attemptReconnect();
-    return;
+      }
+    });
   }
 
+  async function connectToServer() {
+    try {
+      const res = await client.connect('ws://localhost:9001', { token: 12345 });
+      if (res === 'accepted') {
+        addNotification(
+          document,
+          notificationBox,
+          reconnectAttempts > 0 ? 'Reconnected to server' : 'Connected to server'
+        );
+        connected = true;
+        reconnectAttempts = 0;
+        if (reconnectTimeout) {
+          clearTimeout(reconnectTimeout);
+          reconnectTimeout = null;
+        }
+
+        // Show username field and handle username
+        const usernameField = addUsernameField(document, notificationBox);
+        setupUsername(usernameField);
+        return true;
+      } else {
+        addNotification(document, notificationBox, 'Connection error');
+        return false;
+      }
+    } catch (err) {
+      console.warn(err);
+      addNotification(document, notificationBox, 'Connection error');
+      return false;
+    }
+  }
+
+  function scheduleReconnect() {
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+      addNotification(document, notificationBox, 'Max reconnection attempts reached');
+      return;
+    }
+    reconnectAttempts++;
+    addNotification(
+      document,
+      notificationBox,
+      `Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
+    );
+    reconnectTimeout = window.setTimeout(async () => {
+      const success = await connectToServer();
+      if (!success) {
+        scheduleReconnect();
+      }
+    }, RECONNECT_DELAY);
+  }
+
+  client.setDisconnectHandler(() => {
+    addNotification(document, notificationBox, 'Disconnected from server');
+    connected = false;
+    cleanup();
+    scheduleReconnect();
+  });
+
+  addNotification(document, notificationBox, 'local app loaded');
+  const success = await connectToServer();
+  if (!success) {
+    scheduleReconnect();
+  }
+
+  const interpolator = new Interpolator(client);
+
   const tick = (delta: number) => {
+    if (!connected) {
+      return;
+    }
+
     const istate = interpolator.getInterpolatedState(100);
 
     while (client.network.messages.length > 0) {
       const message = client.network.messages.pop();
       console.log('Received message:', message);
-      if (message.ntype === NType.IdentityMessage) {
-        if (connectingToSpace) {
-          connectingToSpace = false;
-          localStorage.setItem('username', message.username);
-        }
-      }
     }
 
     istate.forEach(snapshot => {
       snapshot.createEntities.forEach((entity: any) => {
+        console.log('createEntity', entity);
         if (entity.ntype === NType.Entity) {
           createPlayerGraphics(entity, app, entities);
-        }
-        if (entity.ntype === NType.Object) {
+        } else if (entity.ntype === NType.Object) {
           console.log('createObjectGraphics', entity);
           createObjectGraphics(app, entity, worldContainer, entities);
         }
       });
 
       snapshot.updateEntities.forEach((diff: any) => {
+        console.log('updateEntity', diff);
         updatePlayer(diff, entities);
         updateObject(diff, entities);
       });
 
       snapshot.deleteEntities.forEach((nid: number) => {
+        console.log('deleteEntity', nid);
         deletePlayer(nid, entities);
       });
     });
 
     if (keys.w || keys.a || keys.s || keys.d) {
-      /*addNotification(
-        document,
-        notificationBox,
-        'Sending command ' + keys.w + keys.a + keys.s + keys.d
-      );*/
       client.addCommand({
         ntype: NType.Command,
         w: keys.w,
@@ -285,9 +280,7 @@ window.addEventListener('load', async () => {
     const now = performance.now();
     const delta = (now - prev) / 1000;
     prev = now;
-    if (connectedToServer) {
-      tick(delta);
-    }
+    tick(delta);
   };
 
   loop();
