@@ -128,7 +128,7 @@ window.addEventListener('load', async () => {
   drawBasicText(masterContainer, 'BIAS 2.0', 10, 10);
 
   const worldState = {
-    myRawId: null,
+    myId: null,
   };
 
   const worldContainer = new Container();
@@ -171,7 +171,7 @@ window.addEventListener('load', async () => {
       console.log('Received message:', message);
       if (message.ntype === NType.IdentityMessage) {
         console.log('IdentityMessage', message);
-        worldState.myRawId = message.myId;
+        worldState.myId = message.myId;
         console.log(worldState);
       }
     }
@@ -191,7 +191,6 @@ window.addEventListener('load', async () => {
 
       snapshot.updateEntities.forEach((diff: IEntity) => {
         updatePlayerEntity(diff, worldState, entities);
-        //updateObject(diff, entities);
       });
 
       snapshot.deleteEntities.forEach((nid: number) => {

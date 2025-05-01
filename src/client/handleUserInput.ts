@@ -17,20 +17,20 @@ const handleUserInput = (
   const input = inputSystem.frameState;
   inputSystem.releaseKeys();
 
-  const { myRawId } = worldState;
-  const myRawEntity = playerEntities.get(myRawId);
-  if (myRawEntity) {
+  const { myId } = worldState;
+  const myEntity = playerEntities.get(myId);
+  if (myEntity) {
     const screenX = inputSystem.currentState.mx;
     const screenY = inputSystem.currentState.my;
     const point = app.stage.toLocal({ x: screenX, y: screenY });
-    const dx = point.x - myRawEntity.x;
-    const dy = point.y - myRawEntity.y;
+    const dx = point.x - myEntity.x;
+    const dy = point.y - myEntity.y;
     const rotation = Math.atan2(dy, dx);
 
-    if (myRawEntity) {
+    if (myEntity) {
       const command: MoveCommand = {
         ntype: NType.Command,
-        nid: myRawEntity.nid,
+        nid: myEntity.nid,
         w: input.w as unknown as Binary.Boolean,
         a: input.a as unknown as Binary.Boolean,
         s: input.s as unknown as Binary.Boolean,
@@ -41,13 +41,13 @@ const handleUserInput = (
       client.addCommand(command);
 
       // apply moveCommand  to our local entity
-      applyCommand(myRawEntity, command);
+      applyCommand(myEntity, command);
 
       // save the result of applying the command as a prediction
       const prediction = {
-        nid: myRawEntity.nid,
-        x: myRawEntity.x,
-        y: myRawEntity.y,
+        nid: myEntity.nid,
+        x: myEntity.x,
+        y: myEntity.y,
       };
       client.predictor.addCustom(client.serverTickRate, prediction, ['x', 'y'], commandSchema);
 

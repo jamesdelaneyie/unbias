@@ -17,7 +17,7 @@ const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap
 };
 
 const updatePlayerGraphics = (playerEntity: PlayerEntity, worldState: any, delta: number) => {
-  if (playerEntity.nid === worldState.myRawId) return;
+  if (playerEntity.nid === worldState.myId) return;
   if (!playerEntity.graphics || !playerEntity.renderTarget) return;
   const graphics = playerEntity.graphics;
   const t = Math.min(1, worldConfig.playerSmoothing * delta);
