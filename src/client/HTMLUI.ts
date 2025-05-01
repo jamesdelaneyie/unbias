@@ -1,3 +1,6 @@
+import { Client } from 'nengi';
+import { NType } from '@/common/NType';
+
 const ligtenColor = (color: number, amount: number) => {
   const r = (color >> 16) & 0xff;
   const g = (color >> 8) & 0xff;
@@ -48,4 +51,32 @@ const addUsernameField = (document: Document, box: HTMLDivElement) => {
   return input;
 };
 
-export { ligtenColor, createNotificationBox, addNotification, addUsernameField };
+const setupUsername = (usernameField: HTMLInputElement, client: Client) => {
+  const existingUsername = localStorage.getItem('username') || '';
+  if (existingUsername) {
+    console.log('existingUsername', existingUsername);
+    /*usernameField.value = existingUsername;
+    client.addCommand({
+      ntype: NType.UsernameCommand,
+      username: existingUsername,
+    });*/
+  }
+
+  let usernameSubmitted = false;
+  usernameField.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !usernameSubmitted) {
+      const username = (e.target as HTMLInputElement).value.trim();
+      if (username) {
+        usernameSubmitted = true;
+        localStorage.setItem('username', username);
+        client.addCommand({
+          ntype: NType.UsernameCommand,
+          username,
+        });
+        usernameField.disabled = true;
+      }
+    }
+  });
+};
+
+export { ligtenColor, createNotificationBox, addNotification, addUsernameField, setupUsername };

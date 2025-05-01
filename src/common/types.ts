@@ -4,6 +4,7 @@ import { Container } from 'pixi.js';
 
 type Entity = {
   nid: Binary.UInt8;
+  ntype: NType;
   x: Binary.Float32;
   y: Binary.Float32;
   rotation: Binary.Float32;
