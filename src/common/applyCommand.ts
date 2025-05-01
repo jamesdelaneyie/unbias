@@ -30,7 +30,6 @@ export const applyCommand = (entity: PlayerEntity, command: MoveCommand) => {
 
   const xMove = unitX * entity.speed * command.delta;
   const yMove = unitY * entity.speed * command.delta;
-  //console.log(entity);
   entity.x += xMove;
   entity.y += yMove;
 

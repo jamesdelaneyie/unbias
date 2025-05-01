@@ -1,9 +1,9 @@
-import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel, User } from 'nengi';
-import { ncontext } from '../common/ncontext';
 import { NType } from '../common/NType';
-import { PlayerEntity } from '../server/PlayerEntity';
-import { Command, ObjectEntity, MoveCommand } from '../common/types';
+import { ncontext } from '../common/ncontext';
+import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel, User } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
+import { Command, ObjectEntity, MoveCommand } from '../common/types';
+import { PlayerEntity } from '../server/PlayerEntity';
 import { applyCommand } from '../common/applyCommand';
 import * as p2 from 'p2-es';
 

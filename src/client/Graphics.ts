@@ -5,8 +5,8 @@ import { PlayerEntity, ObjectEntity } from '@/common/types';
 const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
   const playerSize = entity.size;
   const fontSize = playerSize / 1.5;
-  const playerContainer = new Container();
 
+  const playerContainer = new Container();
   playerContainer.x = entity.x;
   playerContainer.y = entity.y;
 
@@ -62,7 +62,6 @@ const createObjectGraphics = (
   object: ObjectEntity,
   worldContainer: Container
 ) => {
-  console.log(object);
   const objectGraphics = new Graphics()
     .circle(0, 0, object.width * 100)
     .fill({ color: 0xffffff, alpha: 1 });

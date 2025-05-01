@@ -2,19 +2,11 @@ import { Binary, IEntity } from 'nengi';
 import { IEntityMap } from '@/common/types';
 
 const updatePlayer = (entity: IEntity, entities: IEntityMap) => {
-  const playerGraphics = entities.get(entity.nid)?.graphics;
+  const playerGraphics = entities.get(entity.nid);
   const property = entity.prop;
   const value = entity.value;
   if (playerGraphics) {
-    if (property === 'x') {
-      playerGraphics.x = value;
-    }
-    if (property === 'y') {
-      playerGraphics.y = value;
-    }
-    if (property === 'rotation') {
-      playerGraphics.rotation = value;
-    }
+    playerGraphics[property] = value;
   }
 };
 
