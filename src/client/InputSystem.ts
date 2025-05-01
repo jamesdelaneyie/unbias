@@ -1,3 +1,7 @@
+type BooleanKeys = 'w' | 'a' | 's' | 'd';
+type KeyMapping = {
+  [key: string]: BooleanKeys;
+};
 type InputState = {
   w: boolean;
   s: boolean;
@@ -11,6 +15,16 @@ type InputState = {
 export class InputSystem {
   frameState: InputState;
   currentState: InputState;
+  private keyMapping: KeyMapping = {
+    w: 'w',
+    ArrowUp: 'w',
+    s: 's',
+    ArrowDown: 's',
+    a: 'a',
+    ArrowLeft: 'a',
+    d: 'd',
+    ArrowRight: 'd',
+  };
   constructor() {
     this.currentState = {
       w: false,
@@ -22,65 +36,30 @@ export class InputSystem {
       my: 0,
     };
 
-    this.frameState = {
-      w: false,
-      s: false,
-      a: false,
-      d: false,
-      rotation: 0,
-      mx: 0,
-      my: 0,
-    };
+    this.frameState = { ...this.currentState };
 
-    document.addEventListener('keydown', event => {
-      // up
-      if (event.key === 'w' || event.key === 'ArrowUp') {
-        this.currentState.w = true;
-        this.frameState.w = true;
-      }
-      // down
-      if (event.key === 's' || event.key === 'ArrowDown') {
-        this.currentState.s = true;
-        this.frameState.s = true;
-      }
-      //left
-      if (event.key === 'a' || event.key === 'ArrowLeft') {
-        this.currentState.a = true;
-        this.frameState.a = true;
-      }
-      // right
-      if (event.key === 'd' || event.key === 'ArrowRight') {
-        this.currentState.d = true;
-        this.frameState.d = true;
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
+      const stateKey = this.keyMapping[event.key];
+      if (stateKey) {
+        this.currentState[stateKey] = true;
+        this.frameState[stateKey] = true;
       }
     });
 
-    document.addEventListener('keyup', event => {
-      if (event.key === 'w' || event.key === 'ArrowUp') {
-        this.currentState.w = false;
-      }
-      if (event.key === 'a' || event.key === 'ArrowLeft') {
-        this.currentState.a = false;
-      }
-      if (event.key === 's' || event.key === 'ArrowDown') {
-        this.currentState.s = false;
-      }
-      if (event.key === 'd' || event.key === 'ArrowRight') {
-        this.currentState.d = false;
+    document.addEventListener('keyup', (event: KeyboardEvent) => {
+      const stateKey = this.keyMapping[event.key];
+      if (stateKey) {
+        this.currentState[stateKey] = false;
       }
     });
 
-    document.addEventListener('mousemove', event => {
+    document.addEventListener('mousemove', (event: MouseEvent) => {
       this.currentState.mx = event.clientX;
       this.currentState.my = event.clientY;
     });
   }
 
   releaseKeys() {
-    this.frameState.w = this.currentState.w;
-    this.frameState.a = this.currentState.a;
-    this.frameState.s = this.currentState.s;
-    this.frameState.d = this.currentState.d;
-    this.frameState.rotation = this.currentState.rotation;
+    Object.assign(this.frameState, this.currentState);
   }
 }

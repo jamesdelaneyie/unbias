@@ -10,7 +10,7 @@ import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
 import { updatePlayerEntity, deletePlayer, updatePlayerGraphics } from './handleState';
 import { IEntityMap, PlayerEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
-import { connectToServer, scheduleReconnect } from './handleConnection';
+import { connectToServer, scheduleReconnect } from './ConnectionManager';
 
 let connectedToServer = false;
 
