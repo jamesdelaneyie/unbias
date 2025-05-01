@@ -1,27 +1,25 @@
-import { InputSystem } from '@/client/InputSystem';
-import { Client } from 'nengi';
+import { Client, Binary } from 'nengi';
 import { NType } from '@/common/NType';
+import { PlayerEntityMap, MoveCommand } from '@/common/types';
 import { applyCommand } from '@/common/applyCommand';
 import { commandSchema } from '@/common/schemas/commandSchema';
+import { InputSystem } from '@/client/InputSystem';
 import { Application } from 'pixi.js';
+
 const handleUserInput = (
   inputSystem: InputSystem,
   worldState: any,
-  entities: any,
+  playerEntities: PlayerEntityMap,
   client: Client,
   app: Application,
-  delta: any
+  delta: number
 ) => {
   const input = inputSystem.frameState;
   inputSystem.releaseKeys();
 
   const { myRawId } = worldState;
-  if (myRawId) {
-    const myRawEntity = entities.get(myRawId);
-    //console.log(myRawEntity);
-    //console.log(myRawEntity.position);
-
-    // Convert screen coordinates to world coordinates
+  const myRawEntity = playerEntities.get(myRawId);
+  if (myRawEntity) {
     const screenX = inputSystem.currentState.mx;
     const screenY = inputSystem.currentState.my;
     const point = app.stage.toLocal({ x: screenX, y: screenY });
@@ -30,13 +28,13 @@ const handleUserInput = (
     const rotation = Math.atan2(dy, dx);
 
     if (myRawEntity) {
-      const command = {
+      const command: MoveCommand = {
         ntype: NType.Command,
         nid: myRawEntity.nid,
-        w: input.w,
-        a: input.a,
-        s: input.s,
-        d: input.d,
+        w: input.w as unknown as Binary.Boolean,
+        a: input.a as unknown as Binary.Boolean,
+        s: input.s as unknown as Binary.Boolean,
+        d: input.d as unknown as Binary.Boolean,
         rotation: rotation,
         delta,
       };
@@ -54,7 +52,7 @@ const handleUserInput = (
       client.predictor.addCustom(client.serverTickRate, prediction, ['x', 'y'], commandSchema);
 
       // also apply the result of the prediction to the graphical entity
-      const playerGraphics = entities.get(prediction.nid).graphics;
+      const playerGraphics = playerEntities.get(prediction.nid)?.graphics;
       if (playerGraphics) {
         playerGraphics.x = prediction.x;
         playerGraphics.y = prediction.y;

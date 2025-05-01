@@ -13,9 +13,6 @@ const ligtenColor = (color: number, amount: number) => {
 const createNotificationBox = (document: Document) => {
   const notificationBox = document.createElement('div');
   notificationBox.style.position = 'fixed';
-  //notificationBox.style.bottom = '50%';
-  //notificationBox.style.left = '50%';
-  //notificationBox.style.transform = 'translate(-50%,-50%)';
   notificationBox.style.top = '10px';
   notificationBox.style.right = '10px';
   notificationBox.style.width = '300px';

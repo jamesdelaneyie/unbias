@@ -1,4 +1,7 @@
-export const applyCommand = (entity: any, command: any) => {
+import { PlayerEntity } from '@/common/types';
+import { MoveCommand } from '@/common/types';
+
+export const applyCommand = (entity: PlayerEntity, command: MoveCommand) => {
   entity.rotation = command.rotation;
 
   let unitX = 0;

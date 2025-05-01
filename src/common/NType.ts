@@ -1,4 +1,3 @@
-/* eslint-disable */
 enum NType {
   Entity = 1,
   IdentityMessage = 2,

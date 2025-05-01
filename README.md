@@ -46,6 +46,11 @@ npm test
 
 2. Deploy the `dist` folder to your hosting service.
 
+## Patches
+
+pixi-tagged-text-plus: adds a parent container for Pixiv8 compatibility
+nengi: fix that handles removal of most recently added entity
+
 ## License
 
 ISC

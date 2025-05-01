@@ -1,8 +1,9 @@
 import { User, AABB2D } from 'nengi';
 import { NType } from '../common/NType';
 import * as p2 from 'p2-es';
+import { worldConfig } from '../common/worldConfig';
 
-export class playerEntity extends User {
+export class PlayerEntity extends User {
   nid: number;
   ntype: number;
   x: number;
@@ -22,9 +23,9 @@ export class playerEntity extends User {
     this.ntype = NType.Entity;
     this.x = 0;
     this.y = 0;
-    this.size = 30;
+    this.size = worldConfig.playerSize;
     this.rotation = 0;
-    this.speed = 100;
+    this.speed = worldConfig.playerSpeed;
     this.username = username;
     this.color = this.generateColor();
     this.view = null;

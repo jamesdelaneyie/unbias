@@ -1,7 +1,8 @@
-import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel } from 'nengi';
+import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel, User } from 'nengi';
 import { ncontext } from '../common/ncontext';
 import { NType } from '../common/NType';
-import { playerEntity } from '../server/playerEntity';
+import { PlayerEntity } from '../server/PlayerEntity';
+import { Command, ObjectEntity, MoveCommand } from '../common/types';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
 import { applyCommand } from '../common/applyCommand';
 import * as p2 from 'p2-es';
@@ -33,7 +34,7 @@ type dynamicObject = {
   body: p2.Body;
 };
 const dynamicObjects: Map<number, dynamicObject> = new Map();
-const playerEntities: Map<number, playerEntity> = new Map();
+const playerEntities: Map<number, PlayerEntity> = new Map();
 
 const world = new p2.World({
   gravity: [0, 0.5],
@@ -44,7 +45,7 @@ instance.onConnect = async (handshake: any) => {
   return true;
 };
 
-const createPhysicalObject = (object: any) => {
+const createPhysicalObject = (object: ObjectEntity) => {
   const body = new p2.Body({
     mass: 1,
     position: [object.x, object.y],
@@ -76,6 +77,7 @@ const populateWorld = () => {
     height: 1,
     shape: 'circle',
     color: color,
+    rotation: 0,
   };
   const objectBody = createPhysicalObject(objectEntity);
   dynamicObjects.set(objectEntity.nid, { entity: objectEntity, body: objectBody });
@@ -88,10 +90,10 @@ const populateWorld = () => {
   });
 };
 
-const createPlayerEntity = (user: any, username: string) => {
+const createPlayerEntity = (user: User, username: string) => {
   try {
     const viewSize = 1100;
-    const newUser = new playerEntity(user, username);
+    const newUser = new PlayerEntity(user, username);
     newUser.x = viewSize / 2 + Math.random() * 200;
     newUser.y = viewSize / 2;
     // creates a local view for the playerEntity for culling
@@ -105,7 +107,7 @@ const createPlayerEntity = (user: any, username: string) => {
   }
 };
 
-const deletePlayerEntity = (user: any) => {
+const deletePlayerEntity = (user: User) => {
   try {
     const playerEntity = Array.from(playerEntities.values()).find(entity => entity.id === user.id);
     if (playerEntity) {
@@ -142,21 +144,24 @@ const update = () => {
     if (networkEvent.type === NetworkEvent.CommandSet) {
       const { user, commands } = networkEvent;
       if (commands.length > 0) {
-        commands.forEach((command: any) => {
+        commands.forEach((command: Command) => {
           if (command.ntype === NType.Command) {
             const player = playerEntities.get(command.nid);
             if (player) {
-              applyCommand(player, command);
+              applyCommand(player, command as MoveCommand);
             }
           }
+          // @ts-ignore
           if (command.ntype === NType.UsernameCommand) {
             const usernameTaken = Array.from(playerEntities.values()).find(
+              // @ts-ignore
               entity => entity.username === command.username
             );
             if (usernameTaken) {
               console.log('Username already taken');
               return;
             }
+            // @ts-ignore
             createPlayerEntity(user, command.username);
           }
         });

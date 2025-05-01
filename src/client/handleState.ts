@@ -1,7 +1,7 @@
-import { Sprite } from 'pixi.js';
-import { EntityMap } from './client';
+import { Binary, IEntity } from 'nengi';
+import { IEntityMap } from '@/common/types';
 
-const updatePlayer = (entity: any, entities: EntityMap) => {
+const updatePlayer = (entity: IEntity, entities: IEntityMap) => {
   const playerGraphics = entities.get(entity.nid)?.graphics;
   const property = entity.prop;
   const value = entity.value;
@@ -18,25 +18,24 @@ const updatePlayer = (entity: any, entities: EntityMap) => {
   }
 };
 
-const updateObject = (entity: any, entities: EntityMap) => {
-  const object = entities.get(entity.nid) as Sprite;
-  if (object) {
+const updateObject = (entity: IEntity, entities: IEntityMap) => {
+  const object = entities.get(entity.nid);
+  if (object && object.graphics) {
     const property = entity.prop;
     const value = entity.value;
     if (property === 'x') {
-      object.position.set(value, object.position.y);
+      object.graphics.position.set(value, object.graphics.position.y);
     }
     if (property === 'y') {
-      object.position.set(object.position.x, value);
+      object.graphics.position.set(object.graphics.position.x, value);
     }
   }
 };
 
-const deletePlayer = (nid: number, entities: EntityMap) => {
+const deletePlayer = (nid: Binary.UInt8, entities: IEntityMap) => {
   const player = entities.get(nid);
   if (player) {
-    player.parent?.removeChild(player);
-    player.destroy({ children: true });
+    player.graphics?.destroy({ children: true });
     entities.delete(nid);
   }
 };

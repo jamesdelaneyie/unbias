@@ -1,21 +1,31 @@
-import { Client, Interpolator } from 'nengi';
 import { NType } from '@/common/NType';
 import { ncontext } from '@/common/ncontext';
+import { Client, Interpolator, IEntity } from 'nengi';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
-import { Application, Container, Graphics } from 'pixi.js';
+import { Application, Container } from 'pixi.js';
 import { createNotificationBox, addNotification, addUsernameField } from './HTMLUI';
 import { createPlayerGraphics, createObjectGraphics } from './Graphics';
 import { drawBasicText } from './GPUUI';
 import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
 import { updatePlayer, updateObject, deletePlayer } from './handleState';
+import { IEntityMap, PlayerEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
+import { worldConfig } from '@/common/worldConfig';
 
-export type EntityMap = Map<number, any>;
-let entities: EntityMap = new Map();
+const MAX_RECONNECT_ATTEMPTS = worldConfig.maxReconnectAttempts;
+const RECONNECT_DELAY = worldConfig.reconnectDelay;
+
+let connected = false;
 let reconnectTimeout: number | null = null;
+let reconnectAttempts = 0;
+
+let entities: IEntityMap = new Map();
+let playerEntities: PlayerEntityMap = new Map();
+
+let notificationBox: HTMLDivElement;
 
 const cleanup = () => {
-  entities.forEach(player => player.destroy());
+  entities.forEach((player: IEntity) => player.graphics?.destroy());
   entities.clear();
   if (reconnectTimeout) {
     clearTimeout(reconnectTimeout);
@@ -25,6 +35,7 @@ const cleanup = () => {
 const setupUsername = (usernameField: HTMLInputElement, client: Client) => {
   const existingUsername = localStorage.getItem('username') || '';
   if (existingUsername) {
+    console.log('existingUsername', existingUsername);
     /*usernameField.value = existingUsername;
     client.addCommand({
       ntype: NType.UsernameCommand,
@@ -47,6 +58,56 @@ const setupUsername = (usernameField: HTMLInputElement, client: Client) => {
       }
     }
   });
+};
+
+const connectToServer = async (client: Client, notificationBox: HTMLDivElement) => {
+  try {
+    const res = await client.connect('ws://localhost:9001', { token: 12345 });
+    if (res === 'accepted') {
+      addNotification(
+        document,
+        notificationBox,
+        reconnectAttempts > 0 ? 'Reconnected to server' : 'Connected to server'
+      );
+      connected = true;
+      reconnectAttempts = 0;
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
+
+      // Show username field and handle username
+      const usernameField = addUsernameField(document, notificationBox);
+      setupUsername(usernameField, client);
+      return true;
+    } else {
+      addNotification(document, notificationBox, 'Connection error');
+      return false;
+    }
+  } catch (err) {
+    console.warn(err);
+    addNotification(document, notificationBox, 'Connection error');
+    return false;
+  }
+};
+
+const scheduleReconnect = (client: Client, notificationBox: HTMLDivElement) => {
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    addNotification(document, notificationBox, 'Max reconnection attempts reached');
+    return;
+  }
+  reconnectAttempts++;
+  addNotification(
+    document,
+    notificationBox,
+    `Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
+  );
+  reconnectTimeout = window.setTimeout(async () => {
+    const success = await connectToServer(client, notificationBox);
+    if (!success) {
+      scheduleReconnect(client, notificationBox);
+    }
+  }, RECONNECT_DELAY);
 };
 
 window.addEventListener('load', async () => {
@@ -77,87 +138,22 @@ window.addEventListener('load', async () => {
   worldContainer.scale.y = -100;
   app.stage.addChild(worldContainer);
 
-  const worldContainerGraphics = new Graphics();
-  worldContainerGraphics.rect(
-    -app.screen.width / 2,
-    -app.screen.height / 2,
-    app.screen.width,
-    app.screen.height
-  );
-  worldContainerGraphics.fill({ color: 0xffffff, alpha: 0.1 });
-  worldContainer.addChild(worldContainerGraphics);
+  notificationBox = createNotificationBox(document);
 
-  const notificationBox = createNotificationBox(document);
   const client = new Client(ncontext, WebSocketClientAdapter, 20);
-  let connected = false;
-
-  // Reconnection settings
-  const MAX_RECONNECT_ATTEMPTS = 5;
-  const RECONNECT_DELAY = 2000; // 2 seconds
-  let reconnectAttempts = 0;
-  let reconnectTimeout: number | null = null;
-
-  async function connectToServer() {
-    try {
-      const res = await client.connect('ws://localhost:9001', { token: 12345 });
-      if (res === 'accepted') {
-        addNotification(
-          document,
-          notificationBox,
-          reconnectAttempts > 0 ? 'Reconnected to server' : 'Connected to server'
-        );
-        connected = true;
-        reconnectAttempts = 0;
-        if (reconnectTimeout) {
-          clearTimeout(reconnectTimeout);
-          reconnectTimeout = null;
-        }
-
-        // Show username field and handle username
-        const usernameField = addUsernameField(document, notificationBox);
-        setupUsername(usernameField, client);
-        return true;
-      } else {
-        addNotification(document, notificationBox, 'Connection error');
-        return false;
-      }
-    } catch (err) {
-      console.warn(err);
-      addNotification(document, notificationBox, 'Connection error');
-      return false;
-    }
-  }
-
-  function scheduleReconnect() {
-    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-      addNotification(document, notificationBox, 'Max reconnection attempts reached');
-      return;
-    }
-    reconnectAttempts++;
-    addNotification(
-      document,
-      notificationBox,
-      `Attempting to reconnect (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`
-    );
-    reconnectTimeout = window.setTimeout(async () => {
-      const success = await connectToServer();
-      if (!success) {
-        scheduleReconnect();
-      }
-    }, RECONNECT_DELAY);
-  }
 
   client.setDisconnectHandler(() => {
     addNotification(document, notificationBox, 'Disconnected from server');
     connected = false;
     cleanup();
-    scheduleReconnect();
+    scheduleReconnect(client, notificationBox);
   });
 
   addNotification(document, notificationBox, 'local app loaded');
-  const success = await connectToServer();
+
+  const success = await connectToServer(client, notificationBox);
   if (!success) {
-    scheduleReconnect();
+    scheduleReconnect(client, notificationBox);
   }
 
   const userInput = new InputSystem();
@@ -181,16 +177,19 @@ window.addEventListener('load', async () => {
     }
 
     istate.forEach(snapshot => {
-      snapshot.createEntities.forEach((entity: any) => {
+      snapshot.createEntities.forEach((entity: IEntity) => {
         if (entity.ntype === NType.Entity) {
           entities.set(entity.nid, entity);
-          createPlayerGraphics(entity, app);
+          const playerEntity = entity as unknown as PlayerEntity;
+          playerEntities.set(entity.nid, playerEntity);
+          createPlayerGraphics(playerEntity, app);
         } else if (entity.ntype === NType.Object) {
-          createObjectGraphics(app, entity, worldContainer, entities);
+          const objectEntity = entity as unknown as ObjectEntity;
+          createObjectGraphics(app, objectEntity, worldContainer);
         }
       });
 
-      snapshot.updateEntities.forEach((diff: any) => {
+      snapshot.updateEntities.forEach((diff: IEntity) => {
         updatePlayer(diff, entities);
         updateObject(diff, entities);
       });
@@ -201,7 +200,7 @@ window.addEventListener('load', async () => {
       });
     });
 
-    handleUserInput(userInput, worldState, entities, client, app, delta);
+    handleUserInput(userInput, worldState, playerEntities, client, app, delta);
 
     client.flush();
   };

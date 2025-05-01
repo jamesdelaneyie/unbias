@@ -1,10 +1,8 @@
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import TaggedTextPlus from 'pixi-tagged-text-plus';
-//import { ligtenColor } from './HTMLUI';
+import { PlayerEntity, ObjectEntity } from '@/common/types';
 
-type EntityMap = Map<number, Container>;
-
-const createPlayerGraphics = (entity: any, app: Application) => {
+const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
   const playerSize = entity.size;
   const fontSize = playerSize / 1.5;
   const playerContainer = new Container();
@@ -55,15 +53,14 @@ const createPlayerGraphics = (entity: any, app: Application) => {
   playerContainer.addChild(username);
 
   entity.graphics = playerContainer;
-
   app.stage.addChild(playerContainer);
+  return playerContainer;
 };
 
 const createObjectGraphics = (
   app: Application,
-  object: any,
-  worldContainer: Container,
-  entities: EntityMap
+  object: ObjectEntity,
+  worldContainer: Container
 ) => {
   console.log(object);
   const objectGraphics = new Graphics()
@@ -78,8 +75,8 @@ const createObjectGraphics = (
   objectSprite.x = object.x;
   objectSprite.y = object.y;
   worldContainer.addChild(objectSprite);
-
-  entities.set(object.nid, objectSprite);
+  object.graphics = objectSprite;
+  return objectSprite;
 };
 
 export { createPlayerGraphics, createObjectGraphics };
