@@ -57,8 +57,8 @@ const handleUserInput = (
         playerGraphics.x = prediction.x;
         playerGraphics.y = prediction.y;
         playerGraphics.rotation = rotation;
-        //app.stage.pivot.set(playerGraphics.x, playerGraphics.y);
-        //app.stage.position.set(app.screen.width / 2, app.screen.height / 2);
+        app.stage.pivot.set(playerGraphics.x, playerGraphics.y);
+        app.stage.position.set(app.screen.width / 2, app.screen.height / 2);
       }
     }
   }

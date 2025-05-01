@@ -2,15 +2,16 @@ import { Binary, IEntity } from 'nengi';
 import { IEntityMap, PlayerEntity } from '@/common/types';
 import { worldConfig } from '@/common/worldConfig';
 
-const updatePlayer = (diff: IEntity, worldState: any, entities: IEntityMap) => {
+const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
   if (diff.nid === worldState.myRawId) return;
   const player = entities.get(diff.nid);
   const property = diff.prop;
   const value = diff.value;
   if (player) {
     player[property] = value;
-    if (!player.renderTarget)
+    if (!player.renderTarget) {
       player.renderTarget = { x: player.x, y: player.y, rotation: player.rotation };
+    }
     player.renderTarget[property] = value;
   }
 };
@@ -19,7 +20,7 @@ const updatePlayerGraphics = (playerEntity: PlayerEntity, worldState: any, delta
   if (playerEntity.nid === worldState.myRawId) return;
   if (!playerEntity.graphics || !playerEntity.renderTarget) return;
   const graphics = playerEntity.graphics;
-  const t = Math.min(1, worldConfig.playerSmoothing * delta); // delta from rAF loop
+  const t = Math.min(1, worldConfig.playerSmoothing * delta);
   graphics.x += (playerEntity.renderTarget.x - graphics.x) * t;
   graphics.y += (playerEntity.renderTarget.y - graphics.y) * t;
   graphics.rotation += (playerEntity.renderTarget.rotation - graphics.rotation) * t;
@@ -47,4 +48,4 @@ const deletePlayer = (nid: Binary.UInt8, entities: IEntityMap) => {
   }
 };
 
-export { updatePlayer, updateObject, deletePlayer, updatePlayerGraphics };
+export { updatePlayerEntity, updateObject, deletePlayer, updatePlayerGraphics };

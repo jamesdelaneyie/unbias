@@ -8,7 +8,7 @@ import { createPlayerGraphics, createObjectGraphics } from './Graphics';
 import { drawBasicText } from './GPUUI';
 import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
-import { updatePlayer, deletePlayer, updatePlayerGraphics } from './handleState';
+import { updatePlayerEntity, deletePlayer, updatePlayerGraphics } from './handleState';
 import { IEntityMap, PlayerEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
 import { worldConfig } from '@/common/worldConfig';
 
@@ -179,8 +179,8 @@ window.addEventListener('load', async () => {
     istate.forEach(snapshot => {
       snapshot.createEntities.forEach((entity: IEntity) => {
         if (entity.ntype === NType.Entity) {
-          entities.set(entity.nid, entity);
           const playerEntity = entity as unknown as PlayerEntity;
+          entities.set(entity.nid, entity);
           playerEntities.set(entity.nid, playerEntity);
           createPlayerGraphics(playerEntity, app);
         } else if (entity.ntype === NType.Object) {
@@ -190,7 +190,7 @@ window.addEventListener('load', async () => {
       });
 
       snapshot.updateEntities.forEach((diff: IEntity) => {
-        updatePlayer(diff, worldState, entities);
+        updatePlayerEntity(diff, worldState, entities);
         //updateObject(diff, entities);
       });
 
