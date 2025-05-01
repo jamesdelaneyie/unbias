@@ -15,6 +15,7 @@ type PlayerEntity = Entity & {
   color: number;
   speed: number;
   size: number;
+  renderTarget: { x: number; y: number; rotation: number };
 };
 
 type ObjectEntity = Entity & {

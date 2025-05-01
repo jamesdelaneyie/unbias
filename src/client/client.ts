@@ -8,7 +8,7 @@ import { createPlayerGraphics, createObjectGraphics } from './Graphics';
 import { drawBasicText } from './GPUUI';
 import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
-import { updatePlayer, updateObject, deletePlayer } from './handleState';
+import { updatePlayer, deletePlayer, updatePlayerGraphics } from './handleState';
 import { IEntityMap, PlayerEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
 import { worldConfig } from '@/common/worldConfig';
 
@@ -190,14 +190,19 @@ window.addEventListener('load', async () => {
       });
 
       snapshot.updateEntities.forEach((diff: IEntity) => {
-        updatePlayer(diff, entities);
-        updateObject(diff, entities);
+        updatePlayer(diff, worldState, entities);
+        //updateObject(diff, entities);
       });
 
       snapshot.deleteEntities.forEach((nid: number) => {
         console.log('deleteEntity', nid);
         deletePlayer(nid, entities);
       });
+    });
+
+    /* Smooth player movement */
+    playerEntities.forEach(playerEntity => {
+      updatePlayerGraphics(playerEntity, worldState, delta);
     });
 
     handleUserInput(userInput, worldState, playerEntities, client, app, delta);

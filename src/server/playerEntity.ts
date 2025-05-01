@@ -15,7 +15,7 @@ export class PlayerEntity extends User {
   color: number;
   view: AABB2D | null;
   body: p2.Body | null;
-
+  renderTarget: { x: number; y: number; rotation: number };
   constructor(user: User, username: string) {
     super(user.socket, user.networkAdapter);
     this.id = user.socket.user.id;
@@ -30,6 +30,7 @@ export class PlayerEntity extends User {
     this.color = this.generateColor();
     this.view = null;
     this.body = null;
+    this.renderTarget = { x: 0, y: 0, rotation: 0 };
   }
 
   generateColor() {
