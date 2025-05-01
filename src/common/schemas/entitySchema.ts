@@ -6,4 +6,6 @@ export const entitySchema: Schema = defineSchema({
   size: Binary.UInt8,
   color: Binary.Float64,
   username: Binary.String,
+  rotation: Binary.Float32,
+  speed: Binary.UInt8,
 });

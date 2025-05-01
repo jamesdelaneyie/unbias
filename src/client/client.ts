@@ -3,19 +3,30 @@ import { NType } from '@/common/NType';
 import { ncontext } from '@/common/ncontext';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
-import TaggedTextPlus from 'pixi-tagged-text-plus';
-import { createNotificationBox, addNotification, addUsernameField } from './UIUtils';
-import { createPlayerGraphics, createObjectGraphics } from './worldGraphicsUtils';
+import { createNotificationBox, addNotification, addUsernameField } from './HTMLUI';
+import { createPlayerGraphics, createObjectGraphics } from './Graphics';
+import { drawBasicText } from './GPUUI';
+import { InputSystem } from './InputSystem';
+import handleUserInput from '@/client/handleUserInput';
 
-type EntityMap = Map<number, Container>;
+type EntityMap = Map<number, any>;
 let entities: EntityMap = new Map();
 let reconnectTimeout: number | null = null;
 
 const updatePlayer = (entity: any, entities: EntityMap) => {
-  const player = entities.get(entity.nid);
-  if (player) {
-    player.x = entity.x;
-    player.y = entity.y;
+  const playerGraphics = entities.get(entity.nid)?.graphics;
+  const property = entity.prop;
+  const value = entity.value;
+  if (playerGraphics) {
+    if (property === 'x') {
+      playerGraphics.x = value;
+    }
+    if (property === 'y') {
+      playerGraphics.y = value;
+    }
+    if (property === 'rotation') {
+      playerGraphics.rotation = value;
+    }
   }
 };
 
@@ -42,29 +53,6 @@ const deletePlayer = (nid: number, entities: EntityMap) => {
   }
 };
 
-const drawBasicText = (
-  app: Application,
-  masterContainer: Container,
-  text: string,
-  x: number,
-  y: number
-) => {
-  const taggedText = new TaggedTextPlus(text, {
-    default: {
-      fontSize: '24px',
-      fill: '#fff',
-      align: 'left',
-    },
-  });
-  taggedText.x = x;
-  taggedText.y = y;
-  masterContainer.addChild(taggedText);
-};
-
-const drawInitialUI = (app: Application, masterContainer: Container) => {
-  drawBasicText(app, masterContainer, 'BIAS 2.0', 10, 10);
-};
-
 const cleanup = () => {
   entities.forEach(player => player.destroy());
   entities.clear();
@@ -88,7 +76,11 @@ window.addEventListener('load', async () => {
   masterContainer.zIndex = 1000;
   app.stage.addChild(masterContainer);
 
-  drawInitialUI(app, masterContainer);
+  drawBasicText(masterContainer, 'BIAS 2.0', 10, 10);
+
+  const worldState = {
+    myRawId: null,
+  };
 
   const worldContainer = new Container();
   worldContainer.position.x = app.screen.width / 2;
@@ -110,26 +102,6 @@ window.addEventListener('load', async () => {
   const notificationBox = createNotificationBox(document);
   const client = new Client(ncontext, WebSocketClientAdapter, 20);
   let connected = false;
-
-  // Movement keys
-  const keys: Record<'w' | 'a' | 's' | 'd', boolean> = {
-    w: false,
-    a: false,
-    s: false,
-    d: false,
-  };
-
-  window.addEventListener('keydown', e => {
-    if (e.key in keys) {
-      keys[e.key as keyof typeof keys] = true;
-    }
-  });
-
-  window.addEventListener('keyup', e => {
-    if (e.key in keys) {
-      keys[e.key as keyof typeof keys] = false;
-    }
-  });
 
   // Reconnection settings
   const MAX_RECONNECT_ATTEMPTS = 5;
@@ -229,6 +201,8 @@ window.addEventListener('load', async () => {
 
   const interpolator = new Interpolator(client);
 
+  const userInput = new InputSystem();
+
   const tick = (delta: number) => {
     if (!connected) {
       return;
@@ -239,21 +213,24 @@ window.addEventListener('load', async () => {
     while (client.network.messages.length > 0) {
       const message = client.network.messages.pop();
       console.log('Received message:', message);
+      if (message.ntype === NType.IdentityMessage) {
+        console.log('IdentityMessage', message);
+        worldState.myRawId = message.myId;
+        console.log(worldState);
+      }
     }
 
     istate.forEach(snapshot => {
       snapshot.createEntities.forEach((entity: any) => {
         if (entity.ntype === NType.Entity) {
-          console.log('createPlayerEntity', entity);
-          createPlayerGraphics(entity, app, entities);
+          entities.set(entity.nid, entity);
+          createPlayerGraphics(entity, app);
         } else if (entity.ntype === NType.Object) {
-          console.log('createObjectGraphics', entity);
           createObjectGraphics(app, entity, worldContainer, entities);
         }
       });
 
       snapshot.updateEntities.forEach((diff: any) => {
-        //console.log('updateEntity', diff);
         updatePlayer(diff, entities);
         updateObject(diff, entities);
       });
@@ -264,16 +241,7 @@ window.addEventListener('load', async () => {
       });
     });
 
-    if (keys.w || keys.a || keys.s || keys.d) {
-      client.addCommand({
-        ntype: NType.Command,
-        w: keys.w,
-        a: keys.a,
-        s: keys.s,
-        d: keys.d,
-        delta,
-      });
-    }
+    handleUserInput(userInput, worldState, entities, client, app, delta);
 
     client.flush();
   };

@@ -8,6 +8,8 @@ export class playerEntity extends User {
   x: number;
   y: number;
   size: number;
+  rotation: number;
+  speed: number;
   username: string;
   color: number;
   view: AABB2D | null;
@@ -21,6 +23,8 @@ export class playerEntity extends User {
     this.x = 0;
     this.y = 0;
     this.size = 30;
+    this.rotation = 0;
+    this.speed = 100;
     this.username = username;
     this.color = this.generateColor();
     this.view = null;

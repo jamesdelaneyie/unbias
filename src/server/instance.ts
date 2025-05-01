@@ -3,6 +3,7 @@ import { ncontext } from '../common/ncontext';
 import { NType } from '../common/NType';
 import { playerEntity } from '../server/playerEntity';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
+import { applyCommand } from '../common/applyCommand';
 import * as p2 from 'p2-es';
 
 const port = 9001;
@@ -32,8 +33,6 @@ type dynamicObject = {
   body: p2.Body;
 };
 const dynamicObjects: Map<number, dynamicObject> = new Map();
-
-// users
 const playerEntities: Map<number, playerEntity> = new Map();
 
 const world = new p2.World({
@@ -130,13 +129,11 @@ const update = () => {
       populateWorld();
     }
 
-    // handle a user connecting
     if (networkEvent.type === NetworkEvent.UserConnected) {
       const { user } = networkEvent;
       main.subscribe(user);
     }
 
-    // handle a user disconnecting
     if (networkEvent.type === NetworkEvent.UserDisconnected) {
       const { user } = networkEvent;
       deletePlayerEntity(user);
@@ -147,7 +144,10 @@ const update = () => {
       if (commands.length > 0) {
         commands.forEach((command: any) => {
           if (command.ntype === NType.Command) {
-            //console.log('command', command);
+            const player = playerEntities.get(command.nid);
+            if (player) {
+              applyCommand(player, command);
+            }
           }
           if (command.ntype === NType.UsernameCommand) {
             const usernameTaken = Array.from(playerEntities.values()).find(

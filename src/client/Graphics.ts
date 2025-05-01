@@ -1,19 +1,30 @@
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import TaggedTextPlus from 'pixi-tagged-text-plus';
-import { ligtenColor } from './UIUtils';
+//import { ligtenColor } from './HTMLUI';
 
 type EntityMap = Map<number, Container>;
 
-const createPlayerGraphics = (entity: any, app: Application, entities: EntityMap) => {
+const createPlayerGraphics = (entity: any, app: Application) => {
   const playerSize = entity.size;
   const fontSize = playerSize / 1.5;
   const playerContainer = new Container();
-  const playerBody = new Graphics()
-    .circle(0, 0, playerSize / 2)
-    .fill({ color: entity.color, alpha: 1 })
-    .stroke({ color: ligtenColor(entity.color, 0.2), width: 1 });
+
   playerContainer.x = entity.x;
   playerContainer.y = entity.y;
+
+  const playerBody = new Graphics()
+    .circle(0, 0, playerSize / 2)
+    .fill({ color: entity.color, alpha: 1 });
+
+  const playerNose = new Graphics()
+    .moveTo(0, -playerSize / 2)
+    .moveTo(0, -playerSize / 2)
+    .lineTo(playerSize * 0.666, 0)
+    .lineTo(0, playerSize / 2)
+    .fill({ color: entity.color, alpha: 1 });
+  playerNose.x = 3;
+  playerNose.y = 0;
+
   const username = new TaggedTextPlus(
     entity.username.slice(0, 1).toUpperCase(),
     {
@@ -36,11 +47,16 @@ const createPlayerGraphics = (entity: any, app: Application, entities: EntityMap
   username.position.set(-1, -fontSize / 2);
   username.width = playerSize;
   username.height = playerSize;
+  username.alpha = 0.5;
   username.update();
+
   playerContainer.addChild(playerBody);
+  playerContainer.addChild(playerNose);
   playerContainer.addChild(username);
+
+  entity.graphics = playerContainer;
+
   app.stage.addChild(playerContainer);
-  entities.set(entity.nid, playerContainer);
 };
 
 const createObjectGraphics = (

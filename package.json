@@ -31,6 +31,7 @@
   "devDependencies": {
     "@types/jsdom": "^21.1.6",
     "@types/node": "^20.11.24",
+    "@types/pixi.js": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
     "concurrently": "^8.2.2",
