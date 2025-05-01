@@ -2,56 +2,17 @@ import { Client, Interpolator } from 'nengi';
 import { NType } from '@/common/NType';
 import { ncontext } from '@/common/ncontext';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
-import { Application, Container, Graphics, Sprite } from 'pixi.js';
+import { Application, Container, Graphics } from 'pixi.js';
 import { createNotificationBox, addNotification, addUsernameField } from './HTMLUI';
 import { createPlayerGraphics, createObjectGraphics } from './Graphics';
 import { drawBasicText } from './GPUUI';
 import { InputSystem } from './InputSystem';
-import handleUserInput from '@/client/handleUserInput';
+import { handleUserInput } from '@/client/handleUserInput';
+import { updatePlayer, updateObject, deletePlayer } from './handleState';
 
-type EntityMap = Map<number, any>;
+export type EntityMap = Map<number, any>;
 let entities: EntityMap = new Map();
 let reconnectTimeout: number | null = null;
-
-const updatePlayer = (entity: any, entities: EntityMap) => {
-  const playerGraphics = entities.get(entity.nid)?.graphics;
-  const property = entity.prop;
-  const value = entity.value;
-  if (playerGraphics) {
-    if (property === 'x') {
-      playerGraphics.x = value;
-    }
-    if (property === 'y') {
-      playerGraphics.y = value;
-    }
-    if (property === 'rotation') {
-      playerGraphics.rotation = value;
-    }
-  }
-};
-
-const updateObject = (entity: any, entities: EntityMap) => {
-  const object = entities.get(entity.nid) as Sprite;
-  if (object) {
-    const property = entity.prop;
-    const value = entity.value;
-    if (property === 'x') {
-      object.position.set(value, object.position.y);
-    }
-    if (property === 'y') {
-      object.position.set(object.position.x, value);
-    }
-  }
-};
-
-const deletePlayer = (nid: number, entities: EntityMap) => {
-  const player = entities.get(nid);
-  if (player) {
-    player.parent?.removeChild(player);
-    player.destroy({ children: true });
-    entities.delete(nid);
-  }
-};
 
 const cleanup = () => {
   entities.forEach(player => player.destroy());
@@ -59,6 +20,33 @@ const cleanup = () => {
   if (reconnectTimeout) {
     clearTimeout(reconnectTimeout);
   }
+};
+
+const setupUsername = (usernameField: HTMLInputElement, client: Client) => {
+  const existingUsername = localStorage.getItem('username') || '';
+  if (existingUsername) {
+    /*usernameField.value = existingUsername;
+    client.addCommand({
+      ntype: NType.UsernameCommand,
+      username: existingUsername,
+    });*/
+  }
+
+  let usernameSubmitted = false;
+  usernameField.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !usernameSubmitted) {
+      const username = (e.target as HTMLInputElement).value.trim();
+      if (username) {
+        usernameSubmitted = true;
+        localStorage.setItem('username', username);
+        client.addCommand({
+          ntype: NType.UsernameCommand,
+          username,
+        });
+        usernameField.disabled = true;
+      }
+    }
+  });
 };
 
 window.addEventListener('load', async () => {
@@ -109,33 +97,6 @@ window.addEventListener('load', async () => {
   let reconnectAttempts = 0;
   let reconnectTimeout: number | null = null;
 
-  function setupUsername(usernameField: HTMLInputElement) {
-    const existingUsername = localStorage.getItem('username') || '';
-    if (existingUsername) {
-      /*usernameField.value = existingUsername;
-      client.addCommand({
-        ntype: NType.UsernameCommand,
-        username: existingUsername,
-      });*/
-    }
-
-    let usernameSubmitted = false;
-    usernameField.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !usernameSubmitted) {
-        const username = (e.target as HTMLInputElement).value.trim();
-        if (username) {
-          usernameSubmitted = true;
-          localStorage.setItem('username', username);
-          client.addCommand({
-            ntype: NType.UsernameCommand,
-            username,
-          });
-          usernameField.disabled = true;
-        }
-      }
-    });
-  }
-
   async function connectToServer() {
     try {
       const res = await client.connect('ws://localhost:9001', { token: 12345 });
@@ -154,7 +115,7 @@ window.addEventListener('load', async () => {
 
         // Show username field and handle username
         const usernameField = addUsernameField(document, notificationBox);
-        setupUsername(usernameField);
+        setupUsername(usernameField, client);
         return true;
       } else {
         addNotification(document, notificationBox, 'Connection error');
@@ -199,9 +160,8 @@ window.addEventListener('load', async () => {
     scheduleReconnect();
   }
 
-  const interpolator = new Interpolator(client);
-
   const userInput = new InputSystem();
+  const interpolator = new Interpolator(client);
 
   const tick = (delta: number) => {
     if (!connected) {

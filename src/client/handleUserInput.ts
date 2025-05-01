@@ -4,7 +4,7 @@ import { NType } from '@/common/NType';
 import { applyCommand } from '@/common/applyCommand';
 import { commandSchema } from '@/common/schemas/commandSchema';
 import { Application } from 'pixi.js';
-const handleInput = (
+const handleUserInput = (
   inputSystem: InputSystem,
   worldState: any,
   entities: any,
@@ -66,4 +66,4 @@ const handleInput = (
   }
 };
 
-export default handleInput;
+export { handleUserInput };
