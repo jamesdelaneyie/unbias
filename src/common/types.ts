@@ -44,6 +44,10 @@ type MoveCommand = Command & {
   rotation: Binary.Float32;
 };
 
+type UsernameCommand = Command & {
+  username: string;
+};
+
 export {
   Entity,
   EntityMap,
@@ -53,4 +57,5 @@ export {
   Command,
   MoveCommand,
   ObjectEntity,
+  UsernameCommand,
 };

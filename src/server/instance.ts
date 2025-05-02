@@ -1,9 +1,10 @@
 import { NType } from '../common/NType';
 import { ncontext } from '../common/ncontext';
-import { Instance, NetworkEvent, AABB2D, ChannelAABB2D, Channel, User } from 'nengi';
+import { Instance, NetworkEvent, ChannelAABB2D, Channel } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
-import { Command, ObjectEntity, MoveCommand } from '../common/types';
+import { Command, ObjectEntity, MoveCommand, UsernameCommand } from '../common/types';
 import { PlayerEntity } from '../server/PlayerEntity';
+import { createPlayerEntity, deletePlayerEntity } from '../server/EntityManager';
 import { applyCommand } from '../common/applyCommand';
 import * as p2 from 'p2-es';
 
@@ -90,39 +91,6 @@ const populateWorld = () => {
   });
 };
 
-const createPlayerEntity = (user: User, username: string) => {
-  try {
-    const viewSize = 1100;
-    const newUser = new PlayerEntity(user, username);
-    newUser.x = viewSize / 2 + Math.random() * 200;
-    newUser.y = viewSize / 2;
-    // creates a local view for the playerEntity for culling
-    newUser.view = new AABB2D(0, 0, viewSize, viewSize);
-    space.subscribe(user, newUser.view);
-    space.addEntity(newUser); // assigns an nid to the playerEntity
-    playerEntities.set(newUser.nid, newUser);
-    user.queueMessage({ myId: newUser.nid, ntype: NType.IdentityMessage, username: username });
-  } catch (error) {
-    console.error('Error creating player entity', error);
-  }
-};
-
-const deletePlayerEntity = (user: User) => {
-  try {
-    const playerEntity = Array.from(playerEntities.values()).find(entity => entity.id === user.id);
-    if (playerEntity) {
-      const nId = playerEntity.nid;
-      main.unsubscribe(user);
-      space.unsubscribe(user);
-      main.removeEntity(playerEntity);
-      space.removeEntity(playerEntity);
-      playerEntities.delete(nId);
-    }
-  } catch (error) {
-    console.error('Error deleting player entity', error);
-  }
-};
-
 const update = () => {
   while (!queue.isEmpty()) {
     const networkEvent = queue.next();
@@ -138,7 +106,7 @@ const update = () => {
 
     if (networkEvent.type === NetworkEvent.UserDisconnected) {
       const { user } = networkEvent;
-      deletePlayerEntity(user);
+      deletePlayerEntity(user, space, main, playerEntities);
     }
 
     if (networkEvent.type === NetworkEvent.CommandSet) {
@@ -161,8 +129,7 @@ const update = () => {
               console.log('Username already taken');
               return;
             }
-            // @ts-ignore
-            createPlayerEntity(user, command.username);
+            createPlayerEntity(user, command as UsernameCommand, space, playerEntities);
           }
         });
       }
