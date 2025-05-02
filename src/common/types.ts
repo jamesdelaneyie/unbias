@@ -2,7 +2,7 @@ import { Binary, IEntity } from 'nengi';
 import { NType } from './NType';
 import { Container } from 'pixi.js';
 import * as p2 from 'p2-es';
-
+import * as SAT from 'sat';
 type Entity = {
   nid: Binary.UInt8;
   ntype: NType;
@@ -19,6 +19,7 @@ type PlayerEntity = Entity & {
   body?: p2.Body;
   graphics?: Container;
   renderTarget: { x: number; y: number; rotation: number };
+  clientCollisionBody?: SAT.Circle;
 };
 
 type ObjectEntity = Entity & {
@@ -29,6 +30,7 @@ type ObjectEntity = Entity & {
   body?: p2.Body;
   graphics?: Container;
   renderTarget: { x: number; y: number; rotation: number };
+  clientCollisionBody?: SAT.Circle;
 };
 
 type EntityMap = Map<Binary.UInt8, Entity>;

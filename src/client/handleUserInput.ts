@@ -1,15 +1,17 @@
 import { Client, Binary } from 'nengi';
 import { NType } from '@/common/NType';
-import { PlayerEntityMap, MoveCommand } from '@/common/types';
+import { PlayerEntityMap, MoveCommand, ObjectEntityMap } from '@/common/types';
 import { applyCommand } from '@/common/applyCommand';
 import { commandSchema } from '@/common/schemas/commandSchema';
 import { InputSystem } from '@/client/InputSystem';
 import { Application } from 'pixi.js';
+import { CollisionSystem } from '@/client/CollisionSystem';
 
 const handleUserInput = (
   inputSystem: InputSystem,
   worldState: any,
   playerEntities: PlayerEntityMap,
+  objectEntities: ObjectEntityMap,
   client: Client,
   app: Application,
   delta: number
@@ -40,8 +42,34 @@ const handleUserInput = (
       };
       client.addCommand(command);
 
-      // apply moveCommand  to our local entity
+      // Calculate the proposed position after applying the command
+      const originalX = myEntity.x;
+      const originalY = myEntity.y;
+
+      // Apply move command to get proposed position
       applyCommand(myEntity, command);
+
+      const proposedX = myEntity.x;
+      const proposedY = myEntity.y;
+
+      // Reset position for collision check
+      myEntity.x = originalX;
+      myEntity.y = originalY;
+
+      // Convert ObjectEntityMap to array for collision detection
+      const objectsArray = Array.from(objectEntities.values());
+
+      // Get collision-adjusted position
+      const adjustedPosition = CollisionSystem.moveWithCollisions(
+        myEntity,
+        proposedX,
+        proposedY,
+        objectsArray
+      );
+
+      // Set the entity position to the collision-adjusted position
+      myEntity.x = adjustedPosition.x;
+      myEntity.y = adjustedPosition.y;
 
       // save the result of applying the command as a prediction
       const prediction = {
@@ -57,8 +85,6 @@ const handleUserInput = (
         playerGraphics.x = prediction.x;
         playerGraphics.y = prediction.y;
         playerGraphics.rotation = rotation;
-        //app.stage.pivot.set(playerGraphics.x, playerGraphics.y);
-        //app.stage.position.set(app.screen.width / 2, app.screen.height / 2);
       }
     }
   }

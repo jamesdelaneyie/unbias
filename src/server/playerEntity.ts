@@ -16,6 +16,7 @@ export class PlayerEntity extends User {
   view: AABB2D | null;
   body: p2.Body;
   renderTarget: { x: number; y: number; rotation: number };
+
   constructor(user: User, username: string) {
     super(user.socket, user.networkAdapter);
     this.id = user.socket.user.id;

@@ -23,6 +23,7 @@ import {
   ObjectEntityMap,
 } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
+import * as SAT from 'sat';
 
 let connectedToServer = false;
 
@@ -93,10 +94,19 @@ window.addEventListener('load', async () => {
         if (entity.ntype === NType.Entity) {
           const playerEntity = entity as PlayerEntity;
           entities.set(entity.nid, entity);
+          playerEntity.clientCollisionBody = new SAT.Circle(
+            new SAT.Vector(playerEntity.x, playerEntity.y),
+            playerEntity.size * 0.75
+          );
           playerEntities.set(entity.nid, playerEntity);
+          console.log(playerEntity);
           createPlayerGraphics(playerEntity, worldContainer, app);
         } else if (entity.ntype === NType.Object) {
           const objectEntity = entity as ObjectEntity;
+          objectEntity.clientCollisionBody = new SAT.Circle(
+            new SAT.Vector(objectEntity.x, objectEntity.y),
+            objectEntity.width / 3
+          );
           objectEntities.set(entity.nid, objectEntity);
           createObjectGraphics(app, objectEntity, worldContainer);
         }
@@ -120,7 +130,7 @@ window.addEventListener('load', async () => {
       updateObjectGraphics(objectEntity, worldState, delta);
     });
 
-    handleUserInput(userInput, worldState, playerEntities, client, app, delta);
+    handleUserInput(userInput, worldState, playerEntities, objectEntities, client, app, delta);
 
     client.flush();
   };

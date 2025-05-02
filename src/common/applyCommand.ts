@@ -32,11 +32,10 @@ export const applyCommand = (entity: PlayerEntity, command: MoveCommand) => {
   const yMove = unitY * entity.speed * command.delta;
   entity.x += xMove;
   entity.y += yMove;
+
+  // Update physics body if available
   if (entity.body) {
     entity.body.position[0] = entity.x;
     entity.body.position[1] = entity.y;
   }
-
-  // readjusts this entities position by uncolliding it from obstacles
-  //CollisionSystem.moveWithCollisions(entity, obstacles, boxes, artworks, infoPanels);
 };

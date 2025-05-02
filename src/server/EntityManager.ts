@@ -15,7 +15,6 @@ const createPlayerEntity = (
     const newUser = new PlayerEntity(user, usernameCommand.username);
     newUser.x = 1;
     newUser.y = 1;
-    console.log(newUser.body);
     // creates a local view for the playerEntity for network culling
     newUser.view = new AABB2D(0, 0, viewSize, viewSize);
     space.subscribe(user, newUser.view);
