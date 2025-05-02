@@ -52,8 +52,8 @@ window.addEventListener('load', async () => {
   const worldContainer = new Container();
   worldContainer.position.x = app.screen.width / 2;
   worldContainer.position.y = app.screen.height / 2;
-  worldContainer.scale.x = 100;
-  worldContainer.scale.y = -100;
+  worldContainer.scale.x = 50;
+  worldContainer.scale.y = -50;
   app.stage.addChild(worldContainer);
 
   notificationBox = createNotificationBox(document);
@@ -70,8 +70,6 @@ window.addEventListener('load', async () => {
   if (!connectedToServer) {
     scheduleReconnect(client, notificationBox);
   }
-
-  addNotification(document, notificationBox, 'connected to server');
 
   const userInput = new InputSystem();
   const interpolator = new Interpolator(client);
@@ -130,7 +128,15 @@ window.addEventListener('load', async () => {
       updateObjectGraphics(objectEntity, worldState, delta);
     });
 
-    handleUserInput(userInput, worldState, playerEntities, objectEntities, client, app, delta);
+    handleUserInput(
+      userInput,
+      worldState,
+      playerEntities,
+      objectEntities,
+      client,
+      worldContainer,
+      delta
+    );
 
     client.flush();
   };

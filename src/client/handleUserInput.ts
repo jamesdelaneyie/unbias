@@ -4,8 +4,8 @@ import { PlayerEntityMap, MoveCommand, ObjectEntityMap } from '@/common/types';
 import { applyCommand } from '@/common/applyCommand';
 import { commandSchema } from '@/common/schemas/commandSchema';
 import { InputSystem } from '@/client/InputSystem';
-import { Application } from 'pixi.js';
-import { CollisionSystem } from '@/client/CollisionSystem';
+import { Container } from 'pixi.js';
+//import { CollisionSystem } from '@/client/CollisionSystem';
 
 const handleUserInput = (
   inputSystem: InputSystem,
@@ -13,7 +13,7 @@ const handleUserInput = (
   playerEntities: PlayerEntityMap,
   objectEntities: ObjectEntityMap,
   client: Client,
-  app: Application,
+  worldContainer: Container,
   delta: number
 ) => {
   const input = inputSystem.frameState;
@@ -24,7 +24,7 @@ const handleUserInput = (
   if (myEntity) {
     const screenX = inputSystem.currentState.mx;
     const screenY = inputSystem.currentState.my;
-    const point = app.stage.toLocal({ x: screenX, y: screenY });
+    const point = worldContainer.toLocal({ x: screenX, y: screenY });
     const dx = point.x - myEntity.x;
     const dy = point.y - myEntity.y;
     const rotation = Math.atan2(dy, dx);
@@ -43,13 +43,13 @@ const handleUserInput = (
       client.addCommand(command);
 
       // Calculate the proposed position after applying the command
-      const originalX = myEntity.x;
-      const originalY = myEntity.y;
+      //const originalX = myEntity.x;
+      //const originalY = myEntity.y;
 
       // Apply move command to get proposed position
       applyCommand(myEntity, command);
 
-      const proposedX = myEntity.x;
+      /*const proposedX = myEntity.x;
       const proposedY = myEntity.y;
 
       // Reset position for collision check
@@ -69,7 +69,7 @@ const handleUserInput = (
 
       // Set the entity position to the collision-adjusted position
       myEntity.x = adjustedPosition.x;
-      myEntity.y = adjustedPosition.y;
+      myEntity.y = adjustedPosition.y;*/
 
       // save the result of applying the command as a prediction
       const prediction = {
@@ -81,10 +81,13 @@ const handleUserInput = (
 
       // also apply the result of the prediction to the graphical entity
       const playerGraphics = playerEntities.get(prediction.nid)?.graphics;
+      const playerGraphicsBody = playerGraphics?.getChildByLabel('playerBodyContainer');
       if (playerGraphics) {
         playerGraphics.x = prediction.x;
         playerGraphics.y = prediction.y;
-        playerGraphics.rotation = rotation;
+      }
+      if (playerGraphicsBody) {
+        playerGraphicsBody.rotation = rotation;
       }
     }
   }

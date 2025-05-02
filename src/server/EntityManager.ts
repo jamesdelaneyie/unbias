@@ -54,7 +54,7 @@ const deletePlayerEntity = (
 
 const createPhysicalObject = (object: ObjectEntity) => {
   const body = new p2.Body({
-    mass: 1,
+    mass: 0.1,
     position: [object.x, object.y],
     angle: 0,
     angularVelocity: 0,
