@@ -8,15 +8,27 @@ import { createPlayerGraphics, createObjectGraphics } from './Graphics';
 import { drawBasicText } from './GPUUI';
 import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
-import { updatePlayerEntity, deletePlayer, updatePlayerGraphics } from './handleState';
-import { IEntityMap, PlayerEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
+import {
+  updatePlayerEntity,
+  deletePlayer,
+  updatePlayerGraphics,
+  updateObjectGraphics,
+  updateObjectEntity,
+} from './handleState';
+import {
+  IEntityMap,
+  PlayerEntityMap,
+  PlayerEntity,
+  ObjectEntity,
+  ObjectEntityMap,
+} from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 
 let connectedToServer = false;
 
 let entities: IEntityMap = new Map();
 let playerEntities: PlayerEntityMap = new Map();
-
+let objectEntities: ObjectEntityMap = new Map();
 let notificationBox: HTMLDivElement;
 
 window.addEventListener('load', async () => {
@@ -82,15 +94,17 @@ window.addEventListener('load', async () => {
           const playerEntity = entity as PlayerEntity;
           entities.set(entity.nid, entity);
           playerEntities.set(entity.nid, playerEntity);
-          createPlayerGraphics(playerEntity, app);
+          createPlayerGraphics(playerEntity, worldContainer, app);
         } else if (entity.ntype === NType.Object) {
           const objectEntity = entity as ObjectEntity;
+          objectEntities.set(entity.nid, objectEntity);
           createObjectGraphics(app, objectEntity, worldContainer);
         }
       });
 
       snapshot.updateEntities.forEach((diff: IEntity) => {
         updatePlayerEntity(diff, worldState, entities);
+        updateObjectEntity(diff, objectEntities);
       });
 
       snapshot.deleteEntities.forEach((nid: number) => {
@@ -101,6 +115,9 @@ window.addEventListener('load', async () => {
     /* Smooth player movement */
     playerEntities.forEach(playerEntity => {
       updatePlayerGraphics(playerEntity, worldState, delta);
+    });
+    objectEntities.forEach(objectEntity => {
+      updateObjectGraphics(objectEntity, worldState, delta);
     });
 
     handleUserInput(userInput, worldState, playerEntities, client, app, delta);

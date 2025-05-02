@@ -2,13 +2,19 @@ import { NType } from '../common/NType';
 import { ncontext } from '../common/ncontext';
 import { Instance, NetworkEvent, ChannelAABB2D, Channel } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
-import { Command, ObjectEntity, MoveCommand, UsernameCommand } from '../common/types';
+import { Command, MoveCommand, ObjectEntity, UsernameCommand } from '../common/types';
 import { PlayerEntity } from '../server/PlayerEntity';
-import { createPlayerEntity, deletePlayerEntity } from '../server/EntityManager';
+import {
+  createPlayerEntity,
+  deletePlayerEntity,
+  createPhysicalObject,
+} from '../server/EntityManager';
 import { applyCommand } from '../common/applyCommand';
 import * as p2 from 'p2-es';
+import { Binary } from 'nengi';
+import { worldConfig } from '../common/worldConfig';
 
-const port = 9001;
+const port = worldConfig.port;
 const instance = new Instance(ncontext);
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
 uws.listen(port, () => {
@@ -18,50 +24,14 @@ uws.listen(port, () => {
 const main = new Channel(instance.localState);
 const space = new ChannelAABB2D(instance.localState);
 
-// dynamic objects react to p2 world gravity
-// and other entities in the p2 world
-// networked across clients by nengi
-type dynamicObject = {
-  entity: {
-    nid: number;
-    ntype: NType;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    shape: String;
-    color: number;
-  };
-  body: p2.Body;
-};
-const dynamicObjects: Map<number, dynamicObject> = new Map();
+const ObjectEntities: Map<number, ObjectEntity> = new Map();
 const playerEntities: Map<number, PlayerEntity> = new Map();
 
-const world = new p2.World({
-  gravity: [0, 0.5],
-});
+const world = new p2.World({ gravity: [0, 0] });
 
 instance.onConnect = async (handshake: any) => {
   console.log('handshake received', handshake.token);
   return true;
-};
-
-const createPhysicalObject = (object: ObjectEntity) => {
-  const body = new p2.Body({
-    mass: 1,
-    position: [object.x, object.y],
-    angle: 0,
-    angularVelocity: 0.5,
-  });
-
-  const shape = new p2.Circle({
-    radius: object.width,
-  });
-
-  body.addShape(shape);
-  world.addBody(body);
-
-  return body;
 };
 
 const queue = instance.queue;
@@ -69,26 +39,28 @@ let worldPopulated = false;
 
 const populateWorld = () => {
   const color = 0xffffff;
-  const objectEntity = {
+  const object: ObjectEntity = {
     nid: 1,
     ntype: NType.Object,
-    x: 1,
-    y: 1,
+    x: 2 as unknown as Binary.Float32,
+    y: 1 as unknown as Binary.Float32,
     width: 1,
     height: 1,
     shape: 'circle',
     color: color,
-    rotation: 0,
+    rotation: 0 as unknown as Binary.Float32,
+    body: null as unknown as p2.Body,
+    renderTarget: { x: 0, y: 0, rotation: 0 },
   };
-  const objectBody = createPhysicalObject(objectEntity);
-  dynamicObjects.set(objectEntity.nid, { entity: objectEntity, body: objectBody });
-  space.addEntity(objectEntity);
-  worldPopulated = true;
-
-  // add all the world objects to 2d space
-  dynamicObjects.forEach(obj => {
-    space.addEntity(obj.entity);
+  const objectBody = createPhysicalObject(object);
+  object.body = objectBody;
+  ObjectEntities.set(object.nid, object);
+  space.addEntity(object);
+  world.addBody(object.body);
+  ObjectEntities.forEach((obj: ObjectEntity) => {
+    space.addEntity(obj);
   });
+  worldPopulated = true;
 };
 
 const update = () => {
@@ -129,15 +101,23 @@ const update = () => {
               console.log('Username already taken');
               return;
             }
-            createPlayerEntity(user, command as UsernameCommand, space, playerEntities);
+            const player = createPlayerEntity(
+              user,
+              command as UsernameCommand,
+              space,
+              playerEntities
+            );
+            if (player?.body) {
+              world.addBody(player.body);
+            }
           }
         });
       }
     }
 
-    dynamicObjects.forEach(object => {
-      object.entity.x = object.body.position[0];
-      object.entity.y = object.body.position[1];
+    ObjectEntities.forEach(object => {
+      object.x = object.body?.position[0] as unknown as Binary.Float32;
+      object.y = object.body?.position[1] as unknown as Binary.Float32;
     });
 
     world.step(1 / 60);

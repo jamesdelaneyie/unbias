@@ -14,7 +14,7 @@ export class PlayerEntity extends User {
   username: string;
   color: number;
   view: AABB2D | null;
-  body: p2.Body | null;
+  body: p2.Body;
   renderTarget: { x: number; y: number; rotation: number };
   constructor(user: User, username: string) {
     super(user.socket, user.networkAdapter);
@@ -29,8 +29,20 @@ export class PlayerEntity extends User {
     this.username = username;
     this.color = this.generateColor();
     this.view = null;
-    this.body = null;
+    this.body = this.generatePlayerBody();
     this.renderTarget = { x: 0, y: 0, rotation: 0 };
+  }
+
+  generatePlayerBody() {
+    this.body = new p2.Body({
+      mass: 1,
+      position: [this.x, this.y],
+    });
+    const circleShape = new p2.Circle({
+      radius: this.size / 2,
+    });
+    this.body.addShape(circleShape);
+    return this.body;
   }
 
   generateColor() {

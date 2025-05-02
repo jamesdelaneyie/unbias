@@ -1,5 +1,5 @@
 import { Binary, IEntity } from 'nengi';
-import { IEntityMap, PlayerEntity } from '@/common/types';
+import { IEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
 import { worldConfig } from '@/common/worldConfig';
 
 const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
@@ -26,16 +26,30 @@ const updatePlayerGraphics = (playerEntity: PlayerEntity, worldState: any, delta
   graphics.rotation += (playerEntity.renderTarget.rotation - graphics.rotation) * t;
 };
 
-const updateObject = (entity: IEntity, entities: IEntityMap) => {
-  const object = entities.get(entity.nid);
+const updateObjectGraphics = (objectEntity: ObjectEntity, worldState: any, delta: number) => {
+  if (objectEntity.nid === worldState.myId) return;
+  if (!objectEntity.graphics || !objectEntity.renderTarget) return;
+  const graphics = objectEntity.graphics;
+  const t = Math.min(1, worldConfig.playerSmoothing * delta);
+  graphics.x += (objectEntity.renderTarget.x - graphics.x) * t;
+  graphics.y += (objectEntity.renderTarget.y - graphics.y) * t;
+  //graphics.rotation += (objectEntity.renderTarget.rotation - graphics.rotation) * t;
+};
+
+const updateObjectEntity = (diff: IEntity, entities: IEntityMap) => {
+  const object = entities.get(diff.nid);
   if (object && object.graphics) {
-    const property = entity.prop;
-    const value = entity.value;
-    if (property === 'x') {
-      object.graphics.position.set(value, object.graphics.position.y);
+    const property = diff.prop;
+    const value = diff.value;
+    if (property === 'rotation') {
+      return;
     }
-    if (property === 'y') {
-      object.graphics.position.set(object.graphics.position.x, value);
+    if (object) {
+      object[property] = value;
+      if (!object.renderTarget) {
+        object.renderTarget = { x: object.x, y: object.y, rotation: object.rotation };
+      }
+      object.renderTarget[property] = value;
     }
   }
 };
@@ -48,4 +62,10 @@ const deletePlayer = (nid: Binary.UInt8, entities: IEntityMap) => {
   }
 };
 
-export { updatePlayerEntity, updateObject, deletePlayer, updatePlayerGraphics };
+export {
+  updatePlayerEntity,
+  updateObjectEntity,
+  deletePlayer,
+  updatePlayerGraphics,
+  updateObjectGraphics,
+};

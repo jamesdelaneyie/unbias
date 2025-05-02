@@ -1,10 +1,14 @@
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
-import TaggedTextPlus from 'pixi-tagged-text-plus';
+//import TaggedTextPlus from 'pixi-tagged-text-plus';
 import { PlayerEntity, ObjectEntity } from '@/common/types';
 
-const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
-  const playerSize = entity.size;
-  const fontSize = playerSize / 1.5;
+const createPlayerGraphics = (
+  entity: PlayerEntity,
+  worldContainer: Container,
+  app: Application
+) => {
+  /*const playerSize = entity.size;
+  //const fontSize = playerSize / 1.5;
 
   const playerContainer = new Container();
   playerContainer.x = entity.x;
@@ -13,6 +17,10 @@ const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
   const playerBody = new Graphics()
     .circle(0, 0, playerSize / 2)
     .fill({ color: entity.color, alpha: 1 });
+
+  
+
+ 
 
   const playerNose = new Graphics()
     .moveTo(0, -playerSize / 2)
@@ -51,10 +59,38 @@ const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
   playerContainer.addChild(playerBody);
   playerContainer.addChild(playerNose);
   playerContainer.addChild(username);
+  const playerGraphics = new Graphics()
+    .circle(0, 0, playerSize * 100)
+    .fill({ color: entity.color, alpha: 1 });
+  const playerTexture = app.renderer.generateTexture(playerGraphics);
 
+  const playerSprite = new Sprite(playerTexture);
+  playerSprite.anchor.set(0.5);
+  playerSprite.width = playerSize;
+  playerSprite.height = playerSize;
+  playerSprite.x = entity.x;
+  playerSprite.y = entity.y;
+  playerContainer.addChild(playerSprite);
+  playerContainer.addChild(playerBody);
   entity.graphics = playerContainer;
-  app.stage.addChild(playerContainer);
-  return playerContainer;
+  worldContainer.addChild(playerContainer);
+  //app.stage.addChild(playerContainer);
+  return playerContainer;*/
+  console.log('player', entity);
+  const playerGraphics = new Graphics()
+    .circle(0, 0, entity.size * 100)
+    .fill({ color: 0xff0000, alpha: 1 });
+  const playerTexture = app.renderer.generateTexture(playerGraphics);
+
+  const playerSprite = new Sprite(playerTexture);
+  playerSprite.anchor.set(0.5);
+  playerSprite.width = entity.size;
+  playerSprite.height = entity.size;
+  playerSprite.x = entity.x;
+  playerSprite.y = entity.y;
+  worldContainer.addChild(playerSprite);
+  entity.graphics = playerSprite;
+  return playerSprite;
 };
 
 const createObjectGraphics = (

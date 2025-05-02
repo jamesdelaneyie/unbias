@@ -1,7 +1,9 @@
 import { User, AABB2D, ChannelAABB2D, Channel } from 'nengi';
-import { PlayerEntity } from '@/server/PlayerEntity';
-import { NType } from '@/common/NType';
-import { UsernameCommand } from '@/common/types';
+import { PlayerEntity } from './PlayerEntity';
+import { NType } from '../common/NType';
+import { ObjectEntity, UsernameCommand } from '../common/types';
+import * as p2 from 'p2-es';
+
 const createPlayerEntity = (
   user: User,
   usernameCommand: UsernameCommand,
@@ -11,9 +13,10 @@ const createPlayerEntity = (
   try {
     const viewSize = 1100;
     const newUser = new PlayerEntity(user, usernameCommand.username);
-    newUser.x = viewSize / 2 + Math.random() * 200;
-    newUser.y = viewSize / 2;
-    // creates a local view for the playerEntity for culling
+    newUser.x = 1;
+    newUser.y = 1;
+    console.log(newUser.body);
+    // creates a local view for the playerEntity for network culling
     newUser.view = new AABB2D(0, 0, viewSize, viewSize);
     space.subscribe(user, newUser.view);
     space.addEntity(newUser); // assigns an nid to the playerEntity
@@ -23,6 +26,7 @@ const createPlayerEntity = (
       ntype: NType.IdentityMessage,
       username: usernameCommand.username,
     });
+    return newUser;
   } catch (error) {
     console.error('Error creating player entity', error);
   }
@@ -49,4 +53,20 @@ const deletePlayerEntity = (
   }
 };
 
-export { createPlayerEntity, deletePlayerEntity };
+const createPhysicalObject = (object: ObjectEntity) => {
+  const body = new p2.Body({
+    mass: 10,
+    position: [object.x, object.y],
+    angle: 0,
+    angularVelocity: 0,
+  });
+
+  const shape = new p2.Circle({
+    radius: object.width / 2,
+  });
+
+  body.addShape(shape);
+  return body;
+};
+
+export { createPlayerEntity, deletePlayerEntity, createPhysicalObject };

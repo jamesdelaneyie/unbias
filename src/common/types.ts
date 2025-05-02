@@ -1,6 +1,7 @@
 import { Binary, IEntity } from 'nengi';
 import { NType } from './NType';
 import { Container } from 'pixi.js';
+import * as p2 from 'p2-es';
 
 type Entity = {
   nid: Binary.UInt8;
@@ -8,7 +9,6 @@ type Entity = {
   x: Binary.Float32;
   y: Binary.Float32;
   rotation: Binary.Float32;
-  graphics?: Container;
 };
 
 type PlayerEntity = Entity & {
@@ -16,6 +16,8 @@ type PlayerEntity = Entity & {
   color: number;
   speed: number;
   size: number;
+  body?: p2.Body;
+  graphics?: Container;
   renderTarget: { x: number; y: number; rotation: number };
 };
 
@@ -23,13 +25,16 @@ type ObjectEntity = Entity & {
   width: number;
   height: number;
   shape: string;
-  rotation: number;
+  color: number;
+  body?: p2.Body;
+  graphics?: Container;
+  renderTarget: { x: number; y: number; rotation: number };
 };
 
 type EntityMap = Map<Binary.UInt8, Entity>;
 type IEntityMap = Map<Binary.UInt8, IEntity>;
 type PlayerEntityMap = Map<Binary.UInt8, PlayerEntity>;
-
+type ObjectEntityMap = Map<Binary.UInt8, ObjectEntity>;
 type Command = {
   ntype: NType.Command;
   nid: Binary.UInt8;
@@ -57,5 +62,6 @@ export {
   Command,
   MoveCommand,
   ObjectEntity,
+  ObjectEntityMap,
   UsernameCommand,
 };
