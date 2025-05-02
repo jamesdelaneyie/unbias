@@ -3,7 +3,7 @@ import { IEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
 import { worldConfig } from '@/common/worldConfig';
 
 const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
-  if (diff.nid === worldState.myRawId) return;
+  if (diff.nid === worldState.myId) return;
   const player = entities.get(diff.nid);
   const property = diff.prop;
   const value = diff.value;
