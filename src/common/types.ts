@@ -19,7 +19,6 @@ type PlayerEntity = Entity & {
   body?: p2.Body;
   graphics?: Container;
   renderTarget: { x: number; y: number; rotation: number };
-  clientCollisionBody?: SAT.Circle;
 };
 
 type ObjectEntity = Entity & {

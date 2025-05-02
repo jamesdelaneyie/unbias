@@ -5,7 +5,6 @@ import { applyCommand } from '@/common/applyCommand';
 import { commandSchema } from '@/common/schemas/commandSchema';
 import { InputSystem } from '@/client/InputSystem';
 import { Container } from 'pixi.js';
-//import { CollisionSystem } from '@/client/CollisionSystem';
 
 const handleUserInput = (
   inputSystem: InputSystem,
@@ -40,36 +39,48 @@ const handleUserInput = (
         rotation: rotation,
         delta,
       };
-      client.addCommand(command);
 
-      // Calculate the proposed position after applying the command
-      //const originalX = myEntity.x;
-      //const originalY = myEntity.y;
+      // Use physics body for movement
+      /*if (myEntity.body) {
+        // Calculate movement direction
+        let unitX = 0;
+        let unitY = 0;
 
-      // Apply move command to get proposed position
+        if (command.w) {
+          unitY += 1; // reverse y axis
+        }
+        if (command.s) {
+          unitY -= 1; // reverse y axis
+        }
+        if (command.a) {
+          unitX -= 1;
+        }
+        if (command.d) {
+          unitX += 1;
+        }
+
+        // Normalize
+        const len = Math.sqrt(unitX * unitX + unitY * unitY);
+        if (len > 0) {
+          unitX = unitX / len;
+          unitY = unitY / len;
+        }
+
+        // Set velocity directly on the physics body
+        const moveSpeed = myEntity.speed;
+        myEntity.body.velocity = [unitX * moveSpeed, unitY * moveSpeed];
+
+        // Update rotation
+        myEntity.body.angle = rotation;
+
+        // Update entity position from physics body
+        myEntity.x = myEntity.body.position[0];
+        myEntity.y = myEntity.body.position[1];
+        myEntity.rotation = rotation;
+      }*/
+
+      //client.addCommand(command);
       applyCommand(myEntity, command);
-
-      /*const proposedX = myEntity.x;
-      const proposedY = myEntity.y;
-
-      // Reset position for collision check
-      myEntity.x = originalX;
-      myEntity.y = originalY;
-
-      // Convert ObjectEntityMap to array for collision detection
-      const objectsArray = Array.from(objectEntities.values());
-
-      // Get collision-adjusted position
-      const adjustedPosition = CollisionSystem.moveWithCollisions(
-        myEntity,
-        proposedX,
-        proposedY,
-        objectsArray
-      );
-
-      // Set the entity position to the collision-adjusted position
-      myEntity.x = adjustedPosition.x;
-      myEntity.y = adjustedPosition.y;*/
 
       // save the result of applying the command as a prediction
       const prediction = {
@@ -80,14 +91,22 @@ const handleUserInput = (
       client.predictor.addCustom(client.serverTickRate, prediction, ['x', 'y'], commandSchema);
 
       // also apply the result of the prediction to the graphical entity
-      const playerGraphics = playerEntities.get(prediction.nid)?.graphics;
-      const playerGraphicsBody = playerGraphics?.getChildByLabel('playerBodyContainer');
-      if (playerGraphics) {
-        playerGraphics.x = prediction.x;
-        playerGraphics.y = prediction.y;
-      }
-      if (playerGraphicsBody) {
-        playerGraphicsBody.rotation = rotation;
+      const playerEntity = playerEntities.get(prediction.nid);
+      if (playerEntity) {
+        const playerGraphics = playerEntity.graphics;
+        const playerBody = playerEntity.body;
+        const playerGraphicsBody = playerGraphics?.getChildByLabel('playerBodyContainer');
+        if (playerGraphics) {
+          playerGraphics.x = prediction.x;
+          playerGraphics.y = prediction.y;
+        }
+        if (playerGraphicsBody) {
+          playerGraphicsBody.rotation = rotation;
+        }
+        if (playerBody) {
+          playerBody.position[0] = prediction.x;
+          playerBody.position[1] = prediction.y;
+        }
       }
     }
   }

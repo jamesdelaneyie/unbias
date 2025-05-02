@@ -1,7 +1,7 @@
 import { User, AABB2D } from 'nengi';
-import { NType } from '../common/NType';
+import { NType } from './NType';
 import * as p2 from 'p2-es';
-import { worldConfig } from '../common/worldConfig';
+import { worldConfig } from './worldConfig';
 
 export class PlayerEntity extends User {
   nid: number;

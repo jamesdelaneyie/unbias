@@ -3,7 +3,7 @@ import { ncontext } from '../common/ncontext';
 import { Instance, NetworkEvent, ChannelAABB2D, Channel } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
 import { Command, MoveCommand, ObjectEntity, UsernameCommand } from '../common/types';
-import { PlayerEntity } from '../server/PlayerEntity';
+import { PlayerEntity } from '../common/PlayerEntity';
 import {
   createPlayerEntity,
   deletePlayerEntity,

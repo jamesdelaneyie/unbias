@@ -1,6 +1,50 @@
 import { Binary, IEntity } from 'nengi';
+import { Container } from 'pixi.js';
+import { Application } from 'pixi.js';
+import * as p2 from 'p2-es';
 import { IEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
 import { worldConfig } from '@/common/worldConfig';
+import { createObjectGraphics, createPlayerGraphics } from '@/client/Graphics';
+
+const createPlayerEntity = (
+  playerEntity: PlayerEntity,
+  worldContainer: Container,
+  app: Application,
+  world: p2.World
+) => {
+  createPlayerGraphics(playerEntity, worldContainer, app);
+  const body = new p2.Body({
+    mass: 10,
+    position: [playerEntity.x, playerEntity.y],
+  });
+  const circle = new p2.Circle({
+    radius: playerEntity.size / 2,
+  });
+
+  body.addShape(circle);
+  world.addBody(body);
+  playerEntity.body = body;
+};
+
+const createObjectEntity = (
+  objectEntity: ObjectEntity,
+  worldContainer: Container,
+  app: Application,
+  world: p2.World
+) => {
+  createObjectGraphics(app, objectEntity, worldContainer);
+  const body = new p2.Body({
+    mass: 0.1, // Static body (doesn't move)
+    position: [objectEntity.x, objectEntity.y],
+  });
+  const circle = new p2.Circle({
+    radius: objectEntity.width / 2,
+  });
+
+  body.addShape(circle);
+  world.addBody(body);
+  objectEntity.body = body;
+};
 
 const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
   if (diff.nid === worldState.myId) return;
@@ -27,7 +71,6 @@ const updatePlayerGraphics = (playerEntity: PlayerEntity, worldState: any, delta
 };
 
 const updateObjectGraphics = (objectEntity: ObjectEntity, worldState: any, delta: number) => {
-  if (objectEntity.nid === worldState.myId) return;
   if (!objectEntity.graphics || !objectEntity.renderTarget) return;
   const graphics = objectEntity.graphics;
   const t = Math.min(1, worldConfig.playerSmoothing * delta);
@@ -46,6 +89,12 @@ const updateObjectEntity = (diff: IEntity, entities: IEntityMap) => {
     }
     if (object) {
       object[property] = value;
+      if (property === 'x') {
+        object.body.position[0] = value;
+      }
+      if (property === 'y') {
+        object.body.position[1] = value;
+      }
       if (!object.renderTarget) {
         object.renderTarget = { x: object.x, y: object.y, rotation: object.rotation };
       }
@@ -57,6 +106,10 @@ const updateObjectEntity = (diff: IEntity, entities: IEntityMap) => {
 const deletePlayer = (nid: Binary.UInt8, entities: IEntityMap) => {
   const player = entities.get(nid);
   if (player) {
+    // Remove physics body if it exists
+    if (player.body) {
+      player.body.world.removeBody(player.body);
+    }
     player.graphics?.destroy({ children: true });
     entities.delete(nid);
   }
@@ -68,4 +121,6 @@ export {
   deletePlayer,
   updatePlayerGraphics,
   updateObjectGraphics,
+  createPlayerEntity,
+  createObjectEntity,
 };

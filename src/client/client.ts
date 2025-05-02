@@ -4,7 +4,6 @@ import { Client, Interpolator, IEntity } from 'nengi';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
 import { Application, Container } from 'pixi.js';
 import { createNotificationBox, addNotification } from './HTMLUI';
-import { createPlayerGraphics, createObjectGraphics } from './Graphics';
 import { drawBasicText } from './GPUUI';
 import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
@@ -13,7 +12,9 @@ import {
   deletePlayer,
   updatePlayerGraphics,
   updateObjectGraphics,
-  updateObjectEntity,
+  //updateObjectEntity,
+  createPlayerEntity,
+  createObjectEntity,
 } from './handleState';
 import {
   IEntityMap,
@@ -23,7 +24,7 @@ import {
   ObjectEntityMap,
 } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
-import * as SAT from 'sat';
+import * as p2 from 'p2-es';
 
 let connectedToServer = false;
 
@@ -58,6 +59,9 @@ window.addEventListener('load', async () => {
 
   notificationBox = createNotificationBox(document);
 
+  const world = new p2.World({
+    gravity: [0, 0],
+  });
   const client = new Client(ncontext, WebSocketClientAdapter, 20);
 
   const worldState = {
@@ -92,27 +96,19 @@ window.addEventListener('load', async () => {
         if (entity.ntype === NType.Entity) {
           const playerEntity = entity as PlayerEntity;
           entities.set(entity.nid, entity);
-          playerEntity.clientCollisionBody = new SAT.Circle(
-            new SAT.Vector(playerEntity.x, playerEntity.y),
-            playerEntity.size * 0.75
-          );
           playerEntities.set(entity.nid, playerEntity);
-          console.log(playerEntity);
-          createPlayerGraphics(playerEntity, worldContainer, app);
+          createPlayerEntity(playerEntity, worldContainer, app, world);
         } else if (entity.ntype === NType.Object) {
           const objectEntity = entity as ObjectEntity;
-          objectEntity.clientCollisionBody = new SAT.Circle(
-            new SAT.Vector(objectEntity.x, objectEntity.y),
-            objectEntity.width / 3
-          );
+          entities.set(entity.nid, entity);
           objectEntities.set(entity.nid, objectEntity);
-          createObjectGraphics(app, objectEntity, worldContainer);
+          createObjectEntity(objectEntity, worldContainer, app, world);
         }
       });
 
       snapshot.updateEntities.forEach((diff: IEntity) => {
         updatePlayerEntity(diff, worldState, entities);
-        updateObjectEntity(diff, objectEntities);
+        //updateObjectEntity(diff, objectEntities);
       });
 
       snapshot.deleteEntities.forEach((nid: number) => {
@@ -120,10 +116,14 @@ window.addEventListener('load', async () => {
       });
     });
 
-    /* Smooth player movement */
+    // Step physics world
+    world.step(1 / 60);
+
+    // Sync physics with entities (except the local player, which is handled in handleUserInput)
     playerEntities.forEach(playerEntity => {
       updatePlayerGraphics(playerEntity, worldState, delta);
     });
+
     objectEntities.forEach(objectEntity => {
       updateObjectGraphics(objectEntity, worldState, delta);
     });
@@ -139,6 +139,9 @@ window.addEventListener('load', async () => {
     );
 
     client.flush();
+
+    //const errors = client.predictor.getErrors(client.network.frames[0]);
+    //console.log('Errors:', errors);
   };
 
   let prev = performance.now();

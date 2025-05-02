@@ -1,5 +1,5 @@
 import { User, AABB2D, ChannelAABB2D, Channel } from 'nengi';
-import { PlayerEntity } from './PlayerEntity';
+import { PlayerEntity } from '../common/PlayerEntity';
 import { NType } from '../common/NType';
 import { ObjectEntity, UsernameCommand } from '../common/types';
 import * as p2 from 'p2-es';
