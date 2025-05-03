@@ -11,6 +11,10 @@ const createPlayerGraphics = (
   const playerSize = entity.size;
 
   const playerContainer = new Container();
+  playerContainer.label = 'player';
+  if (entity.isSelf) {
+    playerContainer.label += ' (self)';
+  }
   playerContainer.interactive = false;
   playerContainer.x = entity.x;
   playerContainer.y = entity.y;
@@ -89,6 +93,12 @@ const updatePlayerGraphics = (playerEntity: PlayerEntity, worldState: any, delta
     graphics.y += (playerEntity.renderTarget.y - graphics.y) * t;
     graphics.rotation += (playerEntity.renderTarget.rotation - graphics.rotation) * t;
   }
+  /*if (graphics) {
+    graphics.x = playerEntity.x;
+    graphics.y = playerEntity.y;
+    graphics.rotation = playerEntity.rotation;
+  }*/
+  /**/
 };
 
 const createObjectGraphics = (
@@ -97,6 +107,7 @@ const createObjectGraphics = (
   worldContainer: Container
 ) => {
   const objectContainer = new Container();
+  objectContainer.label = 'object';
   const objectGraphics = new Graphics()
     .circle(0, 0, object.width * 100)
     .fill({ color: 0xffffff, alpha: 1 });

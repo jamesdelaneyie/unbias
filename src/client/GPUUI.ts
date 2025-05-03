@@ -11,6 +11,7 @@ const drawBasicText = (masterContainer: Container, text: string, x: number, y: n
   });
   taggedText.x = x;
   taggedText.y = y;
+  taggedText.label = 'World Title';
   masterContainer.addChild(taggedText);
 };
 export { drawBasicText };

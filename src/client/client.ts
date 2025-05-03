@@ -42,15 +42,20 @@ window.addEventListener('load', async () => {
     resolution: window.devicePixelRatio,
     resizeTo: window,
   });
+  //@ts-ignore Allows PixiJS dev tools
+  globalThis.__PIXI_APP__ = app;
+
   document.body.appendChild(app.canvas);
 
-  const masterContainer = new Container();
-  masterContainer.zIndex = 1000;
-  app.stage.addChild(masterContainer);
+  const UserInterfaceContainer = new Container();
+  UserInterfaceContainer.label = 'UserInterfaceContainer';
+  UserInterfaceContainer.zIndex = 1000;
+  app.stage.addChild(UserInterfaceContainer);
 
-  drawBasicText(masterContainer, 'BIAS 2.0', 10, 10);
+  drawBasicText(UserInterfaceContainer, 'BIAS 2.0', 10, 10);
 
   const worldContainer = new Container();
+  worldContainer.label = 'worldContainer';
   worldContainer.position.x = app.screen.width / 2;
   worldContainer.position.y = app.screen.height / 2;
   worldContainer.scale.x = 50;
