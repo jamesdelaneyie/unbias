@@ -97,6 +97,7 @@ window.addEventListener('load', async () => {
       snapshot.createEntities.forEach((entity: IEntity) => {
         if (entity.ntype === NType.Entity) {
           const playerEntity = entity as PlayerEntity;
+          playerEntity.isSelf = playerEntity.nid === worldState.myId;
           entities.set(entity.nid, entity);
           playerEntities.set(entity.nid, playerEntity);
           createPlayerEntity(playerEntity, worldContainer, app, world);
@@ -130,8 +131,7 @@ window.addEventListener('load', async () => {
     });
 
     objectEntities.forEach(objectEntity => {
-      console.log(objectEntity);
-      updateObjectGraphics(objectEntity, delta);
+      updateObjectGraphics(objectEntity);
     });
 
     handleUserInput(

@@ -12,6 +12,7 @@ export class PlayerEntity extends User {
   rotation: number;
   speed: number;
   username: string;
+  isSelf: boolean;
   color: number;
   view: AABB2D | null;
   body: p2.Body;
@@ -28,6 +29,7 @@ export class PlayerEntity extends User {
     this.rotation = 0;
     this.speed = worldConfig.playerSpeed;
     this.username = username;
+    this.isSelf = false;
     this.color = this.generateColor();
     this.view = null;
     this.body = this.generatePlayerBody();

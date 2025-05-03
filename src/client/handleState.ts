@@ -15,7 +15,17 @@ const createPlayerEntity = (
   app: Application,
   world: p2.World
 ) => {
-  createPlayerGraphics(playerEntity, worldContainer, app);
+  const isSelf = playerEntity.isSelf;
+  const clientGraphics = createPlayerGraphics(playerEntity, worldContainer, app);
+  playerEntity.clientGraphics = clientGraphics;
+  worldContainer.addChild(clientGraphics);
+  let serverGraphics = null;
+  if (isSelf) {
+    serverGraphics = createPlayerGraphics(playerEntity, worldContainer, app);
+    playerEntity.serverGraphics = serverGraphics;
+    playerEntity.serverGraphics.alpha = 0.5;
+    worldContainer.addChild(serverGraphics);
+  }
   const body = new p2.Body({
     mass: 10,
     position: [playerEntity.x, playerEntity.y],
@@ -40,7 +50,8 @@ const createObjectEntity = (
     mass: 0.1, // Static body (doesn't move)
     position: [objectEntity.x, objectEntity.y],
     angle: objectEntity.rotation,
-    velocity: [0, 0.6],
+    velocity: [0, 0],
+    damping: 0.99,
   });
   const circle = new p2.Circle({
     radius: objectEntity.width / 2,
@@ -49,19 +60,30 @@ const createObjectEntity = (
   body.addShape(circle);
   world.addBody(body);
   objectEntity.body = body;
+  objectEntity.renderTarget = {
+    x: objectEntity.x,
+    y: objectEntity.y,
+    rotation: objectEntity.rotation,
+  };
 };
 
 const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
-  if (diff.nid === worldState.myId) return;
   const player = entities.get(diff.nid);
   const property = diff.prop;
   const value = diff.value;
-  if (player) {
-    player[property] = value;
-    if (!player.renderTarget) {
-      player.renderTarget = { x: player.x, y: player.y, rotation: player.rotation };
+  if (diff.nid === worldState.myId) {
+    const player = entities.get(diff.nid);
+    if (player) {
+      player.serverGraphics[property] = value;
     }
-    player.renderTarget[property] = value;
+  } else {
+    if (player) {
+      player[property] = value;
+      if (!player.renderTarget) {
+        player.renderTarget = { x: player.x, y: player.y, rotation: player.rotation };
+      }
+      player.renderTarget[property] = value;
+    }
   }
 };
 
@@ -96,7 +118,8 @@ const deletePlayer = (nid: Binary.UInt8, entities: IEntityMap) => {
     if (player.body) {
       player.body.world.removeBody(player.body);
     }
-    player.graphics?.destroy({ children: true });
+    player.clientGraphics?.destroy({ children: true });
+    player.serverGraphics?.destroy({ children: true });
     entities.delete(nid);
   }
 };

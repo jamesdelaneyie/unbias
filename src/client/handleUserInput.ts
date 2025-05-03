@@ -79,7 +79,7 @@ const handleUserInput = (
         myEntity.rotation = rotation;
       }*/
 
-      //client.addCommand(command);
+      client.addCommand(command);
       applyCommand(myEntity, command);
 
       // save the result of applying the command as a prediction
@@ -93,7 +93,7 @@ const handleUserInput = (
       // also apply the result of the prediction to the graphical entity
       const playerEntity = playerEntities.get(prediction.nid);
       if (playerEntity) {
-        const playerGraphics = playerEntity.graphics;
+        const playerGraphics = playerEntity.clientGraphics;
         const playerBody = playerEntity.body;
         const playerGraphicsBody = playerGraphics?.getChildByLabel('playerBodyContainer');
         if (playerGraphics) {

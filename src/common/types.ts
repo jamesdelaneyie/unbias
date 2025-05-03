@@ -14,11 +14,13 @@ type Entity = {
 
 type PlayerEntity = Entity & {
   username: string;
+  isSelf: boolean;
   color: number;
   speed: number;
   size: number;
   body?: p2.Body;
-  graphics?: Container;
+  clientGraphics?: Container;
+  serverGraphics?: Container;
   renderTarget: { x: number; y: number; rotation: number };
 };
 

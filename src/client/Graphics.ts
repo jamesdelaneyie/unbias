@@ -17,6 +17,7 @@ const createPlayerGraphics = (
 
   const playerBodyContainer = new Container();
   playerBodyContainer.label = 'playerBodyContainer';
+  playerBodyContainer.interactive = false;
   playerContainer.addChild(playerBodyContainer);
 
   const playerBody = new Graphics()
@@ -64,9 +65,6 @@ const createPlayerGraphics = (
     },
     { skipUpdates: true }
   );
-  username.x = 0;
-  username.y = 0;
-  username.alpha = 1;
   username.update();
   const usernameTexture = app.renderer.generateTexture(username);
   username.destroy();
@@ -74,22 +72,23 @@ const createPlayerGraphics = (
   usernameSprite.anchor.set(0.5);
   usernameSprite.scale.set(0.015);
   usernameSprite.scale.y *= -1;
+  usernameSprite.x = 0;
+  usernameSprite.y = -0.025;
 
   playerContainer.addChild(usernameSprite);
-
-  entity.graphics = playerContainer;
-  worldContainer.addChild(playerContainer);
   return playerContainer;
 };
 
 const updatePlayerGraphics = (playerEntity: PlayerEntity, worldState: any, delta: number) => {
-  if (playerEntity.nid === worldState.myId) return;
-  if (!playerEntity.graphics || !playerEntity.renderTarget) return;
-  const graphics = playerEntity.graphics;
+  //if (playerEntity.nid === worldState.myId) return;
+  if (!playerEntity.renderTarget) return;
+  const graphics = playerEntity.clientGraphics;
   const t = Math.min(1, worldConfig.playerSmoothing * delta);
-  graphics.x += (playerEntity.renderTarget.x - graphics.x) * t;
-  graphics.y += (playerEntity.renderTarget.y - graphics.y) * t;
-  graphics.rotation += (playerEntity.renderTarget.rotation - graphics.rotation) * t;
+  if (graphics) {
+    graphics.x += (playerEntity.renderTarget.x - graphics.x) * t;
+    graphics.y += (playerEntity.renderTarget.y - graphics.y) * t;
+    graphics.rotation += (playerEntity.renderTarget.rotation - graphics.rotation) * t;
+  }
 };
 
 const createObjectGraphics = (
@@ -116,14 +115,14 @@ const createObjectGraphics = (
   return objectSprite;
 };
 
-const updateObjectGraphics = (objectEntity: ObjectEntity, delta: number) => {
+const updateObjectGraphics = (objectEntity: ObjectEntity) => {
   if (!objectEntity.graphics || !objectEntity.renderTarget) return;
   const graphics = objectEntity.graphics;
   const body = objectEntity.body;
-  const t = Math.min(1, worldConfig.playerSmoothing * delta);
-  graphics.x += (objectEntity.renderTarget.x - graphics.x) * t;
-  graphics.y += (objectEntity.renderTarget.y - graphics.y) * t;
-  graphics.rotation += (objectEntity.renderTarget.rotation - graphics.rotation) * t;
+  //const t = Math.min(1, worldConfig.playerSmoothing * delta);
+  //graphics.x += (objectEntity.renderTarget.x - graphics.x) * t;
+  //graphics.y += (objectEntity.renderTarget.y - graphics.y) * t;
+  //graphics.rotation += (objectEntity.renderTarget.rotation - graphics.rotation) * t;
   if (body) {
     graphics.x = body.position[0];
     graphics.y = body.position[1];
@@ -151,7 +150,7 @@ const createGridGraphics = (app: Application, worldContainer: Container, size: n
   gridBorderSprite.height = 10;
   gridContainer.addChild(gridBorderSprite);
 
-  const gridLines = new Graphics();
+  const gridLines = new Container();
   const gridLineSize = 20;
   for (let i = 0; i < size / gridLineSize; i++) {
     let line = new Graphics();
