@@ -22,6 +22,7 @@ const createGridGraphics = (app: Application, worldContainer: Container, size: n
 
   const gridLines = new Container();
   const gridLineSize = 20;
+
   for (let i = 0; i < size / gridLineSize; i++) {
     let line = new Graphics();
     line.moveTo(i * gridLineSize, 0);

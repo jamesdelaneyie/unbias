@@ -24,7 +24,7 @@ import {
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
 import { createGridGraphics } from '@/client/graphics/worldGraphics';
-import { updatePlayerGraphics } from '@/client/graphics/playerGraphics';
+import { updateRemotePlayerGraphics } from '@/client/graphics/playerGraphics';
 import reconcileEntities from '@/client/reconcileEntities';
 import { worldConfig } from '@/common/worldConfig';
 let connectedToServer = false;
@@ -94,6 +94,34 @@ window.addEventListener('load', async () => {
   const interpolator = new Interpolator(client);
 
   const tick = (delta: number) => {
+    world.step(1 / 60);
+
+    playerEntities.forEach(p => {
+      if (p.body) {
+        p.x = p.body.position[0];
+        p.y = p.body.position[1];
+        p.rotation = p.body.angle;
+      }
+    });
+
+    objectEntities.forEach(o => {
+      if (o.body) {
+        o.x = o.body.position[0];
+        o.y = o.body.position[1];
+        o.rotation = o.body.angle;
+        // Update graphics directly from local physics body state (AFTER world.step)
+        // Remove interpolation for immediate local collision response.
+        if (o.graphics) {
+          const t = Math.min(1, worldConfig.playerSmoothing * delta);
+          // Snap graphics to the current physics body position
+          o.graphics.x += (o.body.position[0] - o.graphics.x) * t;
+          o.graphics.y += (o.body.position[1] - o.graphics.y) * t;
+          // Snap graphics rotation too
+          o.graphics.rotation += (o.body.angle - o.graphics.rotation) * t;
+        }
+      }
+    });
+
     const istate = interpolator.getInterpolatedState(100);
 
     while (client.network.messages.length > 0) {
@@ -132,48 +160,18 @@ window.addEventListener('load', async () => {
       });
     });
 
-    // Step physics world
-    world.step(1 / 60);
-
-    // Update entity state from physics bodies (AFTER step)
-    playerEntities.forEach(p => {
-      if (p.body) {
-        p.x = p.body.position[0];
-        p.y = p.body.position[1];
-        p.rotation = p.body.angle;
-      }
-    });
-    objectEntities.forEach(o => {
-      if (o.body) {
-        o.x = o.body.position[0];
-        o.y = o.body.position[1];
-        o.rotation = o.body.angle;
-        // Update graphics directly from local physics body state (AFTER world.step)
-        // Remove interpolation for immediate local collision response.
-        if (o.graphics) {
-          const t = Math.min(1, worldConfig.playerSmoothing * delta);
-          // Snap graphics to the current physics body position
-          o.graphics.x += (o.body.position[0] - o.graphics.x) * t;
-          o.graphics.y += (o.body.position[1] - o.graphics.y) * t;
-          // Snap graphics rotation too
-          o.graphics.rotation += (o.body.angle - o.graphics.rotation) * t;
-        }
-      }
-    });
-
-    // Get errors from the last frame
     if (client.network.frames.length > 0) {
-      // Reconciliation is currently disabled
       const errors = client.predictor.getErrors(client.network.frames[0]);
       reconcileEntities(errors, entities, delta);
     }
 
-    // Sync physics with entities (except the local player, which is handled in handleUserInput)
     playerEntities.forEach(playerEntity => {
-      updatePlayerGraphics(playerEntity, worldState, delta);
+      if (playerEntity.nid !== worldState.myId) {
+        updateRemotePlayerGraphics(playerEntity, delta);
+      }
     });
 
-    handleUserInput(client, userInput, worldState, playerEntities, worldContainer, app, delta);
+    handleUserInput(client, userInput, worldState, playerEntities, worldContainer, delta);
 
     client.flush();
   };

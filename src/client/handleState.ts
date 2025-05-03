@@ -11,12 +11,11 @@ const createPlayerEntity = (
   app: Application,
   world: p2.World
 ) => {
-  const isSelf = playerEntity.isSelf;
   const clientGraphics = createPlayerGraphics(playerEntity, app);
   playerEntity.clientGraphics = clientGraphics;
   worldContainer.addChild(clientGraphics);
   let serverGraphics = null;
-  if (isSelf) {
+  if (playerEntity.isSelf) {
     serverGraphics = createPlayerGraphics(playerEntity, app);
     playerEntity.serverGraphics = serverGraphics;
     serverGraphics.visible = false;
@@ -24,7 +23,7 @@ const createPlayerEntity = (
   }
   let bodyType = p2.Body.KINEMATIC;
   let playerMass = 0;
-  if (isSelf) {
+  if (playerEntity.isSelf) {
     //@ts-ignore type error in p2-es
     bodyType = p2.Body.DYNAMIC;
     playerMass = 10;
@@ -39,10 +38,10 @@ const createPlayerEntity = (
   });
   playerShape.collisionGroup = 0x0001;
   playerShape.collisionMask = 0x0002;
+  playerEntity.body = playerBody;
 
   playerBody.addShape(playerShape);
   world.addBody(playerBody);
-  playerEntity.body = playerBody;
 };
 
 const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
@@ -99,7 +98,7 @@ const createObjectEntity = (
   app: Application,
   world: p2.World
 ) => {
-  createObjectGraphics(app, objectEntity, worldContainer);
+  const objectGraphics = createObjectGraphics(app, objectEntity, worldContainer);
   const objectBody = new p2.Body({
     mass: 0.1,
     position: [objectEntity.x, objectEntity.y],
@@ -116,7 +115,10 @@ const createObjectEntity = (
 
   objectBody.addShape(objectShape);
   world.addBody(objectBody);
+
   objectEntity.body = objectBody;
+  objectEntity.graphics = objectGraphics;
+
   objectEntity.renderTarget = {
     x: objectEntity.x,
     y: objectEntity.y,

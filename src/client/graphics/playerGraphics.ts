@@ -79,38 +79,22 @@ const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
   return playerContainer;
 };
 
-const updatePlayerGraphics = (playerEntity: PlayerEntity, worldState: any, delta: number) => {
+const updateRemotePlayerGraphics = (playerEntity: PlayerEntity, delta: number) => {
   const graphics = playerEntity.clientGraphics;
-  if (!graphics) return;
-
-  if (playerEntity.nid === worldState.myId) {
-    // Local player: Snap graphics directly to the entity state
-    // (which is updated from the physics body just after world.step)
-    graphics.x = playerEntity.x;
-    graphics.y = playerEntity.y;
-    // Rotation is handled directly in handleUserInput for responsiveness
-    // const playerBodyContainer = graphics.getChildByLabel('playerBodyContainer');
-    // if (playerBodyContainer) {
-    //  playerBodyContainer.rotation = playerEntity.rotation;
-    // }
-  } else {
-    // Remote player: Interpolate towards the render target
-    if (!playerEntity.renderTarget) return;
-    const t = Math.min(1, worldConfig.playerSmoothing * delta);
-    graphics.x += (playerEntity.renderTarget.x - graphics.x) * t;
-    graphics.y += (playerEntity.renderTarget.y - graphics.y) * t;
-    const playerBodyContainer = graphics.getChildByLabel('playerBodyContainer');
-    if (playerBodyContainer) {
-      // Interpolate rotation smoothly for remote players
-      const targetRotation = playerEntity.renderTarget.rotation;
-      const currentRotation = playerBodyContainer.rotation;
-      // Handle angle wrapping for smooth interpolation
-      let diff = targetRotation - currentRotation;
-      while (diff < -Math.PI) diff += 2 * Math.PI;
-      while (diff > Math.PI) diff -= 2 * Math.PI;
-      playerBodyContainer.rotation += diff * t;
-    }
+  if (!graphics || !playerEntity.renderTarget) return;
+  const t = Math.min(1, worldConfig.playerSmoothing * delta);
+  graphics.x += (playerEntity.renderTarget.x - graphics.x) * t;
+  graphics.y += (playerEntity.renderTarget.y - graphics.y) * t;
+  const playerBodyContainer = graphics.getChildByLabel('playerBodyContainer');
+  if (playerBodyContainer) {
+    const targetRotation = playerEntity.renderTarget.rotation;
+    const currentRotation = playerBodyContainer.rotation;
+    // Handle angle wrapping for smooth interpolation
+    let diff = targetRotation - currentRotation;
+    while (diff < -Math.PI) diff += 2 * Math.PI;
+    while (diff > Math.PI) diff -= 2 * Math.PI;
+    playerBodyContainer.rotation += diff * t;
   }
 };
 
-export { createPlayerGraphics, updatePlayerGraphics };
+export { createPlayerGraphics, updateRemotePlayerGraphics };

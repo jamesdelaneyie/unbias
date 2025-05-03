@@ -23,7 +23,6 @@ const createObjectGraphics = (
   objectSprite.y = object.y;
   objectContainer.addChild(objectSprite);
   worldContainer.addChild(objectContainer);
-  object.graphics = objectSprite;
   return objectSprite;
 };
 

@@ -3,7 +3,7 @@ import { NType } from '@/common/NType';
 import { PlayerEntityMap, MoveCommand } from '@/common/types';
 import { commandSchema } from '@/common/schemas/commandSchema';
 import { InputSystem } from '@/client/InputSystem';
-import { Container, Application } from 'pixi.js';
+import { Container } from 'pixi.js';
 import { worldConfig } from '@/common/worldConfig';
 const handleUserInput = (
   client: Client,
@@ -11,7 +11,6 @@ const handleUserInput = (
   worldState: any,
   playerEntities: PlayerEntityMap,
   worldContainer: Container,
-  app: Application,
   delta: number
 ) => {
   if (document.hidden) {
