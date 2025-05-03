@@ -173,7 +173,7 @@ window.addEventListener('load', async () => {
       updatePlayerGraphics(playerEntity, worldState, delta);
     });
 
-    handleUserInput(client, userInput, worldState, playerEntities, worldContainer, delta);
+    handleUserInput(client, userInput, worldState, playerEntities, worldContainer, app, delta);
 
     client.flush();
   };

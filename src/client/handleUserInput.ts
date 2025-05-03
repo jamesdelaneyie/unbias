@@ -1,9 +1,9 @@
-import { Client, Binary } from 'nengi';
+import { Client } from 'nengi';
 import { NType } from '@/common/NType';
 import { PlayerEntityMap, MoveCommand } from '@/common/types';
 import { commandSchema } from '@/common/schemas/commandSchema';
 import { InputSystem } from '@/client/InputSystem';
-import { Container } from 'pixi.js';
+import { Container, Application } from 'pixi.js';
 import { worldConfig } from '@/common/worldConfig';
 const handleUserInput = (
   client: Client,
@@ -11,6 +11,7 @@ const handleUserInput = (
   worldState: any,
   playerEntities: PlayerEntityMap,
   worldContainer: Container,
+  app: Application,
   delta: number
 ) => {
   if (document.hidden) {
@@ -33,10 +34,10 @@ const handleUserInput = (
       const command: MoveCommand = {
         ntype: NType.Command,
         nid: myEntity.nid,
-        w: inputState.w as unknown as Binary.Boolean,
-        a: inputState.a as unknown as Binary.Boolean,
-        s: inputState.s as unknown as Binary.Boolean,
-        d: inputState.d as unknown as Binary.Boolean,
+        w: inputState.w,
+        a: inputState.a,
+        s: inputState.s,
+        d: inputState.d,
         rotation: rotation,
         delta: delta,
       };

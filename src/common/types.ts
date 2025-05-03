@@ -49,11 +49,11 @@ type Command = {
 };
 
 type MoveCommand = Command & {
-  w: Binary.Boolean;
-  a: Binary.Boolean;
-  s: Binary.Boolean;
-  d: Binary.Boolean;
-  rotation: Binary.Float32;
+  w: boolean;
+  a: boolean;
+  s: boolean;
+  d: boolean;
+  rotation: number;
 };
 
 type UsernameCommand = Command & {
