@@ -2,12 +2,8 @@ import * as p2 from 'p2-es';
 import { Binary, IEntity } from 'nengi';
 import { Container, Application } from 'pixi.js';
 import { IEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
-import {
-  createObjectGraphics,
-  createPlayerGraphics,
-  updatePlayerGraphics,
-  updateObjectGraphics,
-} from '@/client/Graphics';
+import { createPlayerGraphics } from '@/client/graphics/playerGraphics';
+import { createObjectGraphics } from '@/client/graphics/objectGraphics';
 
 const createPlayerEntity = (
   playerEntity: PlayerEntity,
@@ -16,12 +12,12 @@ const createPlayerEntity = (
   world: p2.World
 ) => {
   const isSelf = playerEntity.isSelf;
-  const clientGraphics = createPlayerGraphics(playerEntity, worldContainer, app);
+  const clientGraphics = createPlayerGraphics(playerEntity, app);
   playerEntity.clientGraphics = clientGraphics;
   worldContainer.addChild(clientGraphics);
   let serverGraphics = null;
   if (isSelf) {
-    serverGraphics = createPlayerGraphics(playerEntity, worldContainer, app);
+    serverGraphics = createPlayerGraphics(playerEntity, app);
     playerEntity.serverGraphics = serverGraphics;
     playerEntity.serverGraphics.alpha = 0.5;
     worldContainer.addChild(serverGraphics);
@@ -37,6 +33,39 @@ const createPlayerEntity = (
   body.addShape(circle);
   world.addBody(body);
   playerEntity.body = body;
+};
+
+const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
+  const player = entities.get(diff.nid);
+  const property = diff.prop;
+  const value = diff.value;
+  if (diff.nid === worldState.myId) {
+    const player = entities.get(diff.nid);
+    if (player) {
+      player.serverGraphics[property] = value;
+    }
+  } else {
+    if (player) {
+      player[property] = value;
+      if (!player.renderTarget) {
+        player.renderTarget = { x: player.x, y: player.y, rotation: player.rotation };
+      }
+      player.renderTarget[property] = value;
+    }
+  }
+};
+
+const deletePlayerEntity = (nid: Binary.UInt8, entities: IEntityMap) => {
+  const player = entities.get(nid);
+  if (player) {
+    // Remove physics body if it exists
+    if (player.body) {
+      player.body.world.removeBody(player.body);
+    }
+    player.clientGraphics?.destroy({ children: true });
+    player.serverGraphics?.destroy({ children: true });
+    entities.delete(nid);
+  }
 };
 
 const createObjectEntity = (
@@ -67,26 +96,6 @@ const createObjectEntity = (
   };
 };
 
-const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
-  const player = entities.get(diff.nid);
-  const property = diff.prop;
-  const value = diff.value;
-  if (diff.nid === worldState.myId) {
-    const player = entities.get(diff.nid);
-    if (player) {
-      player.serverGraphics[property] = value;
-    }
-  } else {
-    if (player) {
-      player[property] = value;
-      if (!player.renderTarget) {
-        player.renderTarget = { x: player.x, y: player.y, rotation: player.rotation };
-      }
-      player.renderTarget[property] = value;
-    }
-  }
-};
-
 const updateObjectEntity = (diff: IEntity, entities: IEntityMap) => {
   const object = entities.get(diff.nid);
   if (object && object.graphics) {
@@ -111,25 +120,10 @@ const updateObjectEntity = (diff: IEntity, entities: IEntityMap) => {
   }
 };
 
-const deletePlayer = (nid: Binary.UInt8, entities: IEntityMap) => {
-  const player = entities.get(nid);
-  if (player) {
-    // Remove physics body if it exists
-    if (player.body) {
-      player.body.world.removeBody(player.body);
-    }
-    player.clientGraphics?.destroy({ children: true });
-    player.serverGraphics?.destroy({ children: true });
-    entities.delete(nid);
-  }
-};
-
 export {
-  updatePlayerEntity,
-  updateObjectEntity,
-  deletePlayer,
-  updatePlayerGraphics,
-  updateObjectGraphics,
   createPlayerEntity,
+  updatePlayerEntity,
+  deletePlayerEntity,
   createObjectEntity,
+  updateObjectEntity,
 };

@@ -8,12 +8,9 @@ import { drawBasicText } from './GPUUI';
 import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
 import {
-  updatePlayerEntity,
-  deletePlayer,
-  updatePlayerGraphics,
-  updateObjectGraphics,
-  //updateObjectEntity,
   createPlayerEntity,
+  updatePlayerEntity,
+  deletePlayerEntity,
   createObjectEntity,
 } from './handleState';
 import {
@@ -25,7 +22,11 @@ import {
 } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
-import { createGridGraphics } from './Graphics';
+import { createGridGraphics } from '@/client/graphics/worldGraphics';
+import { updatePlayerGraphics } from '@/client/graphics/playerGraphics';
+import { updateObjectGraphics } from '@/client/graphics/objectGraphics';
+import reconcileEntities from '@/client/reconcileEntities';
+
 let connectedToServer = false;
 
 let entities: IEntityMap = new Map();
@@ -83,6 +84,13 @@ window.addEventListener('load', async () => {
   }
 
   const userInput = new InputSystem();
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      userInput.resetKeys();
+    }
+  });
+
   const interpolator = new Interpolator(client);
 
   const tick = (delta: number) => {
@@ -120,15 +128,19 @@ window.addEventListener('load', async () => {
       });
 
       snapshot.deleteEntities.forEach((nid: number) => {
-        deletePlayer(nid, entities);
+        deletePlayerEntity(nid, entities);
       });
     });
 
     // Step physics world
     world.step(1 / 60);
 
-    //const errors = client.predictor.getErrors();
-    //console.log('Errors:', errors);
+    // Get errors from the last frame
+    let errors = null;
+    if (client.network.frames.length > 0) {
+      errors = client.predictor.getErrors(client.network.frames[0]);
+      reconcileEntities(errors, entities);
+    }
 
     // Sync physics with entities (except the local player, which is handled in handleUserInput)
     playerEntities.forEach(playerEntity => {
@@ -139,20 +151,9 @@ window.addEventListener('load', async () => {
       updateObjectGraphics(objectEntity);
     });
 
-    handleUserInput(
-      client,
-      userInput,
-      worldState,
-      playerEntities,
-      objectEntities,
-      worldContainer,
-      delta
-    );
+    handleUserInput(client, userInput, worldState, playerEntities, worldContainer, delta);
 
     client.flush();
-
-    //const errors = client.predictor.getErrors(client.network.frames[0]);
-    //console.log('Errors:', errors);
   };
 
   let prev = performance.now();

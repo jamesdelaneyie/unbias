@@ -1,6 +1,6 @@
 import { Client, Binary } from 'nengi';
 import { NType } from '@/common/NType';
-import { PlayerEntityMap, MoveCommand, ObjectEntityMap } from '@/common/types';
+import { PlayerEntityMap, MoveCommand } from '@/common/types';
 import { applyCommand } from '@/common/applyCommand';
 import { commandSchema } from '@/common/schemas/commandSchema';
 import { InputSystem } from '@/client/InputSystem';
@@ -11,10 +11,12 @@ const handleUserInput = (
   inputSystem: InputSystem,
   worldState: any,
   playerEntities: PlayerEntityMap,
-  objectEntities: ObjectEntityMap,
   worldContainer: Container,
   delta: number
 ) => {
+  if (document.hidden) {
+    return;
+  }
   const inputState = inputSystem.frameState;
   inputSystem.releaseKeys();
 

@@ -10,6 +10,7 @@ type Entity = {
   x: Binary.Float32;
   y: Binary.Float32;
   rotation: Binary.Float32;
+  [key: string]: any;
 };
 
 type PlayerEntity = Entity & {

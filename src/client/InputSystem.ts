@@ -66,4 +66,15 @@ export class InputSystem {
   releaseKeys() {
     Object.assign(this.frameState, this.currentState);
   }
+  resetKeys() {
+    this.currentState = {
+      w: false,
+      s: false,
+      a: false,
+      d: false,
+      rotation: this.currentState.rotation,
+      mx: this.currentState.mx,
+      my: this.currentState.my,
+    };
+  }
 }
