@@ -160,10 +160,10 @@ window.addEventListener('load', async () => {
       });
     });
 
-    if (client.network.frames.length > 0) {
-      const errors = client.predictor.getErrors(client.network.frames[0]);
+    client.network.predictionErrorFrames.forEach(frame => {
+      const errors = client.predictor.getErrors(frame);
       reconcileEntities(errors, entities, delta);
-    }
+    });
 
     playerEntities.forEach(playerEntity => {
       if (playerEntity.nid !== worldState.myId) {
