@@ -25,7 +25,7 @@ import {
 } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
-
+import { createGridGraphics } from './Graphics';
 let connectedToServer = false;
 
 let entities: IEntityMap = new Map();
@@ -56,6 +56,8 @@ window.addEventListener('load', async () => {
   worldContainer.scale.x = 50;
   worldContainer.scale.y = -50;
   app.stage.addChild(worldContainer);
+
+  createGridGraphics(app, worldContainer, 300);
 
   notificationBox = createNotificationBox(document);
 
@@ -118,6 +120,9 @@ window.addEventListener('load', async () => {
 
     // Step physics world
     world.step(1 / 60);
+
+    //const errors = client.predictor.getErrors();
+    //console.log('Errors:', errors);
 
     // Sync physics with entities (except the local player, which is handled in handleUserInput)
     playerEntities.forEach(playerEntity => {

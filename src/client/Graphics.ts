@@ -11,6 +11,7 @@ const createPlayerGraphics = (
   const playerSize = entity.size;
 
   const playerContainer = new Container();
+  playerContainer.interactive = false;
   playerContainer.x = entity.x;
   playerContainer.y = entity.y;
 
@@ -67,8 +68,8 @@ const createPlayerGraphics = (
   username.y = 0;
   username.alpha = 1;
   username.update();
-
   const usernameTexture = app.renderer.generateTexture(username);
+  username.destroy();
   const usernameSprite = new Sprite(usernameTexture);
   usernameSprite.anchor.set(0.5);
   usernameSprite.scale.set(0.015);
@@ -96,10 +97,12 @@ const createObjectGraphics = (
   object: ObjectEntity,
   worldContainer: Container
 ) => {
+  const objectContainer = new Container();
   const objectGraphics = new Graphics()
     .circle(0, 0, object.width * 100)
     .fill({ color: 0xffffff, alpha: 1 });
   const objectTexture = app.renderer.generateTexture(objectGraphics);
+  objectGraphics.destroy();
 
   const objectSprite = new Sprite(objectTexture);
   objectSprite.anchor.set(0.5);
@@ -107,7 +110,8 @@ const createObjectGraphics = (
   objectSprite.height = object.height;
   objectSprite.x = object.x;
   objectSprite.y = object.y;
-  worldContainer.addChild(objectSprite);
+  objectContainer.addChild(objectSprite);
+  worldContainer.addChild(objectContainer);
   object.graphics = objectSprite;
   return objectSprite;
 };
@@ -127,4 +131,59 @@ const updateObjectGraphics = (objectEntity: ObjectEntity, delta: number) => {
   }
 };
 
-export { createPlayerGraphics, createObjectGraphics, updatePlayerGraphics, updateObjectGraphics };
+const createGridGraphics = (app: Application, worldContainer: Container, size: number) => {
+  const gridContainer = new Container();
+  gridContainer.label = 'gridContainer';
+  gridContainer.interactive = false;
+  gridContainer.x = 0;
+  gridContainer.y = 0;
+  const gridBorder = new Graphics()
+    .rect(0, 0, size, size)
+    .fill({ color: 0xffffff, alpha: 0.1 })
+    .stroke({ color: 0xffffff, alpha: 0.6, width: 1 });
+  gridContainer.addChild(gridBorder);
+  const gridBorderTexture = app.renderer.generateTexture(gridBorder);
+  gridBorder.destroy();
+
+  const gridBorderSprite = new Sprite(gridBorderTexture);
+  gridBorderSprite.anchor.set(0.5);
+  gridBorderSprite.width = 10;
+  gridBorderSprite.height = 10;
+  gridContainer.addChild(gridBorderSprite);
+
+  const gridLines = new Graphics();
+  const gridLineSize = 20;
+  for (let i = 0; i < size / gridLineSize; i++) {
+    let line = new Graphics();
+    line.moveTo(i * gridLineSize, 0);
+    line.lineTo(i * gridLineSize, size);
+    line.stroke({ color: 0xffffff, alpha: 0.3, width: 1 });
+    gridLines.addChild(line);
+  }
+
+  for (let i = 0; i < size / gridLineSize; i++) {
+    let line = new Graphics();
+    line.moveTo(0, i * gridLineSize);
+    line.lineTo(size, i * gridLineSize);
+    line.stroke({ color: 0xffffff, alpha: 0.3, width: 1 });
+    gridLines.addChild(line);
+  }
+  const gridLinesTexture = app.renderer.generateTexture(gridLines);
+  gridLines.destroy();
+
+  const gridLinesSprite = new Sprite(gridLinesTexture);
+  gridLinesSprite.anchor.set(0.5);
+  gridLinesSprite.width = 10;
+  gridLinesSprite.height = 10;
+  gridContainer.addChild(gridLinesSprite);
+
+  worldContainer.addChild(gridContainer);
+};
+
+export {
+  createPlayerGraphics,
+  createObjectGraphics,
+  updatePlayerGraphics,
+  updateObjectGraphics,
+  createGridGraphics,
+};
