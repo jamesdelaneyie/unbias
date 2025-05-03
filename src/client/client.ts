@@ -37,9 +37,9 @@ window.addEventListener('load', async () => {
   const app = new Application();
   await app.init({
     antialias: true,
+    autoDensity: true,
     background: '#000000',
     resolution: window.devicePixelRatio,
-    autoDensity: true,
     resizeTo: window,
   });
   document.body.appendChild(app.canvas);

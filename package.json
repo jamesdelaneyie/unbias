@@ -2,10 +2,11 @@
   "name": "bias2",
   "version": "0.0.1",
   "description": "bi-directional intimate ambient space",
+  "type": "module",
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev:server": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server/instance.ts",
+    "dev:server": "NODE_OPTIONS='--no-warnings --loader ts-node/esm' nodemon --watch 'src/**/*.ts' src/server/instance.ts",
     "dev:client": "vite",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build": "npx tsc",
