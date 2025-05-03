@@ -1,6 +1,6 @@
-# BIAS 2
+# BIAS2
 
-A multiplayer game built with PixiJS and nengi.
+A multiplayer environment. Networked with nengi.js, rendered by pixi.js and made physical with p2.js.
 
 ## Setup
 

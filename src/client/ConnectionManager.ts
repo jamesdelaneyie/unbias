@@ -1,6 +1,6 @@
 import { Client } from 'nengi';
-import { addNotification, addUsernameField, setupUsername } from '@/client/HTMLUI';
 import { worldConfig } from '@/common/worldConfig';
+import { addNotification, addUsernameField, setupUsername } from '@/client/HTMLUI';
 
 let reconnectAttempts = 0;
 let reconnectTimeout: number | null = null;

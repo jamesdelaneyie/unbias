@@ -7,22 +7,22 @@ import { InputSystem } from '@/client/InputSystem';
 import { Container } from 'pixi.js';
 
 const handleUserInput = (
+  client: Client,
   inputSystem: InputSystem,
   worldState: any,
   playerEntities: PlayerEntityMap,
   objectEntities: ObjectEntityMap,
-  client: Client,
   worldContainer: Container,
   delta: number
 ) => {
-  const input = inputSystem.frameState;
+  const inputState = inputSystem.frameState;
   inputSystem.releaseKeys();
 
   const { myId } = worldState;
   const myEntity = playerEntities.get(myId);
   if (myEntity) {
-    const screenX = inputSystem.currentState.mx;
-    const screenY = inputSystem.currentState.my;
+    const screenX = inputState.mx;
+    const screenY = inputState.my;
     const point = worldContainer.toLocal({ x: screenX, y: screenY });
     const dx = point.x - myEntity.x;
     const dy = point.y - myEntity.y;
@@ -32,10 +32,10 @@ const handleUserInput = (
       const command: MoveCommand = {
         ntype: NType.Command,
         nid: myEntity.nid,
-        w: input.w as unknown as Binary.Boolean,
-        a: input.a as unknown as Binary.Boolean,
-        s: input.s as unknown as Binary.Boolean,
-        d: input.d as unknown as Binary.Boolean,
+        w: inputState.w as unknown as Binary.Boolean,
+        a: inputState.a as unknown as Binary.Boolean,
+        s: inputState.s as unknown as Binary.Boolean,
+        d: inputState.d as unknown as Binary.Boolean,
         rotation: rotation,
         delta,
       };

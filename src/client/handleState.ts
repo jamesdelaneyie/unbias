@@ -1,10 +1,13 @@
-import { Binary, IEntity } from 'nengi';
-import { Container } from 'pixi.js';
-import { Application } from 'pixi.js';
 import * as p2 from 'p2-es';
+import { Binary, IEntity } from 'nengi';
+import { Container, Application } from 'pixi.js';
 import { IEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
-import { worldConfig } from '@/common/worldConfig';
-import { createObjectGraphics, createPlayerGraphics } from '@/client/Graphics';
+import {
+  createObjectGraphics,
+  createPlayerGraphics,
+  updatePlayerGraphics,
+  updateObjectGraphics,
+} from '@/client/Graphics';
 
 const createPlayerEntity = (
   playerEntity: PlayerEntity,
@@ -36,6 +39,8 @@ const createObjectEntity = (
   const body = new p2.Body({
     mass: 0.1, // Static body (doesn't move)
     position: [objectEntity.x, objectEntity.y],
+    angle: objectEntity.rotation,
+    velocity: [0, 0.6],
   });
   const circle = new p2.Circle({
     radius: objectEntity.width / 2,
@@ -58,25 +63,6 @@ const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap
     }
     player.renderTarget[property] = value;
   }
-};
-
-const updatePlayerGraphics = (playerEntity: PlayerEntity, worldState: any, delta: number) => {
-  if (playerEntity.nid === worldState.myId) return;
-  if (!playerEntity.graphics || !playerEntity.renderTarget) return;
-  const graphics = playerEntity.graphics;
-  const t = Math.min(1, worldConfig.playerSmoothing * delta);
-  graphics.x += (playerEntity.renderTarget.x - graphics.x) * t;
-  graphics.y += (playerEntity.renderTarget.y - graphics.y) * t;
-  graphics.rotation += (playerEntity.renderTarget.rotation - graphics.rotation) * t;
-};
-
-const updateObjectGraphics = (objectEntity: ObjectEntity, worldState: any, delta: number) => {
-  if (!objectEntity.graphics || !objectEntity.renderTarget) return;
-  const graphics = objectEntity.graphics;
-  const t = Math.min(1, worldConfig.playerSmoothing * delta);
-  graphics.x += (objectEntity.renderTarget.x - graphics.x) * t;
-  graphics.y += (objectEntity.renderTarget.y - graphics.y) * t;
-  //graphics.rotation += (objectEntity.renderTarget.rotation - graphics.rotation) * t;
 };
 
 const updateObjectEntity = (diff: IEntity, entities: IEntityMap) => {

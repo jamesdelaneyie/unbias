@@ -1,6 +1,7 @@
+import { PlayerEntity, ObjectEntity } from '@/common/types';
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import TaggedTextPlus from 'pixi-tagged-text-plus';
-import { PlayerEntity, ObjectEntity } from '@/common/types';
+import { worldConfig } from '@/common/worldConfig';
 
 const createPlayerGraphics = (
   entity: PlayerEntity,
@@ -71,7 +72,6 @@ const createPlayerGraphics = (
   const usernameSprite = new Sprite(usernameTexture);
   usernameSprite.anchor.set(0.5);
   usernameSprite.scale.set(0.015);
-  //usernameSprite.scale.x *= -1;
   usernameSprite.scale.y *= -1;
 
   playerContainer.addChild(usernameSprite);
@@ -79,6 +79,16 @@ const createPlayerGraphics = (
   entity.graphics = playerContainer;
   worldContainer.addChild(playerContainer);
   return playerContainer;
+};
+
+const updatePlayerGraphics = (playerEntity: PlayerEntity, worldState: any, delta: number) => {
+  if (playerEntity.nid === worldState.myId) return;
+  if (!playerEntity.graphics || !playerEntity.renderTarget) return;
+  const graphics = playerEntity.graphics;
+  const t = Math.min(1, worldConfig.playerSmoothing * delta);
+  graphics.x += (playerEntity.renderTarget.x - graphics.x) * t;
+  graphics.y += (playerEntity.renderTarget.y - graphics.y) * t;
+  graphics.rotation += (playerEntity.renderTarget.rotation - graphics.rotation) * t;
 };
 
 const createObjectGraphics = (
@@ -102,4 +112,19 @@ const createObjectGraphics = (
   return objectSprite;
 };
 
-export { createPlayerGraphics, createObjectGraphics };
+const updateObjectGraphics = (objectEntity: ObjectEntity, delta: number) => {
+  if (!objectEntity.graphics || !objectEntity.renderTarget) return;
+  const graphics = objectEntity.graphics;
+  const body = objectEntity.body;
+  const t = Math.min(1, worldConfig.playerSmoothing * delta);
+  graphics.x += (objectEntity.renderTarget.x - graphics.x) * t;
+  graphics.y += (objectEntity.renderTarget.y - graphics.y) * t;
+  graphics.rotation += (objectEntity.renderTarget.rotation - graphics.rotation) * t;
+  if (body) {
+    graphics.x = body.position[0];
+    graphics.y = body.position[1];
+    graphics.rotation = body.angle;
+  }
+};
+
+export { createPlayerGraphics, createObjectGraphics, updatePlayerGraphics, updateObjectGraphics };

@@ -1,3 +1,7 @@
+/*
+InputSystem is responsible for handling user input from the keyboard and mouse.
+It is responsible for translating the input into a command that can be sent to the server.
+*/
 type BooleanKeys = 'w' | 'a' | 's' | 'd';
 type KeyMapping = {
   [key: string]: BooleanKeys;

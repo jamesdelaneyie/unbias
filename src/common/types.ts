@@ -2,7 +2,8 @@ import { Binary, IEntity } from 'nengi';
 import { NType } from './NType';
 import { Container } from 'pixi.js';
 import * as p2 from 'p2-es';
-import * as SAT from 'sat';
+
+/* Entities: Players and Objects */
 type Entity = {
   nid: Binary.UInt8;
   ntype: NType;
@@ -29,13 +30,15 @@ type ObjectEntity = Entity & {
   body?: p2.Body;
   graphics?: Container;
   renderTarget: { x: number; y: number; rotation: number };
-  clientCollisionBody?: SAT.Circle;
 };
 
 type EntityMap = Map<Binary.UInt8, Entity>;
+//the I in IEntity stands for Interpolated
 type IEntityMap = Map<Binary.UInt8, IEntity>;
 type PlayerEntityMap = Map<Binary.UInt8, PlayerEntity>;
 type ObjectEntityMap = Map<Binary.UInt8, ObjectEntity>;
+
+/* Commands: Messages from the client to the server */
 type Command = {
   ntype: NType.Command;
   nid: Binary.UInt8;

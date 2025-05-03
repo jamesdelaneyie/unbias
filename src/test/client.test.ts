@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createNotificationBox, addNotification } from '../client/htmlUI';
+import { createNotificationBox, addNotification } from '../client/HTMLUI';
 
 describe('Notification Box', () => {
   it('should create a notification box', () => {

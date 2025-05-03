@@ -125,15 +125,16 @@ window.addEventListener('load', async () => {
     });
 
     objectEntities.forEach(objectEntity => {
-      updateObjectGraphics(objectEntity, worldState, delta);
+      console.log(objectEntity);
+      updateObjectGraphics(objectEntity, delta);
     });
 
     handleUserInput(
+      client,
       userInput,
       worldState,
       playerEntities,
       objectEntities,
-      client,
       worldContainer,
       delta
     );
