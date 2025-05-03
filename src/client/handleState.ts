@@ -1,7 +1,7 @@
 import * as p2 from 'p2-es';
 import { Binary, IEntity } from 'nengi';
 import { Container, Application } from 'pixi.js';
-import { IEntityMap, PlayerEntity, ObjectEntity } from '@/common/types';
+import { IEntityMap, PlayerEntity, ObjectEntity, PlayerEntityMap } from '@/common/types';
 import { createPlayerGraphics } from '@/client/graphics/playerGraphics';
 import { createObjectGraphics } from '@/client/graphics/objectGraphics';
 
@@ -19,52 +19,77 @@ const createPlayerEntity = (
   if (isSelf) {
     serverGraphics = createPlayerGraphics(playerEntity, app);
     playerEntity.serverGraphics = serverGraphics;
-    playerEntity.serverGraphics.alpha = 0.5;
+    serverGraphics.visible = false;
     worldContainer.addChild(serverGraphics);
   }
-  const body = new p2.Body({
-    mass: 10,
+  let bodyType = p2.Body.KINEMATIC;
+  let playerMass = 0;
+  if (isSelf) {
+    //@ts-ignore type error in p2-es
+    bodyType = p2.Body.DYNAMIC;
+    playerMass = 10;
+  }
+  const playerBody = new p2.Body({
+    mass: playerMass,
     position: [playerEntity.x, playerEntity.y],
+    type: bodyType,
   });
-  const circle = new p2.Circle({
+  const playerShape = new p2.Circle({
     radius: playerEntity.size / 2,
   });
+  playerShape.collisionGroup = 0x0001;
+  playerShape.collisionMask = 0x0002;
 
-  body.addShape(circle);
-  world.addBody(body);
-  playerEntity.body = body;
+  playerBody.addShape(playerShape);
+  world.addBody(playerBody);
+  playerEntity.body = playerBody;
 };
 
 const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
   const player = entities.get(diff.nid);
+  if (!player) return;
+
   const property = diff.prop;
   const value = diff.value;
+
   if (diff.nid === worldState.myId) {
-    const player = entities.get(diff.nid);
-    if (player) {
-      player.serverGraphics[property] = value;
+    if (property !== 'x' && property !== 'y' && property !== 'rotation') {
+      player[property] = value;
+      if (player.serverGraphics) {
+        player.serverGraphics[property] = value;
+      }
     }
   } else {
-    if (player) {
-      player[property] = value;
-      if (!player.renderTarget) {
-        player.renderTarget = { x: player.x, y: player.y, rotation: player.rotation };
+    player[property] = value;
+    if (!player.renderTarget) {
+      player.renderTarget = { x: player.x, y: player.y, rotation: player.rotation };
+    }
+    player.renderTarget[property] = value;
+
+    const playerBody = player.body;
+    if (playerBody) {
+      if (property === 'x') {
+        playerBody.position[0] = value;
       }
-      player.renderTarget[property] = value;
+      if (property === 'y') {
+        playerBody.position[1] = value;
+      }
+      if (property === 'rotation') {
+        playerBody.angle = value;
+      }
     }
   }
 };
 
-const deletePlayerEntity = (nid: Binary.UInt8, entities: IEntityMap) => {
-  const player = entities.get(nid);
+const deletePlayerEntity = (nid: Binary.UInt8, playerEntities: PlayerEntityMap) => {
+  const player = playerEntities.get(nid);
   if (player) {
-    // Remove physics body if it exists
     if (player.body) {
-      player.body.world.removeBody(player.body);
+      player.body.world?.removeBody(player.body);
     }
     player.clientGraphics?.destroy({ children: true });
     player.serverGraphics?.destroy({ children: true });
-    entities.delete(nid);
+    playerEntities.delete(nid);
   }
 };
 
@@ -75,20 +100,23 @@ const createObjectEntity = (
   world: p2.World
 ) => {
   createObjectGraphics(app, objectEntity, worldContainer);
-  const body = new p2.Body({
-    mass: 0.1, // Static body (doesn't move)
+  const objectBody = new p2.Body({
+    mass: 0.1,
     position: [objectEntity.x, objectEntity.y],
     angle: objectEntity.rotation,
-    velocity: [0, 0],
     damping: 0.99,
+    angularDamping: 0.99,
   });
-  const circle = new p2.Circle({
-    radius: objectEntity.width / 2,
+  const objectShape = new p2.Box({
+    width: objectEntity.width,
+    height: objectEntity.height,
   });
+  objectShape.collisionGroup = 0x0002;
+  objectShape.collisionMask = 0x0001;
 
-  body.addShape(circle);
-  world.addBody(body);
-  objectEntity.body = body;
+  objectBody.addShape(objectShape);
+  world.addBody(objectBody);
+  objectEntity.body = objectBody;
   objectEntity.renderTarget = {
     x: objectEntity.x,
     y: objectEntity.y,
@@ -101,16 +129,18 @@ const updateObjectEntity = (diff: IEntity, entities: IEntityMap) => {
   if (object && object.graphics) {
     const property = diff.prop;
     const value = diff.value;
-    if (property === 'rotation') {
-      return;
-    }
     if (object) {
       object[property] = value;
-      if (property === 'x') {
-        object.body.position[0] = value;
-      }
-      if (property === 'y') {
-        object.body.position[1] = value;
+      if (object.body) {
+        if (property === 'x') {
+          object.body.position[0] = value;
+        }
+        if (property === 'y') {
+          object.body.position[1] = value;
+        }
+        if (property === 'rotation') {
+          object.body.angle = value;
+        }
       }
       if (!object.renderTarget) {
         object.renderTarget = { x: object.x, y: object.y, rotation: object.rotation };

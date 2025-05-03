@@ -37,5 +37,8 @@ export const applyCommand = (entity: PlayerEntity, command: MoveCommand) => {
   if (entity.body) {
     entity.body.position[0] = entity.x;
     entity.body.position[1] = entity.y;
+    entity.body.velocity[0] = unitX * entity.speed;
+    entity.body.velocity[1] = unitY * entity.speed;
+    entity.body.angle = entity.rotation;
   }
 };

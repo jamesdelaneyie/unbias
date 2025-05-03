@@ -6,4 +6,5 @@ export const worldConfig = {
   playerSize: 1,
   playerSpeed: 2,
   playerSmoothing: 12,
+  reconciliationSmoothing: 10,
 };

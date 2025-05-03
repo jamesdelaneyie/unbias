@@ -62,8 +62,9 @@ const createPhysicalObject = (object: ObjectEntity) => {
     angularDamping: 0.99,
   });
 
-  const shape = new p2.Circle({
-    radius: object.width / 2,
+  const shape = new p2.Box({
+    width: object.width,
+    height: object.height,
   });
 
   body.addShape(shape);
