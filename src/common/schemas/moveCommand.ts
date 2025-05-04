@@ -1,6 +1,6 @@
 import { Binary, defineSchema, Schema } from 'nengi';
 
-export const commandSchema: Schema = defineSchema({
+export const moveCommand: Schema = defineSchema({
   w: Binary.Boolean,
   a: Binary.Boolean,
   s: Binary.Boolean,

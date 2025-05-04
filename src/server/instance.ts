@@ -85,7 +85,7 @@ const update = () => {
       const { user, commands } = networkEvent;
       if (commands.length > 0) {
         commands.forEach((command: Command) => {
-          if (command.ntype === NType.Command) {
+          if (command.ntype === NType.MoveCommand) {
             const player = playerEntities.get(command.nid);
             if (player) {
               applyCommand(player, command as MoveCommand);

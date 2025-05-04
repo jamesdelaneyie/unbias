@@ -43,7 +43,7 @@ type ObjectEntityMap = Map<Binary.UInt8, ObjectEntity>;
 
 /* Commands: Messages from the client to the server */
 type Command = {
-  ntype: NType.Command;
+  ntype: NType.MoveCommand;
   nid: Binary.UInt8;
   delta: Binary.Float32;
 };

@@ -1,7 +1,7 @@
 import { Client } from 'nengi';
 import { NType } from '@/common/NType';
 import { PlayerEntityMap, MoveCommand } from '@/common/types';
-import { commandSchema } from '@/common/schemas/commandSchema';
+import { moveCommand } from '@/common/schemas/moveCommand';
 import { InputSystem } from '@/client/InputSystem';
 import { Container } from 'pixi.js';
 import { worldConfig } from '@/common/worldConfig';
@@ -31,7 +31,7 @@ const handleUserInput = (
 
     if (myEntity.body) {
       const command: MoveCommand = {
-        ntype: NType.Command,
+        ntype: NType.MoveCommand,
         nid: myEntity.nid,
         w: inputState.w,
         a: inputState.a,
@@ -69,7 +69,7 @@ const handleUserInput = (
         x: predictedX,
         y: predictedY,
       };
-      client.predictor.addCustom(client.serverTickRate, prediction, ['x', 'y'], commandSchema);
+      client.predictor.addCustom(client.serverTickRate, prediction, ['x', 'y'], moveCommand);
 
       const playerGraphics = myEntity.clientGraphics;
       const playerGraphicsBody = playerGraphics?.getChildByLabel('playerBodyContainer');
