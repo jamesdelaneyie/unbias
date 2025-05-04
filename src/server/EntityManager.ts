@@ -57,8 +57,8 @@ const createPhysicalObject = (object: ObjectEntity) => {
     mass: 10,
     position: [object.x, object.y],
     angle: object.rotation,
-    damping: 0.99,
-    angularDamping: 0.99,
+    damping: 0.97,
+    angularDamping: 0.999,
     type: p2.Body.DYNAMIC,
   });
 
@@ -66,9 +66,6 @@ const createPhysicalObject = (object: ObjectEntity) => {
     width: object.width,
     height: object.height,
   });
-
-  shape.collisionGroup = 0x0002;
-  shape.collisionMask = 0x0001;
 
   body.addShape(shape);
   return body;

@@ -11,6 +11,11 @@ export const applyCommand = (entity: PlayerEntity, command: MoveCommand) => {
   if (command.s) unitY -= 1;
   if (command.a) unitX -= 1;
   if (command.d) unitX += 1;
+
+  if (command.space) {
+    if (unitX !== 0) unitX *= 4;
+    if (unitY !== 0) unitY *= 4;
+  }
   // normalize
   const len = Math.sqrt(unitX * unitX + unitY * unitY);
   if (len > 0) {
@@ -20,7 +25,10 @@ export const applyCommand = (entity: PlayerEntity, command: MoveCommand) => {
 
   if (!entity.body) return;
 
-  const moveSpeed = entity.speed / 2;
+  let moveModifier = 2;
+  if (command.space) moveModifier = 0.5;
+
+  const moveSpeed = entity.speed / moveModifier;
   entity.body.velocity = [unitX * moveSpeed, unitY * moveSpeed];
   entity.body.angle = entity.rotation;
 };

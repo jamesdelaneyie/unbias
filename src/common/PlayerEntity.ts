@@ -45,9 +45,19 @@ export class PlayerEntity extends User {
     const circleShape = new p2.Circle({
       radius: this.size / 2,
     });
-    circleShape.collisionGroup = 0x0001;
-    circleShape.collisionMask = 0x0002;
     this.body.addShape(circleShape);
+
+    const noseVertices = [
+      [0, -this.size / 2],
+      [this.size * 0.8666, 0],
+      [0, this.size / 2],
+    ];
+    const noseShape = new p2.Convex({
+      vertices: noseVertices,
+      position: [this.x, this.y],
+    });
+    this.body.addShape(noseShape);
+
     return this.body;
   }
 

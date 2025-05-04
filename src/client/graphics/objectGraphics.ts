@@ -32,11 +32,12 @@ const updateObjectGraphics = (objectEntity: ObjectEntity, delta: number) => {
   if (!objectEntity.graphics || !objectEntity.renderTarget) return;
   const graphics = objectEntity.graphics;
   const body = objectEntity.body;
-  if (body) {
+  if (body && graphics) {
     const t = Math.min(1, worldConfig.objectSmoothing * delta);
     graphics.x += (body.position[0] - graphics.x) * t;
     graphics.y += (body.position[1] - graphics.y) * t;
     graphics.rotation += (body.angle - graphics.rotation) * t;
+    graphics.tint = objectEntity.color;
   }
 };
 

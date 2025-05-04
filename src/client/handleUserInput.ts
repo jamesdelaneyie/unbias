@@ -28,6 +28,7 @@ const handleUserInput = (
     const dy = point.y - myEntity.y;
     const rotation = Math.atan2(dy, dx);
 
+    // @ts-ignore
     const command: MoveCommand = {
       ntype: NType.MoveCommand,
       nid: myEntity.nid,
@@ -35,6 +36,7 @@ const handleUserInput = (
       a: inputState.a,
       s: inputState.s,
       d: inputState.d,
+      space: inputState.space,
       rotation: rotation,
       delta: delta,
     };
@@ -50,14 +52,22 @@ const handleUserInput = (
     if (command.a) unitX -= 1;
     if (command.d) unitX += 1;
 
+    if (inputState.space) {
+      if (unitX !== 0) unitX += 4;
+      if (unitY !== 0) unitY += 4;
+    }
+
     const len = Math.sqrt(unitX * unitX + unitY * unitY);
     if (len > 0) {
       unitX /= len;
       unitY /= len;
     }
 
+    let moveModifier = 10;
+    if (inputState.space) moveModifier = 5;
+
     // Update the entity's velocity and rotation
-    const moveSpeed = myEntity.speed / 10;
+    const moveSpeed = myEntity.speed / moveModifier;
     myEntity.body.velocity = [unitX * moveSpeed, unitY * moveSpeed];
     myEntity.body.angle = rotation;
 

@@ -11,7 +11,6 @@ import {
 } from '../server/EntityManager';
 import { applyCommand } from '../common/applyCommand';
 import * as p2 from 'p2-es';
-import { Binary } from 'nengi';
 import { worldConfig } from '../common/worldConfig';
 
 const port = worldConfig.port;
@@ -39,24 +38,35 @@ let worldPopulated = false;
 
 const populateWorld = () => {
   const color = 0xffffff;
-  const object: ObjectEntity = {
-    nid: 1,
-    ntype: NType.Object,
-    x: 3 as unknown as Binary.Float32,
-    y: 1 as unknown as Binary.Float32,
-    width: 2,
-    height: 2,
-    shape: 'circle',
-    color: color,
-    rotation: 0,
-    body: null as unknown as p2.Body,
-    renderTarget: { x: 0, y: 0, rotation: 0 },
-  };
-  const objectBody = createPhysicalObject(object);
-  object.body = objectBody;
-  ObjectEntities.set(object.nid, object);
-  space.addEntity(object);
-  world.addBody(object.body);
+  const numObjects = 60;
+  const gridSize = 4;
+
+  for (let i = 0; i < numObjects; i++) {
+    // Random position within 4x4 grid
+    const x = Math.floor(Math.random() * gridSize) + 0.5;
+    const y = Math.floor(Math.random() * gridSize) + 0.5;
+
+    const object: ObjectEntity = {
+      nid: i + 1,
+      ntype: NType.Object,
+      x: x,
+      y: y,
+      width: 1,
+      height: 1,
+      shape: 'circle',
+      color: color,
+      rotation: 0,
+      body: null as unknown as p2.Body,
+      renderTarget: { x: 0, y: 0, rotation: 0 },
+    };
+
+    const objectBody = createPhysicalObject(object);
+    object.body = objectBody;
+    ObjectEntities.set(object.nid, object);
+    space.addEntity(object);
+    world.addBody(object.body);
+  }
+
   ObjectEntities.forEach((obj: ObjectEntity) => {
     space.addEntity(obj);
   });
@@ -117,6 +127,37 @@ const update = () => {
   }
 
   world.step(1 / 60);
+
+  // Check for collisions between players and objects
+  world.on('beginContact', event => {
+    const bodyA = event.bodyA;
+    const bodyB = event.bodyB;
+
+    // Find the player and object involved in collision
+    let playerEntity = null;
+    let objectEntity = null;
+
+    // Check if bodyA is a player and bodyB is an object
+    const playerA = Array.from(playerEntities.values()).find(p => p.body === bodyA);
+    const objectB = Array.from(ObjectEntities.values()).find(o => o.body === bodyB);
+    if (playerA && objectB) {
+      playerEntity = playerA;
+      objectEntity = objectB;
+    }
+
+    // Check if bodyB is a player and bodyA is an object
+    const playerB = Array.from(playerEntities.values()).find(p => p.body === bodyB);
+    const objectA = Array.from(ObjectEntities.values()).find(o => o.body === bodyA);
+    if (playerB && objectA) {
+      playerEntity = playerB;
+      objectEntity = objectA;
+    }
+
+    // Update object color when player touches it
+    if (playerEntity && objectEntity) {
+      objectEntity.color = playerEntity.color;
+    }
+  });
 
   // update the positions of the player entities
   playerEntities.forEach(player => {

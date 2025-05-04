@@ -42,8 +42,17 @@ const createPlayerEntity = (
   const playerShape = new p2.Circle({
     radius: playerEntity.size / 2,
   });
-  playerShape.collisionGroup = 0x0001;
-  playerShape.collisionMask = 0x0002;
+  const noseVertices = [
+    [0, -playerEntity.size / 2],
+    [playerEntity.size * 0.8666, 0],
+    [0, playerEntity.size / 2],
+  ];
+  const noseShape = new p2.Convex({
+    vertices: noseVertices,
+    position: [playerEntity.x, playerEntity.y],
+  });
+  playerBody.addShape(noseShape);
+
   playerEntity.body = playerBody;
   playerEntity.renderTarget = {
     x: playerEntity.x,
@@ -73,35 +82,6 @@ const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap
   if (property === 'rotation') {
     player.body.angle = value;
   }
-
-  /*
-  if (diff.nid === worldState.myId) {
-    if (property !== 'x' && property !== 'y' && property !== 'rotation') {
-      player[property] = value;
-      if (player.serverGraphics) {
-        player.serverGraphics[property] = value;
-      }
-    }
-  } else {
-    player[property] = value;
-    if (!player.renderTarget) {
-      player.renderTarget = { x: player.x, y: player.y, rotation: player.rotation };
-    }
-    player.renderTarget[property] = value;
-
-    const playerBody = player.body;
-    if (playerBody) {
-      if (property === 'x') {
-        playerBody.position[0] = value;
-      }
-      if (property === 'y') {
-        playerBody.position[1] = value;
-      }
-      if (property === 'rotation') {
-        playerBody.angle = value;
-      }
-    }
-  }*/
 };
 
 const deletePlayerEntity = (nid: Binary.UInt8, playerEntities: PlayerEntityMap) => {
@@ -135,16 +115,16 @@ const createObjectEntity = (
     mass: 10,
     position: [objectEntity.x, objectEntity.y],
     angle: objectEntity.rotation,
-    damping: 0.99,
-    angularDamping: 0.99,
+    damping: 0.97,
+    angularDamping: 0.999,
     type: p2.Body.DYNAMIC,
   });
   const objectShape = new p2.Box({
     width: objectEntity.width,
     height: objectEntity.height,
   });
-  objectShape.collisionGroup = 0x0002;
-  objectShape.collisionMask = 0x0001;
+  // objectShape.collisionGroup = 0x0002;
+  // objectShape.collisionMask = 0x0001;
 
   objectBody.addShape(objectShape);
   world.addBody(objectBody);

@@ -2,7 +2,7 @@
 InputSystem is responsible for handling user input from the keyboard and mouse.
 It is responsible for translating the input into a command that can be sent to the server.
 */
-type BooleanKeys = 'w' | 'a' | 's' | 'd';
+type BooleanKeys = 'w' | 'a' | 's' | 'd' | 'space';
 type KeyMapping = {
   [key: string]: BooleanKeys;
 };
@@ -11,6 +11,7 @@ type InputState = {
   s: boolean;
   a: boolean;
   d: boolean;
+  space: boolean;
   mx: number;
   my: number;
   rotation: number;
@@ -28,6 +29,8 @@ export class InputSystem {
     ArrowLeft: 'a',
     d: 'd',
     ArrowRight: 'd',
+    Space: 'space',
+    ' ': 'space',
   };
   constructor() {
     this.currentState = {
@@ -35,6 +38,7 @@ export class InputSystem {
       s: false,
       a: false,
       d: false,
+      space: false,
       rotation: 0,
       mx: 0,
       my: 0,
@@ -78,6 +82,7 @@ export class InputSystem {
       s: false,
       a: false,
       d: false,
+      space: false,
       rotation: this.currentState.rotation,
       mx: this.currentState.mx,
       my: this.currentState.my,

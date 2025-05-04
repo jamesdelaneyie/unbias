@@ -54,6 +54,7 @@ type MoveCommand = Command & {
   a: boolean;
   s: boolean;
   d: boolean;
+  space: boolean;
   rotation: number;
 };
 
