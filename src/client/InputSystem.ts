@@ -61,6 +61,12 @@ export class InputSystem {
       this.currentState.mx = event.clientX;
       this.currentState.my = event.clientY;
     });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.resetKeys();
+      }
+    });
   }
 
   releaseKeys() {

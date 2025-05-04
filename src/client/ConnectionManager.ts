@@ -1,18 +1,17 @@
 import { Client } from 'nengi';
 import { worldConfig } from '@/common/worldConfig';
-import { addNotification, addUsernameField, setupUsername } from '@/client/HTMLUI';
+import { notificationService, NotificationType } from '@/client/NotificationService';
 
 let reconnectAttempts = 0;
 let reconnectTimeout: number | null = null;
 
-const connectToServer = async (client: Client, notificationBox: HTMLDivElement) => {
+const connectToServer = async (client: Client) => {
   try {
     const res = await client.connect('ws://localhost:9001', { token: 12345 });
     if (res === 'accepted') {
-      addNotification(
-        document,
-        notificationBox,
-        reconnectAttempts > 0 ? 'Reconnected to server' : 'Connected to server'
+      notificationService.addNotification(
+        reconnectAttempts > 0 ? 'Reconnected to server' : 'Connected to server',
+        NotificationType.INFO
       );
       reconnectAttempts = 0;
       if (reconnectTimeout) {
@@ -21,35 +20,37 @@ const connectToServer = async (client: Client, notificationBox: HTMLDivElement) 
       }
 
       // Show username field and handle username
-      const usernameField = addUsernameField(document, notificationBox);
-      setupUsername(usernameField, client);
+      const usernameField = notificationService.addUsernameField(document);
+      notificationService.setupUsername(usernameField, client);
       return true;
     } else {
-      addNotification(document, notificationBox, 'Connection error');
+      notificationService.addNotification('Connection error', NotificationType.ERROR);
       return false;
     }
   } catch (err) {
     console.warn(err);
-    addNotification(document, notificationBox, 'Connection error');
+    notificationService.addNotification('Connection error', NotificationType.ERROR);
     return false;
   }
 };
 
-const scheduleReconnect = (client: Client, notificationBox: HTMLDivElement) => {
+const scheduleReconnect = (client: Client) => {
   if (reconnectAttempts >= worldConfig.maxReconnectAttempts) {
-    addNotification(document, notificationBox, 'Max reconnection attempts reached');
+    notificationService.addNotification(
+      'Max reconnection attempts reached',
+      NotificationType.ERROR
+    );
     return;
   }
   reconnectAttempts++;
-  addNotification(
-    document,
-    notificationBox,
-    `Attempting to reconnect (${reconnectAttempts}/${worldConfig.maxReconnectAttempts})...`
+  notificationService.addNotification(
+    `Attempting to reconnect (${reconnectAttempts}/${worldConfig.maxReconnectAttempts})...`,
+    NotificationType.INFO
   );
   reconnectTimeout = window.setTimeout(async () => {
-    const success = await connectToServer(client, notificationBox);
+    const success = await connectToServer(client);
     if (!success) {
-      scheduleReconnect(client, notificationBox);
+      scheduleReconnect(client);
     }
   }, worldConfig.reconnectDelay);
 };

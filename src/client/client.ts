@@ -2,11 +2,11 @@ import { NType } from '@/common/NType';
 import { ncontext } from '@/common/ncontext';
 import { Client, Interpolator, IEntity } from 'nengi';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
-import { Application, Container } from 'pixi.js';
-import { createNotificationBox, addNotification } from './HTMLUI';
-import { drawBasicText } from './GPUUI';
+import { initRenderer } from './utilities';
+import { setupGraphicsWorld, setupUI } from './GPUUI';
 import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
+import { notificationService, NotificationType } from './NotificationService';
 import {
   createPlayerEntity,
   updatePlayerEntity,
@@ -23,7 +23,6 @@ import {
 } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
-import { createGridGraphics } from '@/client/graphics/worldGraphics';
 import { updateRemotePlayerGraphics } from '@/client/graphics/playerGraphics';
 import reconcileEntities from '@/client/reconcileEntities';
 import { worldConfig } from '@/common/worldConfig';
@@ -32,65 +31,29 @@ let connectedToServer = false;
 let entities: IEntityMap = new Map();
 let playerEntities: PlayerEntityMap = new Map();
 let objectEntities: ObjectEntityMap = new Map();
-let notificationBox: HTMLDivElement;
 
 window.addEventListener('load', async () => {
-  const app = new Application();
-  await app.init({
-    antialias: true,
-    autoDensity: true,
-    background: '#000000',
-    resolution: window.devicePixelRatio,
-    resizeTo: window,
-  });
-  //@ts-ignore Allows PixiJS dev tools
-  globalThis.__PIXI_APP__ = app;
-
-  document.body.appendChild(app.canvas);
-
-  const UserInterfaceContainer = new Container();
-  UserInterfaceContainer.label = 'UserInterfaceContainer';
-  UserInterfaceContainer.zIndex = 1000;
-  app.stage.addChild(UserInterfaceContainer);
-
-  drawBasicText(UserInterfaceContainer, 'BIAS 2.0', 10, 10);
-
-  const worldContainer = new Container();
-  worldContainer.label = 'worldContainer';
-  worldContainer.position.x = app.screen.width / 2;
-  worldContainer.position.y = app.screen.height / 2;
-  worldContainer.scale.x = 50;
-  worldContainer.scale.y = -50;
-  app.stage.addChild(worldContainer);
-
-  createGridGraphics(app, worldContainer, 300);
-
-  notificationBox = createNotificationBox(document);
-
-  const world = new p2.World({
-    gravity: [0, 0],
-  });
-  const client = new Client(ncontext, WebSocketClientAdapter, 20);
+  const app = await initRenderer();
+  const worldContainer = setupGraphicsWorld(app);
+  setupUI(app);
 
   const worldState = {
     myId: null,
   };
+  const world = new p2.World({
+    gravity: [0, 0],
+  });
 
-  addNotification(document, notificationBox, 'local app loaded');
+  const client = new Client(ncontext, WebSocketClientAdapter, worldConfig.serverTickRate);
 
-  connectedToServer = await connectToServer(client, notificationBox);
+  notificationService.addNotification('Local app loaded', NotificationType.INFO);
+
+  connectedToServer = await connectToServer(client);
   if (!connectedToServer) {
-    scheduleReconnect(client, notificationBox);
+    scheduleReconnect(client);
   }
 
   const userInput = new InputSystem();
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      userInput.resetKeys();
-    }
-  });
-
   const interpolator = new Interpolator(client);
 
   const tick = (delta: number) => {
