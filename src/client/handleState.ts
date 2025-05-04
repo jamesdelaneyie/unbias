@@ -1,7 +1,13 @@
 import * as p2 from 'p2-es';
 import { Binary, IEntity } from 'nengi';
 import { Container, Application } from 'pixi.js';
-import { IEntityMap, PlayerEntity, ObjectEntity, PlayerEntityMap } from '@/common/types';
+import {
+  IEntityMap,
+  PlayerEntity,
+  ObjectEntity,
+  PlayerEntityMap,
+  ObjectEntityMap,
+} from '@/common/types';
 import { createPlayerGraphics } from '@/client/graphics/playerGraphics';
 import { createObjectGraphics } from '@/client/graphics/objectGraphics';
 
@@ -39,6 +45,11 @@ const createPlayerEntity = (
   playerShape.collisionGroup = 0x0001;
   playerShape.collisionMask = 0x0002;
   playerEntity.body = playerBody;
+  playerEntity.renderTarget = {
+    x: playerEntity.x,
+    y: playerEntity.y,
+    rotation: playerEntity.rotation,
+  };
 
   playerBody.addShape(playerShape);
   world.addBody(playerBody);
@@ -51,6 +62,19 @@ const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap
   const property = diff.prop;
   const value = diff.value;
 
+  player[property] = value;
+  player.renderTarget[property] = value;
+  if (property === 'x') {
+    player.body.position[0] = value;
+  }
+  if (property === 'y') {
+    player.body.position[1] = value;
+  }
+  if (property === 'rotation') {
+    player.body.angle = value;
+  }
+
+  /*
   if (diff.nid === worldState.myId) {
     if (property !== 'x' && property !== 'y' && property !== 'rotation') {
       player[property] = value;
@@ -77,7 +101,7 @@ const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap
         playerBody.angle = value;
       }
     }
-  }
+  }*/
 };
 
 const deletePlayerEntity = (nid: Binary.UInt8, playerEntities: PlayerEntityMap) => {
@@ -92,6 +116,14 @@ const deletePlayerEntity = (nid: Binary.UInt8, playerEntities: PlayerEntityMap) 
   }
 };
 
+const isPredictionDifferentToCurrentState = (prediction: any, currentState: any) => {
+  return (
+    prediction.x !== currentState.x ||
+    prediction.y !== currentState.y ||
+    prediction.rotation !== currentState.rotation
+  );
+};
+
 const createObjectEntity = (
   objectEntity: ObjectEntity,
   worldContainer: Container,
@@ -100,11 +132,12 @@ const createObjectEntity = (
 ) => {
   const objectGraphics = createObjectGraphics(app, objectEntity, worldContainer);
   const objectBody = new p2.Body({
-    mass: 0.1,
+    mass: 10,
     position: [objectEntity.x, objectEntity.y],
     angle: objectEntity.rotation,
     damping: 0.99,
     angularDamping: 0.99,
+    type: p2.Body.DYNAMIC,
   });
   const objectShape = new p2.Box({
     width: objectEntity.width,
@@ -126,28 +159,28 @@ const createObjectEntity = (
   };
 };
 
-const updateObjectEntity = (diff: IEntity, entities: IEntityMap) => {
+const updateObjectEntity = (diff: IEntity, entities: ObjectEntityMap) => {
   const object = entities.get(diff.nid);
-  if (object && object.graphics) {
-    const property = diff.prop;
-    const value = diff.value;
-    if (object) {
-      object[property] = value;
-      if (object.body) {
-        if (property === 'x') {
-          object.body.position[0] = value;
-        }
-        if (property === 'y') {
-          object.body.position[1] = value;
-        }
-        if (property === 'rotation') {
-          object.body.angle = value;
-        }
-      }
-      if (!object.renderTarget) {
-        object.renderTarget = { x: object.x, y: object.y, rotation: object.rotation };
-      }
-      object.renderTarget[property] = value;
+  if (!object) return;
+
+  const property = diff.prop;
+  const value = diff.value;
+
+  // Update base entity property
+  object[property] = value;
+
+  // Update renderTarget
+  // @ts-ignore for the moment
+  object.renderTarget[property] = value;
+
+  // Update physics body
+  if (object.body) {
+    if (property === 'x') {
+      object.body.position[0] = value;
+    } else if (property === 'y') {
+      object.body.position[1] = value;
+    } else if (property === 'rotation') {
+      object.body.angle = value;
     }
   }
 };
@@ -158,4 +191,5 @@ export {
   deletePlayerEntity,
   createObjectEntity,
   updateObjectEntity,
+  isPredictionDifferentToCurrentState,
 };

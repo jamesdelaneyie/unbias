@@ -54,18 +54,21 @@ const deletePlayerEntity = (
 
 const createPhysicalObject = (object: ObjectEntity) => {
   const body = new p2.Body({
-    mass: 0.1,
+    mass: 10,
     position: [object.x, object.y],
-    angle: 0,
-    angularVelocity: 0,
+    angle: object.rotation,
     damping: 0.99,
     angularDamping: 0.99,
+    type: p2.Body.DYNAMIC,
   });
 
   const shape = new p2.Box({
     width: object.width,
     height: object.height,
   });
+
+  shape.collisionGroup = 0x0002;
+  shape.collisionMask = 0x0001;
 
   body.addShape(shape);
   return body;

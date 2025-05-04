@@ -97,4 +97,32 @@ const updateRemotePlayerGraphics = (playerEntity: PlayerEntity, delta: number) =
   }
 };
 
-export { createPlayerGraphics, updateRemotePlayerGraphics };
+const updateLocalPlayerGraphicsWithPrediction = (
+  playerEntity: PlayerEntity,
+  prediction: any,
+  delta: number
+) => {
+  const graphics = playerEntity.clientGraphics;
+  if (!graphics) return;
+  // t is the interpolation factor
+  const t = Math.min(1, worldConfig.playerSmoothing * delta);
+  graphics.x += (prediction.x - graphics.x) * t;
+  graphics.y += (prediction.y - graphics.y) * t;
+  const playerBodyContainer = graphics.getChildByLabel('playerBodyContainer');
+  if (playerBodyContainer) {
+    const targetRotation = prediction.rotation;
+    const currentRotation = playerBodyContainer.rotation;
+    // Handle angle wrapping for smooth interpolation
+    // ensures the graphics dont flip back to 0 when the value goes over 360
+    let diff = targetRotation - currentRotation;
+    while (diff < -Math.PI) diff += 2 * Math.PI;
+    while (diff > Math.PI) diff -= 2 * Math.PI;
+    playerBodyContainer.rotation += diff * t;
+  }
+};
+
+export {
+  createPlayerGraphics,
+  updateRemotePlayerGraphics,
+  updateLocalPlayerGraphicsWithPrediction,
+};

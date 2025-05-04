@@ -9,7 +9,7 @@ type Entity = {
   ntype: NType;
   x: Binary.Float32;
   y: Binary.Float32;
-  rotation: Binary.Float32;
+  rotation: number;
   [key: string]: any;
 };
 
@@ -30,6 +30,7 @@ type ObjectEntity = Entity & {
   height: number;
   shape: string;
   color: number;
+  rotation: number;
   body?: p2.Body;
   graphics?: Container;
   renderTarget: { x: number; y: number; rotation: number };

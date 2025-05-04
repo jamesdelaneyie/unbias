@@ -5,7 +5,8 @@ export const worldConfig = {
   serverTickRate: 20,
   viewSize: 1100,
   playerSize: 1,
-  playerSpeed: 2,
+  playerSpeed: 15,
   playerSmoothing: 12,
+  objectSmoothing: 12,
   reconciliationSmoothing: 10,
 };

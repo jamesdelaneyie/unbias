@@ -42,13 +42,13 @@ const populateWorld = () => {
   const object: ObjectEntity = {
     nid: 1,
     ntype: NType.Object,
-    x: 2 as unknown as Binary.Float32,
+    x: 3 as unknown as Binary.Float32,
     y: 1 as unknown as Binary.Float32,
     width: 2,
     height: 2,
     shape: 'circle',
     color: color,
-    rotation: 0 as unknown as Binary.Float32,
+    rotation: 0,
     body: null as unknown as p2.Body,
     renderTarget: { x: 0, y: 0, rotation: 0 },
   };
@@ -114,14 +114,27 @@ const update = () => {
         });
       }
     }
-
-    ObjectEntities.forEach(object => {
-      object.x = object.body?.position[0] as unknown as Binary.Float32;
-      object.y = object.body?.position[1] as unknown as Binary.Float32;
-    });
-
-    world.step(1 / 60);
   }
+
+  world.step(1 / 60);
+
+  // update the positions of the player entities
+  playerEntities.forEach(player => {
+    player.x = player.body?.position[0];
+    player.y = player.body?.position[1];
+    player.rotation = player.body?.angle;
+  });
+
+  // update the positions of the object entities
+  ObjectEntities.forEach(object => {
+    // @ts-ignore for the moment
+    object.x = object.body?.position[0];
+    // @ts-ignore for the moment
+    object.y = object.body?.position[1];
+    // @ts-ignore for the moment
+    object.rotation = object.body?.angle;
+  });
+
   instance.step();
 };
 

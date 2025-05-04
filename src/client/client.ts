@@ -13,6 +13,7 @@ import {
   deletePlayerEntity,
   createObjectEntity,
   updateObjectEntity,
+  isPredictionDifferentToCurrentState,
 } from './handleState';
 import {
   IEntityMap,
@@ -23,9 +24,13 @@ import {
 } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
-import { updateRemotePlayerGraphics } from '@/client/graphics/playerGraphics';
+import {
+  updateLocalPlayerGraphicsWithPrediction,
+  updateRemotePlayerGraphics,
+} from '@/client/graphics/playerGraphics';
 import reconcileEntities from '@/client/reconcileEntities';
 import { worldConfig } from '@/common/worldConfig';
+import { updateObjectGraphics } from '@/client/graphics/objectGraphics';
 let connectedToServer = false;
 
 let entities: IEntityMap = new Map();
@@ -57,34 +62,6 @@ window.addEventListener('load', async () => {
   const interpolator = new Interpolator(client);
 
   const tick = (delta: number) => {
-    world.step(1 / 60);
-
-    playerEntities.forEach(p => {
-      if (p.body) {
-        p.x = p.body.position[0];
-        p.y = p.body.position[1];
-        p.rotation = p.body.angle;
-      }
-    });
-
-    objectEntities.forEach(o => {
-      if (o.body) {
-        o.x = o.body.position[0];
-        o.y = o.body.position[1];
-        o.rotation = o.body.angle;
-        // Update graphics directly from local physics body state (AFTER world.step)
-        // Remove interpolation for immediate local collision response.
-        if (o.graphics) {
-          const t = Math.min(1, worldConfig.playerSmoothing * delta);
-          // Snap graphics to the current physics body position
-          o.graphics.x += (o.body.position[0] - o.graphics.x) * t;
-          o.graphics.y += (o.body.position[1] - o.graphics.y) * t;
-          // Snap graphics rotation too
-          o.graphics.rotation += (o.body.angle - o.graphics.rotation) * t;
-        }
-      }
-    });
-
     const istate = interpolator.getInterpolatedState(100);
 
     while (client.network.messages.length > 0) {
@@ -128,13 +105,39 @@ window.addEventListener('load', async () => {
       reconcileEntities(errors, entities, delta);
     });
 
+    // turn the users input into a move command
+    // and send it to the server and return a prediction
+    // of the x,y,rotation of the local player
+    const prediction = handleUserInput(
+      client,
+      userInput,
+      worldState,
+      playerEntities,
+      worldContainer,
+      delta
+    );
+
+    // update the physics world
+    // applies velocities to the bodies
+    // and updates their positions
+    world.step(1 / 60);
+
+    // update the graphics of the player entities
     playerEntities.forEach(playerEntity => {
-      if (playerEntity.nid !== worldState.myId) {
+      if (playerEntity.isSelf) {
+        if (isPredictionDifferentToCurrentState(prediction, playerEntity)) {
+          updateLocalPlayerGraphicsWithPrediction(playerEntity, prediction, delta);
+        }
+      } else {
         updateRemotePlayerGraphics(playerEntity, delta);
       }
     });
 
-    handleUserInput(client, userInput, worldState, playerEntities, worldContainer, delta);
+    objectEntities.forEach((object: ObjectEntity) => {
+      if (object.graphics) {
+        updateObjectGraphics(object, delta);
+      }
+    });
 
     client.flush();
   };

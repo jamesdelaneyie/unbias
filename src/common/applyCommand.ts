@@ -4,41 +4,23 @@ import { MoveCommand } from '@/common/types';
 export const applyCommand = (entity: PlayerEntity, command: MoveCommand) => {
   entity.rotation = command.rotation;
 
+  // Calculate the movement vector
   let unitX = 0;
   let unitY = 0;
-
-  // create forces from input
-  if (command.w) {
-    unitY += 1; // reverse y axis
-  }
-  if (command.s) {
-    unitY -= 1; // reverse y axis
-  }
-  if (command.a) {
-    unitX -= 1;
-  }
-  if (command.d) {
-    unitX += 1;
-  }
-
+  if (command.w) unitY += 1;
+  if (command.s) unitY -= 1;
+  if (command.a) unitX -= 1;
+  if (command.d) unitX += 1;
   // normalize
   const len = Math.sqrt(unitX * unitX + unitY * unitY);
   if (len > 0) {
-    unitX = unitX / len;
-    unitY = unitY / len;
+    unitX /= len;
+    unitY /= len;
   }
 
-  const xMove = unitX * entity.speed * command.delta;
-  const yMove = unitY * entity.speed * command.delta;
-  entity.x += xMove;
-  entity.y += yMove;
+  if (!entity.body) return;
 
-  // Update physics body if available
-  if (entity.body) {
-    entity.body.position[0] = entity.x;
-    entity.body.position[1] = entity.y;
-    entity.body.velocity[0] = unitX * entity.speed;
-    entity.body.velocity[1] = unitY * entity.speed;
-    entity.body.angle = entity.rotation;
-  }
+  const moveSpeed = entity.speed / 2;
+  entity.body.velocity = [unitX * moveSpeed, unitY * moveSpeed];
+  entity.body.angle = entity.rotation;
 };

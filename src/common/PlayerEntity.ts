@@ -38,12 +38,15 @@ export class PlayerEntity extends User {
 
   generatePlayerBody() {
     this.body = new p2.Body({
-      mass: 10,
+      mass: 0,
       position: [this.x, this.y],
+      type: p2.Body.KINEMATIC,
     });
     const circleShape = new p2.Circle({
       radius: this.size / 2,
     });
+    circleShape.collisionGroup = 0x0001;
+    circleShape.collisionMask = 0x0002;
     this.body.addShape(circleShape);
     return this.body;
   }
