@@ -47,6 +47,11 @@ review schemas
 expand worldConfig
 review connection manager for improvements
 think of tests that could be created
+put on a server
+try with ngrok
+figure out how to test reconcile entities
+smooth moving on server for entities
+write up about it
 
 ## Testing
 
