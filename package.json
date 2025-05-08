@@ -9,6 +9,7 @@
     "dev:server": "NODE_OPTIONS='--no-warnings --loader ts-node/esm' nodemon --watch 'src/**/*.ts' src/server/instance.ts",
     "dev:client": "vite",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "bots": "nodemon src/bot/bots-main.ts",
     "build": "npx tsc",
     "typecheck": "npx tsc --project tsconfig.test.json",
     "lint": "eslint .",
@@ -30,15 +31,14 @@
     "npm": ">=10.9.2"
   },
   "dependencies": {
-    "@types/sat": "^0.0.35",
     "nengi": "^2.0.0-alpha.173",
     "nengi-buffers": "^0.5.0",
     "nengi-uws-instance-adapter": "^0.6.0",
     "nengi-websocket-client-adapter": "^0.7.0",
+    "nengi-ws-client-adapter": "^0.3.0",
     "p2-es": "^1.2.3",
     "pixi-tagged-text-plus": "^0.0.1-next.2",
-    "pixi.js": "^8.9.1",
-    "sat": "^0.9.0"
+    "pixi.js": "^8.9.1"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.6",

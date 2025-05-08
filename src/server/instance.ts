@@ -21,6 +21,7 @@ uws.listen(port, () => {
 });
 
 const historian = new Historian(ncontext, 20);
+
 const main = new ChannelAABB2D(instance.localState, historian);
 
 const ObjectEntities: Map<number, ObjectEntity> = new Map();
@@ -38,7 +39,7 @@ let worldPopulated = false;
 
 const populateWorld = () => {
   const color = 0xffffff;
-  const numObjects = 60;
+  const numObjects = 120;
   const gridSize = 4;
 
   for (let i = 0; i < numObjects; i++) {
@@ -69,14 +70,16 @@ const populateWorld = () => {
     main.addEntity(object);
   }
 
-  const object: ObjectEntity = {
+  const leftWall: ObjectEntity = {
     ntype: NType.Object,
     // @ts-ignore
-    x: -6,
+    nid: 500,
     // @ts-ignore
-    y: 1,
-    width: 3,
-    height: 3,
+    x: -8,
+    // @ts-ignore
+    y: 0,
+    width: 1,
+    height: 20,
     shape: 'circle',
     color: color,
     rotation: 0,
@@ -86,11 +89,87 @@ const populateWorld = () => {
     renderTarget: { x: 0, y: 0, rotation: 0 },
   };
 
-  const objectBody = createPhysicalObject(object);
-  object.body = objectBody;
-  ObjectEntities.set(object.nid, object);
-  world.addBody(object.body);
-  main.addEntity(object);
+  const leftWallBody = createPhysicalObject(leftWall);
+  leftWall.body = leftWallBody;
+  ObjectEntities.set(leftWall.nid, leftWall);
+  world.addBody(leftWall.body);
+  main.addEntity(leftWall);
+
+  const rightWall: ObjectEntity = {
+    ntype: NType.Object,
+    // @ts-ignore
+    nid: 501,
+    // @ts-ignore
+    x: 8,
+    // @ts-ignore
+    y: 0,
+    width: 1,
+    height: 20,
+    shape: 'circle',
+    color: color,
+    rotation: 0,
+    body: null as unknown as p2.Body,
+    mass: 0,
+    type: p2.Body.STATIC,
+    renderTarget: { x: 0, y: 0, rotation: 0 },
+  };
+
+  const rightWallBody = createPhysicalObject(rightWall);
+  rightWall.body = rightWallBody;
+  ObjectEntities.set(rightWall.nid, rightWall);
+  world.addBody(rightWall.body);
+  main.addEntity(rightWall);
+
+  const topWall: ObjectEntity = {
+    ntype: NType.Object,
+    // @ts-ignore
+    nid: 503,
+    // @ts-ignore
+    x: 0,
+    // @ts-ignore
+    y: 12,
+    width: 16,
+    height: 1,
+    shape: 'circle',
+    color: color,
+    rotation: 0,
+    body: null as unknown as p2.Body,
+    mass: 0,
+    type: p2.Body.STATIC,
+    renderTarget: { x: 0, y: 0, rotation: 0 },
+  };
+
+  const topWallBody = createPhysicalObject(topWall);
+  topWall.body = topWallBody;
+  ObjectEntities.set(topWall.nid, topWall);
+  world.addBody(topWall.body);
+  main.addEntity(topWall);
+
+  const bottomWall: ObjectEntity = {
+    ntype: NType.Object,
+    // @ts-ignore
+    nid: 504,
+    // @ts-ignore
+    x: 0,
+    // @ts-ignore
+    y: -8,
+    width: 16,
+    height: 1,
+    shape: 'circle',
+    color: color,
+    rotation: 0,
+    body: null as unknown as p2.Body,
+    mass: 0,
+    type: p2.Body.STATIC,
+    renderTarget: { x: 0, y: 0, rotation: 0 },
+  };
+
+  const bottomWallBody = createPhysicalObject(bottomWall);
+  bottomWall.body = bottomWallBody;
+  ObjectEntities.set(bottomWall.nid, bottomWall);
+  world.addBody(bottomWall.body);
+  main.addEntity(bottomWall);
+
   worldPopulated = true;
 };
 
@@ -118,7 +197,9 @@ const update = () => {
         commands.forEach((command: Command) => {
           if (command.ntype === NType.MoveCommand) {
             const player = playerEntities.get(command.nid);
+            console.log(command);
             if (player) {
+              //console.log('move command received', command);
               applyCommand(player, command as MoveCommand);
             }
           }
@@ -138,6 +219,7 @@ const update = () => {
               main,
               playerEntities
             );
+            console.log('player created', player?.username);
             if (player?.body) {
               world.addBody(player.body);
             }
