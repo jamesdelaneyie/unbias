@@ -38,9 +38,9 @@ export class PlayerEntity extends User {
 
   generatePlayerBody() {
     this.body = new p2.Body({
-      mass: 0,
+      mass: 1,
       position: [this.x, this.y],
-      type: p2.Body.KINEMATIC,
+      type: p2.Body.DYNAMIC,
     });
     const circleShape = new p2.Circle({
       radius: this.size / 2,

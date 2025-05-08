@@ -18,16 +18,17 @@ const createPlayerEntity = (
   app: Application,
   world: p2.World
 ) => {
-  const clientGraphics = createPlayerGraphics(playerEntity, app);
-  playerEntity.clientGraphics = clientGraphics;
-  worldContainer.addChild(clientGraphics);
   let serverGraphics = null;
   if (playerEntity.isSelf) {
     serverGraphics = createPlayerGraphics(playerEntity, app);
     playerEntity.serverGraphics = serverGraphics;
-    serverGraphics.visible = false;
+    serverGraphics.tint = 0x0000ff;
     worldContainer.addChild(serverGraphics);
   }
+  const clientGraphics = createPlayerGraphics(playerEntity, app);
+  playerEntity.clientGraphics = clientGraphics;
+  worldContainer.addChild(clientGraphics);
+
   let bodyType = p2.Body.KINEMATIC;
   let playerMass = 0;
   if (playerEntity.isSelf) {
@@ -66,11 +67,18 @@ const createPlayerEntity = (
 };
 
 const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap) => {
+  const property = diff.prop;
+  const value = diff.value;
+
   const player = entities.get(diff.nid);
   if (!player) return;
 
-  const property = diff.prop;
-  const value = diff.value;
+  if (diff.nid === worldState.myId) {
+    if (property === 'rotation') {
+      player.rotation = value;
+    }
+    return;
+  }
 
   player[property] = value;
   player.renderTarget[property] = value;
@@ -113,19 +121,17 @@ const createObjectEntity = (
 ) => {
   const objectGraphics = createObjectGraphics(app, objectEntity, worldContainer);
   const objectBody = new p2.Body({
-    mass: 10,
+    mass: objectEntity.mass,
     position: [objectEntity.x, objectEntity.y],
     angle: objectEntity.rotation,
     damping: 0.97,
     angularDamping: 0.999,
-    type: p2.Body.DYNAMIC,
+    type: objectEntity.type,
   });
   const objectShape = new p2.Box({
     width: objectEntity.width,
     height: objectEntity.height,
   });
-  // objectShape.collisionGroup = 0x0002;
-  // objectShape.collisionMask = 0x0001;
 
   objectBody.addShape(objectShape);
   world.addBody(objectBody);

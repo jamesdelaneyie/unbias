@@ -1,18 +1,14 @@
 import { Client, PredictionErrorEntity, PredictionErrorProperty } from 'nengi';
 import { NType } from '../common/NType';
-import { PlayerEntity, PlayerEntityMap } from '@/common/types';
+import { IEntityMap, IEntity } from '@/common/types';
 
-export function handlePredictionErrors(
-  client: Client,
-  worldState: any,
-  playerEntities: PlayerEntityMap
-) {
+export function handlePredictionErrors(client: Client, worldState: any, entities: IEntityMap) {
   // errors in clientside prediction (determined based on fresh server data this frame)
   while (client.network.predictionErrorFrames.length > 0) {
     const predictionErrorFrame = client.network.predictionErrorFrames.pop();
     console.log('predictionErrorFrame', predictionErrorFrame);
-    const entityState = playerEntities.get(worldState.myId);
-    const entity: PlayerEntity | undefined = entityState;
+    const entityState = entities.get(worldState.myId);
+    const entity: IEntity | undefined = entityState;
 
     if (entity !== undefined) {
       //console.log('correcting');

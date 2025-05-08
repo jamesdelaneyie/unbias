@@ -1,6 +1,6 @@
 import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import { ObjectEntity } from '@/common/types';
-import { worldConfig } from '@/common/worldConfig';
+//import { worldConfig } from '@/common/worldConfig';
 
 const createObjectGraphics = (
   app: Application,
@@ -28,16 +28,20 @@ const createObjectGraphics = (
   return objectSprite;
 };
 
-const updateObjectGraphics = (objectEntity: ObjectEntity, delta: number) => {
+const updateObjectGraphics = (objectEntity: ObjectEntity) => {
   if (!objectEntity.graphics || !objectEntity.renderTarget) return;
   const graphics = objectEntity.graphics;
   const body = objectEntity.body;
   if (body && graphics) {
-    const t = Math.min(1, worldConfig.objectSmoothing * delta);
+    graphics.x = objectEntity.x;
+    graphics.y = objectEntity.y;
+    graphics.rotation = objectEntity.rotation;
+    graphics.tint = objectEntity.color;
+    /*const t = Math.min(1, worldConfig.objectSmoothing * delta);
     graphics.x += (body.position[0] - graphics.x) * t;
     graphics.y += (body.position[1] - graphics.y) * t;
     graphics.rotation += (body.angle - graphics.rotation) * t;
-    graphics.tint = objectEntity.color;
+    ;*/
   }
 };
 

@@ -64,6 +64,7 @@ type UsernameCommand = Command & {
 
 export {
   Entity,
+  IEntity,
   EntityMap,
   IEntityMap,
   PlayerEntity,

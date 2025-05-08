@@ -68,7 +68,7 @@ window.addEventListener('load', async () => {
       objectEntities
     );
 
-    handlePredictionErrors(client, worldState, playerEntities);
+    handlePredictionErrors(client, worldState, entities);
 
     // turn the users input into a move command
     // and send it to the server and return a prediction

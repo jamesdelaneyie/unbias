@@ -3,6 +3,7 @@ import { isPredictionDifferentToCurrentState } from '../handleState';
 import {
   updateLocalPlayerGraphicsWithPrediction,
   updateRemotePlayerGraphics,
+  updateLocalPlayerServerGraphics,
 } from './playerGraphics';
 import { updateObjectGraphics } from './objectGraphics';
 
@@ -18,6 +19,7 @@ const updateGraphics = (
       if (isPredictionDifferentToCurrentState(prediction, playerEntity)) {
         updateLocalPlayerGraphicsWithPrediction(playerEntity, prediction, delta);
       }
+      updateLocalPlayerServerGraphics(playerEntity);
     } else {
       updateRemotePlayerGraphics(playerEntity, delta);
     }
@@ -25,7 +27,7 @@ const updateGraphics = (
 
   objectEntities.forEach((object: ObjectEntity) => {
     if (object.graphics) {
-      updateObjectGraphics(object, delta);
+      updateObjectGraphics(object);
     }
   });
 };

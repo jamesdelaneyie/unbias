@@ -57,6 +57,8 @@ const populateWorld = () => {
       color: color,
       rotation: 0,
       body: null as unknown as p2.Body,
+      mass: 1,
+      type: 1,
       renderTarget: { x: 0, y: 0, rotation: 0 },
     };
 
@@ -67,6 +69,28 @@ const populateWorld = () => {
     main.addEntity(object);
   }
 
+  const object: ObjectEntity = {
+    ntype: NType.Object,
+    // @ts-ignore
+    x: -6,
+    // @ts-ignore
+    y: 1,
+    width: 3,
+    height: 3,
+    shape: 'circle',
+    color: color,
+    rotation: 0,
+    body: null as unknown as p2.Body,
+    mass: 0,
+    type: p2.Body.STATIC,
+    renderTarget: { x: 0, y: 0, rotation: 0 },
+  };
+
+  const objectBody = createPhysicalObject(object);
+  object.body = objectBody;
+  ObjectEntities.set(object.nid, object);
+  world.addBody(object.body);
+  main.addEntity(object);
   worldPopulated = true;
 };
 
@@ -79,8 +103,8 @@ const update = () => {
     }
 
     if (networkEvent.type === NetworkEvent.UserConnected) {
-      const { user } = networkEvent;
-      console.log('user connected', user);
+      //const { user } = networkEvent;
+      //console.log('user connected', user);
     }
 
     if (networkEvent.type === NetworkEvent.UserDisconnected) {

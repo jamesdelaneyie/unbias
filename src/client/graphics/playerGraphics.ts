@@ -97,6 +97,17 @@ const updateRemotePlayerGraphics = (playerEntity: PlayerEntity, delta: number) =
   }
 };
 
+const updateLocalPlayerServerGraphics = (playerEntity: PlayerEntity) => {
+  const graphics = playerEntity.serverGraphics;
+  if (!graphics) return;
+  graphics.x = playerEntity.x;
+  graphics.y = playerEntity.y;
+  const playerBodyContainer = graphics.getChildByLabel('playerBodyContainer');
+  if (playerBodyContainer) {
+    playerBodyContainer.rotation = playerEntity.rotation;
+  }
+};
+
 const updateLocalPlayerGraphicsWithPrediction = (
   playerEntity: PlayerEntity,
   prediction: any,
@@ -125,4 +136,5 @@ export {
   createPlayerGraphics,
   updateRemotePlayerGraphics,
   updateLocalPlayerGraphicsWithPrediction,
+  updateLocalPlayerServerGraphics,
 };
