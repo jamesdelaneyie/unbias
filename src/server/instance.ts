@@ -1,6 +1,6 @@
 import { NType } from '../common/NType';
 import { ncontext } from '../common/ncontext';
-import { Instance, NetworkEvent, ChannelAABB2D, Channel } from 'nengi';
+import { Instance, NetworkEvent, ChannelAABB2D, Historian } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
 import { Command, MoveCommand, ObjectEntity, UsernameCommand } from '../common/types';
 import { PlayerEntity } from '../common/PlayerEntity';
@@ -20,8 +20,8 @@ uws.listen(port, () => {
   console.log(`uws adapter is listening on ${port}`);
 });
 
-const main = new Channel(instance.localState);
-const space = new ChannelAABB2D(instance.localState);
+const historian = new Historian(ncontext, 20);
+const main = new ChannelAABB2D(instance.localState, historian);
 
 const ObjectEntities: Map<number, ObjectEntity> = new Map();
 const playerEntities: Map<number, PlayerEntity> = new Map();
@@ -64,11 +64,9 @@ const populateWorld = () => {
     object.body = objectBody;
     ObjectEntities.set(object.nid, object);
     world.addBody(object.body);
+    main.addEntity(object);
   }
 
-  ObjectEntities.forEach((obj: ObjectEntity) => {
-    space.addEntity(obj);
-  });
   worldPopulated = true;
 };
 
@@ -82,12 +80,12 @@ const update = () => {
 
     if (networkEvent.type === NetworkEvent.UserConnected) {
       const { user } = networkEvent;
-      main.subscribe(user);
+      console.log('user connected', user);
     }
 
     if (networkEvent.type === NetworkEvent.UserDisconnected) {
       const { user } = networkEvent;
-      deletePlayerEntity(user, space, main, playerEntities);
+      deletePlayerEntity(user, main, playerEntities);
     }
 
     if (networkEvent.type === NetworkEvent.CommandSet) {
@@ -113,7 +111,7 @@ const update = () => {
             const player = createPlayerEntity(
               user,
               command as UsernameCommand,
-              space,
+              main,
               playerEntities
             );
             if (player?.body) {

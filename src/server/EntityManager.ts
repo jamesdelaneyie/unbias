@@ -1,4 +1,4 @@
-import { User, AABB2D, ChannelAABB2D, Channel } from 'nengi';
+import { User, AABB2D, ChannelAABB2D } from 'nengi';
 import { PlayerEntity } from '../common/PlayerEntity';
 import { NType } from '../common/NType';
 import { ObjectEntity, UsernameCommand } from '../common/types';
@@ -7,7 +7,7 @@ import * as p2 from 'p2-es';
 const createPlayerEntity = (
   user: User,
   usernameCommand: UsernameCommand,
-  space: ChannelAABB2D,
+  main: ChannelAABB2D,
   playerEntities: Map<number, PlayerEntity>
 ) => {
   try {
@@ -17,8 +17,8 @@ const createPlayerEntity = (
     newUser.y = 1;
     // creates a local view for the playerEntity for network culling
     newUser.view = new AABB2D(0, 0, viewSize, viewSize);
-    space.subscribe(user, newUser.view);
-    space.addEntity(newUser); // assigns an nid to the playerEntity
+    main.subscribe(user, newUser.view);
+    main.addEntity(newUser); // assigns an nid to the playerEntity
     playerEntities.set(newUser.nid, newUser);
     user.queueMessage({
       myId: newUser.nid,
@@ -33,8 +33,7 @@ const createPlayerEntity = (
 
 const deletePlayerEntity = (
   user: User,
-  space: ChannelAABB2D,
-  main: Channel,
+  main: ChannelAABB2D,
   playerEntities: Map<number, PlayerEntity>
 ) => {
   try {
@@ -42,9 +41,7 @@ const deletePlayerEntity = (
     if (playerEntity) {
       const nId = playerEntity.nid;
       main.unsubscribe(user);
-      space.unsubscribe(user);
       main.removeEntity(playerEntity);
-      space.removeEntity(playerEntity);
       playerEntities.delete(nId);
     }
   } catch (error) {

@@ -1,7 +1,7 @@
 import { Client } from 'nengi';
 import { NType } from '@/common/NType';
 import { PlayerEntityMap, MoveCommand } from '@/common/types';
-import { moveCommand } from '@/common/schemas/moveCommand';
+import { entitySchema } from '@/common/schemas/entitySchema';
 import { InputSystem } from '@/client/InputSystem';
 import { Container } from 'pixi.js';
 
@@ -84,10 +84,10 @@ const handleUserInput = (
 
     // Add the prediction to the local predictor
     client.predictor.addCustom(
-      client.serverTickRate,
+      client.network.clientTick,
       prediction,
       ['x', 'y', 'rotation'],
-      moveCommand
+      entitySchema
     );
 
     return prediction;

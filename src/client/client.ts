@@ -13,6 +13,7 @@ import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
 import { updateGraphics } from '@/client/graphics/updateGraphics';
 import { worldConfig } from '@/common/worldConfig';
+import { handlePredictionErrors } from '@/client/handlePredictionError';
 let connectedToServer = false;
 
 let entities: IEntityMap = new Map();
@@ -67,11 +68,7 @@ window.addEventListener('load', async () => {
       objectEntities
     );
 
-    client.network.predictionErrorFrames.forEach(frame => {
-      console.log('predictionErrorFrames', frame);
-      //const errors = client.predictor.getErrors(frame);
-      //reconcileEntities(errors, entities, delta);
-    });
+    handlePredictionErrors(client, worldState, playerEntities);
 
     // turn the users input into a move command
     // and send it to the server and return a prediction
