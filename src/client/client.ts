@@ -1,36 +1,18 @@
 import { NType } from '@/common/NType';
 import { ncontext } from '@/common/ncontext';
-import { Client, Interpolator, IEntity } from 'nengi';
+import { Client, Interpolator } from 'nengi';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
 import { initRenderer } from './utilities';
 import { setupGraphicsWorld, setupUI } from './GPUUI';
 import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
 import { notificationService, NotificationType } from './NotificationService';
-import {
-  createPlayerEntity,
-  updatePlayerEntity,
-  deletePlayerEntity,
-  createObjectEntity,
-  updateObjectEntity,
-  isPredictionDifferentToCurrentState,
-} from './handleState';
-import {
-  IEntityMap,
-  PlayerEntityMap,
-  PlayerEntity,
-  ObjectEntity,
-  ObjectEntityMap,
-} from '@/common/types';
+import { updateLocalStates } from './handleState';
+import { IEntityMap, PlayerEntityMap, ObjectEntityMap } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
-import {
-  updateLocalPlayerGraphicsWithPrediction,
-  updateRemotePlayerGraphics,
-} from '@/client/graphics/playerGraphics';
-import reconcileEntities from '@/client/reconcileEntities';
+import { updateGraphics } from '@/client/graphics/updateGraphics';
 import { worldConfig } from '@/common/worldConfig';
-import { updateObjectGraphics } from '@/client/graphics/objectGraphics';
 let connectedToServer = false;
 
 let entities: IEntityMap = new Map();
@@ -74,35 +56,21 @@ window.addEventListener('load', async () => {
       }
     }
 
-    istate.forEach(snapshot => {
-      snapshot.createEntities.forEach((entity: IEntity) => {
-        if (entity.ntype === NType.Entity) {
-          const playerEntity = entity as PlayerEntity;
-          playerEntity.isSelf = playerEntity.nid === worldState.myId;
-          entities.set(entity.nid, entity);
-          playerEntities.set(entity.nid, playerEntity);
-          createPlayerEntity(playerEntity, worldContainer, app, world);
-        } else if (entity.ntype === NType.Object) {
-          const objectEntity = entity as ObjectEntity;
-          entities.set(entity.nid, entity);
-          objectEntities.set(entity.nid, objectEntity);
-          createObjectEntity(objectEntity, worldContainer, app, world);
-        }
-      });
-
-      snapshot.updateEntities.forEach((diff: IEntity) => {
-        updatePlayerEntity(diff, worldState, playerEntities);
-        updateObjectEntity(diff, objectEntities);
-      });
-
-      snapshot.deleteEntities.forEach((nid: number) => {
-        deletePlayerEntity(nid, playerEntities);
-      });
-    });
+    updateLocalStates(
+      istate,
+      worldState,
+      worldContainer,
+      app,
+      world,
+      entities,
+      playerEntities,
+      objectEntities
+    );
 
     client.network.predictionErrorFrames.forEach(frame => {
-      const errors = client.predictor.getErrors(frame);
-      reconcileEntities(errors, entities, delta);
+      console.log('predictionErrorFrames', frame);
+      //const errors = client.predictor.getErrors(frame);
+      //reconcileEntities(errors, entities, delta);
     });
 
     // turn the users input into a move command
@@ -118,26 +86,12 @@ window.addEventListener('load', async () => {
     );
 
     // update the physics world
-    // applies velocities to the bodies
-    // and updates their positions
+    // applies velocities to the p2 bodies and updates their positions
     world.step(1 / 60);
 
-    // update the graphics of the player entities
-    playerEntities.forEach(playerEntity => {
-      if (playerEntity.isSelf) {
-        if (isPredictionDifferentToCurrentState(prediction, playerEntity)) {
-          updateLocalPlayerGraphicsWithPrediction(playerEntity, prediction, delta);
-        }
-      } else {
-        updateRemotePlayerGraphics(playerEntity, delta);
-      }
-    });
-
-    objectEntities.forEach((object: ObjectEntity) => {
-      if (object.graphics) {
-        updateObjectGraphics(object, delta);
-      }
-    });
+    // update the graphics of players and objects
+    // based both on the prediction and the current network state
+    updateGraphics(prediction, playerEntities, objectEntities, delta);
 
     client.flush();
   };

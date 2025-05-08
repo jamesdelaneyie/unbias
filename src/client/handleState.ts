@@ -10,6 +10,7 @@ import {
 } from '@/common/types';
 import { createPlayerGraphics } from '@/client/graphics/playerGraphics';
 import { createObjectGraphics } from '@/client/graphics/objectGraphics';
+import { NType } from '@/common/NType';
 
 const createPlayerEntity = (
   playerEntity: PlayerEntity,
@@ -165,6 +166,49 @@ const updateObjectEntity = (diff: IEntity, entities: ObjectEntityMap) => {
   }
 };
 
+interface IEntityFrame {
+  createEntities: IEntity[];
+  updateEntities: any[];
+  deleteEntities: number[];
+}
+
+const updateLocalStates = (
+  istate: any,
+  worldState: any,
+  worldContainer: Container,
+  app: Application,
+  world: p2.World,
+  entities: IEntityMap,
+  playerEntities: PlayerEntityMap,
+  objectEntities: ObjectEntityMap
+) => {
+  istate.forEach((snapshot: IEntityFrame) => {
+    snapshot.createEntities.forEach((entity: IEntity) => {
+      if (entity.ntype === NType.Entity) {
+        const playerEntity = entity as PlayerEntity;
+        playerEntity.isSelf = playerEntity.nid === worldState.myId;
+        entities.set(entity.nid, entity);
+        playerEntities.set(entity.nid, playerEntity);
+        createPlayerEntity(playerEntity, worldContainer, app, world);
+      } else if (entity.ntype === NType.Object) {
+        const objectEntity = entity as ObjectEntity;
+        entities.set(entity.nid, entity);
+        objectEntities.set(entity.nid, objectEntity);
+        createObjectEntity(objectEntity, worldContainer, app, world);
+      }
+    });
+
+    snapshot.updateEntities.forEach((diff: IEntity) => {
+      updatePlayerEntity(diff, worldState, playerEntities);
+      updateObjectEntity(diff, objectEntities);
+    });
+
+    snapshot.deleteEntities.forEach((nid: number) => {
+      deletePlayerEntity(nid, playerEntities);
+    });
+  });
+};
+
 export {
   createPlayerEntity,
   updatePlayerEntity,
@@ -172,4 +216,5 @@ export {
   createObjectEntity,
   updateObjectEntity,
   isPredictionDifferentToCurrentState,
+  updateLocalStates,
 };

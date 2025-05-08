@@ -63,7 +63,6 @@ const populateWorld = () => {
     const objectBody = createPhysicalObject(object);
     object.body = objectBody;
     ObjectEntities.set(object.nid, object);
-    space.addEntity(object);
     world.addBody(object.body);
   }
 
