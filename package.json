@@ -13,7 +13,7 @@
     "build": "npx tsc",
     "typecheck": "npx tsc --project tsconfig.test.json",
     "lint": "eslint .",
-    "lintfix": "eslint . --fix",
+    "lint:fix": "eslint . --fix",
     "postinstall": "patch-package",
     "prepare": "husky install"
   },

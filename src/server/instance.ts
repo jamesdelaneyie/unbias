@@ -59,7 +59,7 @@ const populateWorld = () => {
       rotation: 0,
       body: null as unknown as p2.Body,
       mass: 1,
-      type: 1,
+      bodyType: p2.Body.DYNAMIC,
       renderTarget: { x: 0, y: 0, rotation: 0 },
     };
 
@@ -72,11 +72,8 @@ const populateWorld = () => {
 
   const leftWall: ObjectEntity = {
     ntype: NType.Object,
-    // @ts-ignore
     nid: 500,
-    // @ts-ignore
     x: -8,
-    // @ts-ignore
     y: 0,
     width: 1,
     height: 20,
@@ -85,7 +82,7 @@ const populateWorld = () => {
     rotation: 0,
     body: null as unknown as p2.Body,
     mass: 0,
-    type: p2.Body.STATIC,
+    bodyType: p2.Body.STATIC,
     renderTarget: { x: 0, y: 0, rotation: 0 },
   };
 
@@ -97,11 +94,8 @@ const populateWorld = () => {
 
   const rightWall: ObjectEntity = {
     ntype: NType.Object,
-    // @ts-ignore
     nid: 501,
-    // @ts-ignore
     x: 8,
-    // @ts-ignore
     y: 0,
     width: 1,
     height: 20,
@@ -110,7 +104,7 @@ const populateWorld = () => {
     rotation: 0,
     body: null as unknown as p2.Body,
     mass: 0,
-    type: p2.Body.STATIC,
+    bodyType: p2.Body.STATIC,
     renderTarget: { x: 0, y: 0, rotation: 0 },
   };
 
@@ -122,11 +116,8 @@ const populateWorld = () => {
 
   const topWall: ObjectEntity = {
     ntype: NType.Object,
-    // @ts-ignore
     nid: 503,
-    // @ts-ignore
     x: 0,
-    // @ts-ignore
     y: 12,
     width: 16,
     height: 1,
@@ -135,7 +126,7 @@ const populateWorld = () => {
     rotation: 0,
     body: null as unknown as p2.Body,
     mass: 0,
-    type: p2.Body.STATIC,
+    bodyType: p2.Body.STATIC,
     renderTarget: { x: 0, y: 0, rotation: 0 },
   };
 
@@ -147,11 +138,8 @@ const populateWorld = () => {
 
   const bottomWall: ObjectEntity = {
     ntype: NType.Object,
-    // @ts-ignore
     nid: 504,
-    // @ts-ignore
     x: 0,
-    // @ts-ignore
     y: -8,
     width: 16,
     height: 1,
@@ -160,7 +148,7 @@ const populateWorld = () => {
     rotation: 0,
     body: null as unknown as p2.Body,
     mass: 0,
-    type: p2.Body.STATIC,
+    bodyType: p2.Body.STATIC,
     renderTarget: { x: 0, y: 0, rotation: 0 },
   };
 

@@ -53,6 +53,10 @@ figure out how to test reconcile entities
 smooth moving on server for entities
 write up about it
 
+## Architecture
+
+Mono-repo structure
+
 ## Testing
 
 Run tests with:

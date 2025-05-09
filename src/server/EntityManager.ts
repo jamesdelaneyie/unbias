@@ -56,7 +56,7 @@ const createPhysicalObject = (object: ObjectEntity) => {
     angle: object.rotation,
     damping: 0.97,
     angularDamping: 0.999,
-    type: object.type,
+    type: object.bodyType,
   });
 
   const shape = new p2.Box({

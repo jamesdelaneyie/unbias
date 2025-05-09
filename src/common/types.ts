@@ -5,12 +5,11 @@ import * as p2 from 'p2-es';
 
 /* Entities: Players and Objects */
 type Entity = {
-  nid: Binary.UInt8;
+  nid: number;
   ntype: NType;
-  x: Binary.Float32;
-  y: Binary.Float32;
+  x: number;
+  y: number;
   rotation: number;
-  [key: string]: any;
 };
 
 type PlayerEntity = Entity & {
@@ -19,7 +18,7 @@ type PlayerEntity = Entity & {
   color: number;
   speed: number;
   size: number;
-  body?: p2.Body;
+  body: p2.Body;
   clientGraphics?: Container;
   serverGraphics?: Container;
   renderTarget: { x: number; y: number; rotation: number };
@@ -31,8 +30,10 @@ type ObjectEntity = Entity & {
   shape: string;
   color: number;
   rotation: number;
-  body?: p2.Body;
-  graphics?: Container;
+  body: p2.Body;
+  bodyType: typeof p2.Body.STATIC | typeof p2.Body.DYNAMIC | typeof p2.Body.KINEMATIC;
+  mass: number;
+  clientGraphics?: Container;
   renderTarget: { x: number; y: number; rotation: number };
 };
 
@@ -45,8 +46,8 @@ type ObjectEntityMap = Map<Binary.UInt8, ObjectEntity>;
 /* Commands: Messages from the client to the server */
 type Command = {
   ntype: NType.MoveCommand;
-  nid: Binary.UInt8;
-  delta: Binary.Float32;
+  nid: number;
+  delta: number;
 };
 
 type MoveCommand = Command & {
