@@ -1,12 +1,12 @@
 import { Binary, IEntity } from 'nengi';
-import { NType } from './NType';
+import { NetworkType } from './NType';
 import { Container } from 'pixi.js';
 import * as p2 from 'p2-es';
 
 /* Entities: Players and Objects */
 type Entity = {
   nid: number;
-  ntype: NType;
+  ntype: NetworkType;
   x: number;
   y: number;
   rotation: number;
@@ -46,7 +46,7 @@ type ObjectEntityMap = Map<Binary.UInt8, ObjectEntity>;
 
 /* Commands: Messages from the client to the server */
 type Command = {
-  ntype: NType.MoveCommand | NType.UsernameCommand;
+  ntype: NetworkType.MoveCommand | NetworkType.UsernameCommand;
   nid: number;
 };
 

@@ -1,4 +1,4 @@
-import { NType } from '@/common/NType';
+import { NetworkType } from '@/common/NType';
 import { ncontext } from '@/common/ncontext';
 import { Client, Interpolator } from 'nengi';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
@@ -50,7 +50,7 @@ window.addEventListener('load', async () => {
     while (client.network.messages.length > 0) {
       const message = client.network.messages.pop();
       console.log('Received message:', message);
-      if (message.ntype === NType.IdentityMessage) {
+      if (message.ntype === NetworkType.IdentityMessage) {
         console.log('IdentityMessage', message);
         worldState.myId = message.myId;
         console.log(worldState);

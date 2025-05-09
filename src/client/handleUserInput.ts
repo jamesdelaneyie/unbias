@@ -1,7 +1,7 @@
 import { Client } from 'nengi';
-import { NType } from '@/common/NType';
+import { NetworkType } from '@/common/NType';
 import { PlayerEntityMap, MoveCommand } from '@/common/types';
-import { entitySchema } from '@/common/schemas/entitySchema';
+import { playerEntitySchema } from '@/common/schemas/playerEntitySchema';
 import { InputSystem } from '@/client/InputSystem';
 import { Container } from 'pixi.js';
 import { handleShot } from '@/client/handleShot';
@@ -33,7 +33,7 @@ const handleUserInput = (
 
     // @ts-ignore
     const command: MoveCommand = {
-      ntype: NType.MoveCommand,
+      ntype: NetworkType.MoveCommand,
       nid: myEntity.nid,
       w: inputState.w,
       a: inputState.a,
@@ -91,7 +91,7 @@ const handleUserInput = (
       client.network.clientTick,
       prediction,
       ['x', 'y', 'rotation'],
-      entitySchema
+      playerEntitySchema
     );
 
     if (inputState.leftClick) {

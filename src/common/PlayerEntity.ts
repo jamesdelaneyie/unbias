@@ -1,8 +1,13 @@
 import { User, AABB2D } from 'nengi';
-import { NType } from './NType';
+import { NetworkType } from './NType';
 import * as p2 from 'p2-es';
 import { worldConfig } from './worldConfig';
 
+enum BodyType {
+  STATIC = 2,
+  DYNAMIC = 1,
+  KINEMATIC = 4,
+}
 export class PlayerEntity extends User {
   nid: number;
   ntype: number;
@@ -16,13 +21,14 @@ export class PlayerEntity extends User {
   color: number;
   view: AABB2D;
   body: p2.Body;
+  bodyType: BodyType;
   renderTarget: { x: number; y: number; rotation: number };
 
   constructor(user: User, username: string) {
     super(user.socket, user.networkAdapter);
     this.id = user.socket.user.id;
     this.nid = 0;
-    this.ntype = NType.Entity;
+    this.ntype = NetworkType.PlayerEntity;
     this.x = 0;
     this.y = 0;
     this.size = worldConfig.playerSize;
@@ -31,8 +37,9 @@ export class PlayerEntity extends User {
     this.username = username;
     this.isSelf = false;
     this.color = this.generateColor();
-    this.view = new AABB2D(0, 0, 0, 0);
+    this.view = new AABB2D(0, 0, worldConfig.viewSize, worldConfig.viewSize);
     this.body = this.generatePlayerBody();
+    this.bodyType = BodyType.DYNAMIC;
     this.renderTarget = { x: 0, y: 0, rotation: 0 };
   }
 
@@ -40,9 +47,7 @@ export class PlayerEntity extends User {
     this.body = new p2.Body({
       mass: 5,
       position: [this.x, this.y],
-      type: p2.Body.DYNAMIC,
-      //ccdIterations: 30,
-      //ccdSpeedThreshold: 0.01,
+      type: this.bodyType,
     });
     const circleShape = new p2.Circle({
       radius: this.size / 2,

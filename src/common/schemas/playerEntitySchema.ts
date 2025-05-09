@@ -1,6 +1,6 @@
 import { Binary, defineSchema, Schema } from 'nengi';
 
-export const entitySchema: Schema = defineSchema({
+export const playerEntitySchema: Schema = defineSchema({
   x: { type: Binary.Float32, interp: true },
   y: { type: Binary.Float32, interp: true },
   rotation: { type: Binary.Rotation32, interp: true },

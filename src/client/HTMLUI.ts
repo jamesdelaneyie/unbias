@@ -1,5 +1,5 @@
 import { Client } from 'nengi';
-import { NType } from '@/common/NType';
+import { NetworkType } from '@/common/NType';
 import { ligtenColor } from '@/common/utils';
 
 const createNotificationBox = (document: Document) => {
@@ -59,7 +59,7 @@ const setupUsername = (usernameField: HTMLInputElement, client: Client) => {
         usernameSubmitted = true;
         localStorage.setItem('username', username);
         client.addCommand({
-          ntype: NType.UsernameCommand,
+          ntype: NetworkType.UsernameCommand,
           username,
         });
         usernameField.disabled = true;

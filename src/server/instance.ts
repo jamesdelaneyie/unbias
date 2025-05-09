@@ -1,4 +1,4 @@
-import { NType } from '../common/NType';
+import { NetworkType } from '../common/NType';
 import { ncontext } from '../common/ncontext';
 import { Instance, NetworkEvent, ChannelAABB2D, Historian, AABB2D } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
@@ -48,7 +48,7 @@ const populateWorld = () => {
 
     const object: ObjectEntity = {
       nid: i + 1,
-      ntype: NType.Object,
+      ntype: NetworkType.Object,
       x: x,
       y: y,
       width: 3,
@@ -71,7 +71,7 @@ const populateWorld = () => {
   }
 
   const leftWall: ObjectEntity = {
-    ntype: NType.Object,
+    ntype: NetworkType.Object,
     nid: 500,
     x: -26,
     y: 0,
@@ -93,7 +93,7 @@ const populateWorld = () => {
   main.addEntity(leftWall);
 
   const rightWall: ObjectEntity = {
-    ntype: NType.Object,
+    ntype: NetworkType.Object,
     nid: 501,
     x: 26,
     y: 0,
@@ -115,7 +115,7 @@ const populateWorld = () => {
   main.addEntity(rightWall);
 
   const topWall: ObjectEntity = {
-    ntype: NType.Object,
+    ntype: NetworkType.Object,
     nid: 503,
     x: 0,
     y: 26,
@@ -137,7 +137,7 @@ const populateWorld = () => {
   main.addEntity(topWall);
 
   const bottomWall: ObjectEntity = {
-    ntype: NType.Object,
+    ntype: NetworkType.Object,
     nid: 504,
     x: 0,
     y: -26,
@@ -186,14 +186,14 @@ const update = () => {
       const { user, commands } = networkEvent;
       if (commands.length > 0) {
         commands.forEach((command: Command) => {
-          if (command.ntype === NType.MoveCommand) {
+          if (command.ntype === NetworkType.MoveCommand) {
             const player = playerEntities.get(command.nid);
             const moveCommand = command as MoveCommand;
             if (player) {
               applyCommand(player, moveCommand);
             }
           }
-          if (command.ntype === NType.UsernameCommand) {
+          if (command.ntype === NetworkType.UsernameCommand) {
             const usernameCommand = command as UsernameCommand;
             const usernameTaken = Array.from(playerEntities.values()).find(
               entity => entity.username === usernameCommand.username
@@ -212,7 +212,7 @@ const update = () => {
                 console.log('player created', player?.username);
                 user.queueMessage({
                   myId: player.nid,
-                  ntype: NType.IdentityMessage,
+                  ntype: NetworkType.IdentityMessage,
                   username: usernameCommand.username,
                 });
               }
