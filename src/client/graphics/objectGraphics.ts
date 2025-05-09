@@ -29,8 +29,8 @@ const createObjectGraphics = (
 };
 
 const updateObjectGraphics = (objectEntity: ObjectEntity) => {
-  if (!objectEntity.graphics || !objectEntity.renderTarget) return;
-  const graphics = objectEntity.graphics;
+  if (!objectEntity.clientGraphics || !objectEntity.renderTarget) return;
+  const graphics = objectEntity.clientGraphics;
   const body = objectEntity.body;
   if (body && graphics) {
     graphics.x = objectEntity.x;

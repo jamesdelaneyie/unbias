@@ -79,7 +79,8 @@ window.addEventListener('load', async () => {
       worldState,
       playerEntities,
       worldContainer,
-      delta
+      delta,
+      world
     );
 
     // update the physics world

@@ -4,6 +4,8 @@ import { PlayerEntityMap, MoveCommand } from '@/common/types';
 import { entitySchema } from '@/common/schemas/entitySchema';
 import { InputSystem } from '@/client/InputSystem';
 import { Container } from 'pixi.js';
+import { handleShot } from '@/client/handleShot';
+import * as p2 from 'p2-es';
 
 const handleUserInput = (
   client: Client,
@@ -11,7 +13,8 @@ const handleUserInput = (
   worldState: any,
   playerEntities: PlayerEntityMap,
   worldContainer: Container,
-  delta: number
+  delta: number,
+  world: p2.World
 ) => {
   if (document.hidden) return;
 
@@ -37,6 +40,7 @@ const handleUserInput = (
       s: inputState.s,
       d: inputState.d,
       space: inputState.space,
+      leftClick: inputState.leftClick,
       rotation: rotation,
       delta: delta,
     };
@@ -89,6 +93,10 @@ const handleUserInput = (
       ['x', 'y', 'rotation'],
       entitySchema
     );
+
+    if (inputState.leftClick) {
+      handleShot(world, myEntity.x, myEntity.y, point.x, point.y, worldContainer);
+    }
 
     return prediction;
   }

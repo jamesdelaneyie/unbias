@@ -9,7 +9,7 @@ import {
   deletePlayerEntity,
   createPhysicalObject,
 } from '../server/EntityManager';
-import { applyCommand } from '../common/applyCommand';
+import { applyCommand } from './applyCommand';
 import * as p2 from 'p2-es';
 import { worldConfig } from '../common/worldConfig';
 
@@ -19,7 +19,7 @@ uws.listen(worldConfig.port, () => {
   console.log(`uws adapter is listening on ${worldConfig.port}`);
 });
 
-const historian = new Historian(ncontext, 20);
+const historian = new Historian(ncontext, worldConfig.serverTickRate);
 const main = new ChannelAABB2D(instance.localState, historian);
 
 const dynamicEntities: Map<number, Entity> = new Map();
@@ -65,6 +65,7 @@ const populateWorld = () => {
     const objectBody = createPhysicalObject(object);
     object.body = objectBody;
     ObjectEntities.set(object.nid, object);
+    dynamicEntities.set(object.nid, object);
     world.addBody(object.body);
     main.addEntity(object);
   }
@@ -169,8 +170,8 @@ const update = () => {
     }
 
     if (networkEvent.type === NetworkEvent.UserConnected) {
-      //const { user } = networkEvent;
-      //console.log('user connected', user);
+      const { user } = networkEvent;
+      console.log('user connected', user);
     }
 
     if (networkEvent.type === NetworkEvent.UserDisconnected) {
@@ -184,20 +185,18 @@ const update = () => {
         commands.forEach((command: Command) => {
           if (command.ntype === NType.MoveCommand) {
             const player = playerEntities.get(command.nid);
-            //console.log(command);
+            const moveCommand = command as MoveCommand;
             if (player) {
-              //console.log('move command received', command);
-              applyCommand(player, command as MoveCommand);
+              applyCommand(player, moveCommand);
             }
           }
-          // @ts-ignore
           if (command.ntype === NType.UsernameCommand) {
             const usernameCommand = command as UsernameCommand;
             const usernameTaken = Array.from(playerEntities.values()).find(
               entity => entity.username === usernameCommand.username
             );
             if (usernameTaken) {
-              console.log('Username already taken');
+              console.warn('Username already taken');
               return;
             }
             try {
@@ -224,6 +223,7 @@ const update = () => {
     }
   }
 
+  // Move the physics world forward
   world.step(1 / worldConfig.serverTickRate);
 
   // Check for collisions between players and objects
@@ -257,18 +257,12 @@ const update = () => {
     }
   });
 
-  // update the positions of the player entities
-  playerEntities.forEach(player => {
-    player.x = player.body?.position[0];
-    player.y = player.body?.position[1];
-    player.rotation = player.body?.angle;
-  });
-
-  // update the positions of the object entities
-  ObjectEntities.forEach(object => {
-    object.x = object.body?.position[0];
-    object.y = object.body?.position[1];
-    object.rotation = object.body?.angle;
+  // update the positions of the all the dynamic entities
+  // players and dynamic (moving) objects
+  dynamicEntities.forEach(entity => {
+    entity.x = entity.body.position[0];
+    entity.y = entity.body.position[1];
+    entity.rotation = entity.body.angle;
   });
 
   instance.step();
@@ -276,4 +270,4 @@ const update = () => {
 
 setInterval(() => {
   update();
-}, 50);
+}, 1000 / worldConfig.serverTickRate); // 50

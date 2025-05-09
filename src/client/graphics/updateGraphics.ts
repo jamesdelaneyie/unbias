@@ -26,7 +26,7 @@ const updateGraphics = (
   });
 
   objectEntities.forEach((object: ObjectEntity) => {
-    if (object.graphics) {
+    if (object.clientGraphics) {
       updateObjectGraphics(object);
     }
   });

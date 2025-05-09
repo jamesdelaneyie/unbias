@@ -6,6 +6,7 @@ export const moveCommand: Schema = defineSchema({
   s: Binary.Boolean,
   d: Binary.Boolean,
   space: Binary.Boolean,
+  leftClick: Binary.Boolean,
   rotation: Binary.Rotation32,
   delta: Binary.Float32,
 });

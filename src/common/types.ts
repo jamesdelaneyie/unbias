@@ -46,9 +46,8 @@ type ObjectEntityMap = Map<Binary.UInt8, ObjectEntity>;
 
 /* Commands: Messages from the client to the server */
 type Command = {
-  ntype: NType.MoveCommand;
+  ntype: NType.MoveCommand | NType.UsernameCommand;
   nid: number;
-  delta: number;
 };
 
 type MoveCommand = Command & {
@@ -57,7 +56,9 @@ type MoveCommand = Command & {
   s: boolean;
   d: boolean;
   space: boolean;
+  leftClick: boolean;
   rotation: number;
+  delta: number;
 };
 
 type UsernameCommand = Command & {

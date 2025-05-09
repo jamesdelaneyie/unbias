@@ -126,7 +126,7 @@ const createObjectEntity = (
     angle: objectEntity.rotation,
     damping: 0.97,
     angularDamping: 0.999,
-    type: objectEntity.type,
+    type: objectEntity.bodyType,
   });
   const objectShape = new p2.Box({
     width: objectEntity.width,
@@ -137,7 +137,7 @@ const createObjectEntity = (
   world.addBody(objectBody);
 
   objectEntity.body = objectBody;
-  objectEntity.graphics = objectGraphics;
+  objectEntity.clientGraphics = objectGraphics;
 
   objectEntity.renderTarget = {
     x: objectEntity.x,
@@ -154,6 +154,7 @@ const updateObjectEntity = (diff: IEntity, entities: ObjectEntityMap) => {
   const value = diff.value;
 
   // Update base entity property
+  // @ts-ignore for the moment
   object[property] = value;
 
   // Update renderTarget

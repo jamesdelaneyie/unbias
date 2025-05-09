@@ -15,6 +15,7 @@ type InputState = {
   mx: number;
   my: number;
   rotation: number;
+  leftClick: boolean;
 };
 
 export class InputSystem {
@@ -42,6 +43,7 @@ export class InputSystem {
       rotation: 0,
       mx: 0,
       my: 0,
+      leftClick: false,
     };
 
     this.frameState = { ...this.currentState };
@@ -66,6 +68,14 @@ export class InputSystem {
       this.currentState.my = event.clientY;
     });
 
+    document.addEventListener('mousedown', () => {
+      this.currentState.leftClick = true;
+    });
+
+    document.addEventListener('mouseup', () => {
+      this.currentState.leftClick = false;
+    });
+
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         this.resetKeys();
@@ -86,6 +96,7 @@ export class InputSystem {
       rotation: this.currentState.rotation,
       mx: this.currentState.mx,
       my: this.currentState.my,
+      leftClick: false,
     };
   }
 }
