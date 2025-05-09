@@ -10,6 +10,7 @@ type Entity = {
   x: number;
   y: number;
   rotation: number;
+  body: p2.Body;
 };
 
 type PlayerEntity = Entity & {

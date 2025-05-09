@@ -14,7 +14,7 @@ export class PlayerEntity extends User {
   username: string;
   isSelf: boolean;
   color: number;
-  view: AABB2D | null;
+  view: AABB2D;
   body: p2.Body;
   renderTarget: { x: number; y: number; rotation: number };
 
@@ -31,7 +31,7 @@ export class PlayerEntity extends User {
     this.username = username;
     this.isSelf = false;
     this.color = this.generateColor();
-    this.view = null;
+    this.view = new AABB2D(0, 0, 0, 0);
     this.body = this.generatePlayerBody();
     this.renderTarget = { x: 0, y: 0, rotation: 0 };
   }

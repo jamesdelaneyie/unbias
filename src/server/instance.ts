@@ -2,7 +2,7 @@ import { NType } from '../common/NType';
 import { ncontext } from '../common/ncontext';
 import { Instance, NetworkEvent, ChannelAABB2D, Historian } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
-import { Command, MoveCommand, ObjectEntity, UsernameCommand } from '../common/types';
+import { Command, MoveCommand, ObjectEntity, UsernameCommand, Entity } from '../common/types';
 import { PlayerEntity } from '../common/PlayerEntity';
 import {
   createPlayerEntity,
@@ -13,17 +13,16 @@ import { applyCommand } from '../common/applyCommand';
 import * as p2 from 'p2-es';
 import { worldConfig } from '../common/worldConfig';
 
-const port = worldConfig.port;
 const instance = new Instance(ncontext);
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
-uws.listen(port, () => {
-  console.log(`uws adapter is listening on ${port}`);
+uws.listen(worldConfig.port, () => {
+  console.log(`uws adapter is listening on ${worldConfig.port}`);
 });
 
 const historian = new Historian(ncontext, 20);
-
 const main = new ChannelAABB2D(instance.localState, historian);
 
+const dynamicEntities: Map<number, Entity> = new Map();
 const ObjectEntities: Map<number, ObjectEntity> = new Map();
 const playerEntities: Map<number, PlayerEntity> = new Map();
 
@@ -193,23 +192,31 @@ const update = () => {
           }
           // @ts-ignore
           if (command.ntype === NType.UsernameCommand) {
+            const usernameCommand = command as UsernameCommand;
             const usernameTaken = Array.from(playerEntities.values()).find(
-              // @ts-ignore
-              entity => entity.username === command.username
+              entity => entity.username === usernameCommand.username
             );
             if (usernameTaken) {
               console.log('Username already taken');
               return;
             }
-            const player = createPlayerEntity(
-              user,
-              command as UsernameCommand,
-              main,
-              playerEntities
-            );
-            console.log('player created', player?.username);
-            if (player?.body) {
-              world.addBody(player.body);
+            try {
+              const player = createPlayerEntity(user, usernameCommand);
+              if (player) {
+                main.subscribe(user, player.view);
+                main.addEntity(player);
+                world.addBody(player.body);
+                playerEntities.set(player.nid, player);
+                dynamicEntities.set(player.nid, player);
+                console.log('player created', player?.username);
+                user.queueMessage({
+                  myId: player.nid,
+                  ntype: NType.IdentityMessage,
+                  username: usernameCommand.username,
+                });
+              }
+            } catch (error) {
+              console.error('Error creating player entity', error);
             }
           }
         });
@@ -259,11 +266,8 @@ const update = () => {
 
   // update the positions of the object entities
   ObjectEntities.forEach(object => {
-    // @ts-ignore for the moment
     object.x = object.body?.position[0];
-    // @ts-ignore for the moment
     object.y = object.body?.position[1];
-    // @ts-ignore for the moment
     object.rotation = object.body?.angle;
   });
 

@@ -4,12 +4,7 @@ import { NType } from '../common/NType';
 import { ObjectEntity, UsernameCommand } from '../common/types';
 import * as p2 from 'p2-es';
 
-const createPlayerEntity = (
-  user: User,
-  usernameCommand: UsernameCommand,
-  main: ChannelAABB2D,
-  playerEntities: Map<number, PlayerEntity>
-) => {
+const createPlayerEntity = (user: User, usernameCommand: UsernameCommand) => {
   try {
     const viewSize = 1100;
     const newUser = new PlayerEntity(user, usernameCommand.username);
@@ -17,14 +12,6 @@ const createPlayerEntity = (
     newUser.y = 1;
     // creates a local view for the playerEntity for network culling
     newUser.view = new AABB2D(0, 0, viewSize, viewSize);
-    main.subscribe(user, newUser.view);
-    main.addEntity(newUser); // assigns an nid to the playerEntity
-    playerEntities.set(newUser.nid, newUser);
-    user.queueMessage({
-      myId: newUser.nid,
-      ntype: NType.IdentityMessage,
-      username: usernameCommand.username,
-    });
     return newUser;
   } catch (error) {
     console.error('Error creating player entity', error);

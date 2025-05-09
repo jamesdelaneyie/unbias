@@ -6,7 +6,7 @@ export function handlePredictionErrors(client: Client, worldState: any, entities
   // errors in clientside prediction (determined based on fresh server data this frame)
   while (client.network.predictionErrorFrames.length > 0) {
     const predictionErrorFrame = client.network.predictionErrorFrames.pop();
-    console.log('predictionErrorFrame', predictionErrorFrame);
+    //console.log('predictionErrorFrame', predictionErrorFrame);
     const entityState = entities.get(worldState.myId);
     const entity: IEntity | undefined = entityState;
 
