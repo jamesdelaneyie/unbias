@@ -1,7 +1,7 @@
 import { Client, Interpolator } from 'nengi';
 import { ncontext } from '../common/ncontext';
 import { WsClientAdapter } from 'nengi-ws-client-adapter';
-import { NType } from '../common/NType';
+import { NetworkType } from '../common/NType';
 
 type Bot = {
   nid: number;
@@ -23,7 +23,7 @@ async function createBot() {
     String.fromCharCode(65 + Math.floor(Math.random() * 26))
   ).join('');
   client.addCommand({
-    ntype: NType.UsernameCommand,
+    ntype: NetworkType.UsernameCommand,
     username: username,
   });
   console.log('bot created');
@@ -55,7 +55,7 @@ setInterval(
       while (bot.client.network.messages.length > 0) {
         const message = bot.client.network.messages.pop();
         console.log('Received message:', message);
-        if (message.ntype === NType.IdentityMessage) {
+        if (message.ntype === NetworkType.IdentityMessage) {
           console.log('IdentityMessage', message);
           bot.nid = message.myId;
           console.log(bot.nid);
@@ -71,7 +71,7 @@ setInterval(
         bot.controls.rotation = Math.random() * 2 * Math.PI;
       }
       bot.client.addCommand({
-        ntype: NType.MoveCommand,
+        ntype: NetworkType.MoveCommand,
         nid: bot.nid,
         w: bot.controls.w,
         a: bot.controls.a,

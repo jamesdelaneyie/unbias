@@ -1,4 +1,4 @@
-import { NType } from '@/common/NType';
+import { NetworkType } from '@/common/NType';
 import { Client } from 'nengi';
 
 enum NotificationType {
@@ -57,7 +57,7 @@ class NotificationService {
           usernameSubmitted = true;
           localStorage.setItem('username', username);
           client.addCommand({
-            ntype: NType.UsernameCommand,
+            ntype: NetworkType.UsernameCommand,
             username,
           });
           usernameField.disabled = true;
