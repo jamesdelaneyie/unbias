@@ -14,6 +14,7 @@ A multiplayer environment. Networked with nengi.js, rendered by pixi.js and made
 2. Install dependencies:
 
    ```bash
+   nvm use 22
    npm install
    ```
 

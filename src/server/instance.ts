@@ -27,7 +27,7 @@ const main = new ChannelAABB2D(instance.localState, historian);
 const ObjectEntities: Map<number, ObjectEntity> = new Map();
 const playerEntities: Map<number, PlayerEntity> = new Map();
 
-const world = new p2.World({ gravity: [0, 0] });
+const world = new p2.World({ gravity: [0, -9.82] });
 
 instance.onConnect = async (handshake: any) => {
   console.log('handshake received', handshake.token);
@@ -185,7 +185,7 @@ const update = () => {
         commands.forEach((command: Command) => {
           if (command.ntype === NType.MoveCommand) {
             const player = playerEntities.get(command.nid);
-            console.log(command);
+            //console.log(command);
             if (player) {
               //console.log('move command received', command);
               applyCommand(player, command as MoveCommand);
@@ -217,7 +217,7 @@ const update = () => {
     }
   }
 
-  world.step(1 / 60);
+  world.step(1 / worldConfig.serverTickRate);
 
   // Check for collisions between players and objects
   world.on('beginContact', event => {
