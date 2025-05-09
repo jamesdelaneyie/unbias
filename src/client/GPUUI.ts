@@ -1,8 +1,8 @@
 import '@pixi/layout';
-import { Application, Container, HTMLText, Text } from 'pixi.js';
+import { Application, Container } from 'pixi.js'; //HTMLText, Text
 import TaggedTextPlus from 'pixi-tagged-text-plus';
-import { createGridGraphics } from '@/client/graphics/worldGraphics';
-import { TextDecoration } from 'pixi-tagged-text-plus/dist/types';
+import { createGridGraphics } from '@/client/graphics/mapGraphics';
+//import { TextDecoration } from 'pixi-tagged-text-plus/dist/types';
 
 const drawBasicText = (masterContainer: Container, text: string, x: number, y: number) => {
   const taggedText = new TaggedTextPlus(text, {
@@ -32,7 +32,7 @@ const setupUI = (app: Application) => {
     justifyContent: 'center',
     alignItems: 'center',
   };
-
+  /*
   const textContainer = new Container({
     layout: {
       width: '80%',
@@ -148,11 +148,16 @@ const setupGraphicsWorld = (app: Application) => {
   worldContainer.label = 'worldContainer';
   worldContainer.position.x = app.screen.width / 2;
   worldContainer.position.y = app.screen.height / 2;
-  worldContainer.scale.x = 50;
-  worldContainer.scale.y = -50;
+  worldContainer.scale.x = 10;
+  worldContainer.scale.y = 10;
   app.stage.addChild(worldContainer);
 
-  createGridGraphics(app, worldContainer, 300);
+  const gridGraphics = createGridGraphics({
+    color: 0xffffff,
+    width: 50,
+    height: 50,
+  });
+  worldContainer.addChild(gridGraphics);
 
   return worldContainer;
 };

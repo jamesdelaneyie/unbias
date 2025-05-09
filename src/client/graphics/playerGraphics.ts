@@ -8,6 +8,7 @@ const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
 
   const playerContainer = new Container();
   playerContainer.label = 'player';
+  playerContainer.zIndex = 2;
   if (entity.isSelf) {
     playerContainer.label += ' (self)';
   }
@@ -41,13 +42,13 @@ const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
 
   const playerNoseSprite = new Sprite(playerNoseTexture);
   playerNoseSprite.anchor.set(0.5);
-  playerNoseSprite.width = 0.6;
-  playerNoseSprite.height = 0.9;
-  playerNoseSprite.x = 0.5;
+  playerNoseSprite.width = 3;
+  playerNoseSprite.height = 4;
+  playerNoseSprite.x = 3;
   playerNoseSprite.y = 0;
   playerBodyContainer.addChild(playerNoseSprite);
 
-  const fontSize = 50;
+  const fontSize = playerSize * 50;
   const username = new TaggedTextPlus(
     entity.username.slice(0, 1).toUpperCase(),
     {
@@ -58,7 +59,7 @@ const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
         wordWrap: true,
         wordWrapWidth: 2,
         stroke: {
-          color: '#000',
+          color: 'transparent',
           width: 0,
         },
       },
@@ -71,7 +72,6 @@ const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
   const usernameSprite = new Sprite(usernameTexture);
   usernameSprite.anchor.set(0.5);
   usernameSprite.scale.set(0.015);
-  usernameSprite.scale.y *= -1;
   usernameSprite.x = 0;
   usernameSprite.y = -0.025;
 

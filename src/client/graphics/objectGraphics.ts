@@ -11,7 +11,8 @@ const createObjectGraphics = (
   objectContainer.label = 'object';
 
   const objectGraphics = new Graphics()
-    .rect(0, 0, object.width, object.height)
+    .rect(0, 0, object.width * 10, object.height * 10)
+    .stroke({ color: 0x000000, alpha: 1, width: 1, pixelLine: true })
     .fill({ color: 0xffffff, alpha: 1 });
   const objectTexture = app.renderer.generateTexture(objectGraphics);
   objectGraphics.destroy();

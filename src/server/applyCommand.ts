@@ -7,8 +7,8 @@ export const applyCommand = (entity: PlayerEntity, command: MoveCommand) => {
   // Calculate the movement vector
   let unitX = 0;
   let unitY = 0;
-  if (command.w) unitY += 1;
-  if (command.s) unitY -= 1;
+  if (command.w) unitY -= 1;
+  if (command.s) unitY += 1;
   if (command.a) unitX -= 1;
   if (command.d) unitX += 1;
 
@@ -26,7 +26,7 @@ export const applyCommand = (entity: PlayerEntity, command: MoveCommand) => {
   if (!entity.body) return;
 
   let moveModifier = 2;
-  if (command.space) moveModifier = 0.5;
+  if (command.space) moveModifier = 1;
 
   const moveSpeed = entity.speed / moveModifier;
   entity.body.velocity = [unitX * moveSpeed, unitY * moveSpeed];

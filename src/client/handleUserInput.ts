@@ -51,8 +51,8 @@ const handleUserInput = (
     // Calculate the movement vector
     let unitX = 0;
     let unitY = 0;
-    if (command.w) unitY += 1;
-    if (command.s) unitY -= 1;
+    if (command.w) unitY -= 1;
+    if (command.s) unitY += 1;
     if (command.a) unitX -= 1;
     if (command.d) unitX += 1;
 
@@ -67,8 +67,8 @@ const handleUserInput = (
       unitY /= len;
     }
 
-    let moveModifier = 10;
-    if (inputState.space) moveModifier = 5;
+    let moveModifier = 2;
+    if (inputState.space) moveModifier = 1;
 
     // Update the entity's velocity and rotation
     const moveSpeed = myEntity.speed / moveModifier;

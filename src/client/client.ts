@@ -29,7 +29,7 @@ window.addEventListener('load', async () => {
     myId: null,
   };
   const world = new p2.World({
-    gravity: [0, -9.82],
+    gravity: [0, 9.82],
   });
 
   const client = new Client(ncontext, WebSocketClientAdapter, worldConfig.serverTickRate);
@@ -85,7 +85,7 @@ window.addEventListener('load', async () => {
 
     // update the physics world
     // applies velocities to the p2 bodies and updates their positions
-    world.step(1 / worldConfig.serverTickRate);
+    world.step(worldConfig.worldStepRate);
 
     // update the graphics of players and objects
     // based both on the prediction and the current network state

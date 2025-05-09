@@ -14,6 +14,8 @@ const drawHitscan = (
     .lineTo(targetX, targetY)
     .stroke({ width: 0.02, color: color });
 
+  graphics.zIndex = 1;
+
   const startRadius = 0.5;
   const endRadius = 2;
   const duration = 120;

@@ -1,6 +1,6 @@
 import { NType } from '../common/NType';
 import { ncontext } from '../common/ncontext';
-import { Instance, NetworkEvent, ChannelAABB2D, Historian } from 'nengi';
+import { Instance, NetworkEvent, ChannelAABB2D, Historian, AABB2D } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
 import { Command, MoveCommand, ObjectEntity, UsernameCommand, Entity } from '../common/types';
 import { PlayerEntity } from '../common/PlayerEntity';
@@ -26,7 +26,7 @@ const dynamicEntities: Map<number, Entity> = new Map();
 const ObjectEntities: Map<number, ObjectEntity> = new Map();
 const playerEntities: Map<number, PlayerEntity> = new Map();
 
-const world = new p2.World({ gravity: [0, -9.82] });
+const world = new p2.World({ gravity: [0, 9.82] });
 
 instance.onConnect = async (handshake: any) => {
   console.log('handshake received', handshake.token);
@@ -38,7 +38,7 @@ let worldPopulated = false;
 
 const populateWorld = () => {
   const color = 0xffffff;
-  const numObjects = 120;
+  const numObjects = 60;
   const gridSize = 4;
 
   for (let i = 0; i < numObjects; i++) {
@@ -51,8 +51,8 @@ const populateWorld = () => {
       ntype: NType.Object,
       x: x,
       y: y,
-      width: 1,
-      height: 1,
+      width: 3,
+      height: 3,
       shape: 'circle',
       color: color,
       rotation: 0,
@@ -73,10 +73,10 @@ const populateWorld = () => {
   const leftWall: ObjectEntity = {
     ntype: NType.Object,
     nid: 500,
-    x: -8,
+    x: -26,
     y: 0,
     width: 1,
-    height: 20,
+    height: 53,
     shape: 'circle',
     color: color,
     rotation: 0,
@@ -95,10 +95,10 @@ const populateWorld = () => {
   const rightWall: ObjectEntity = {
     ntype: NType.Object,
     nid: 501,
-    x: 8,
+    x: 26,
     y: 0,
     width: 1,
-    height: 20,
+    height: 53,
     shape: 'circle',
     color: color,
     rotation: 0,
@@ -118,8 +118,8 @@ const populateWorld = () => {
     ntype: NType.Object,
     nid: 503,
     x: 0,
-    y: 12,
-    width: 16,
+    y: 26,
+    width: 53,
     height: 1,
     shape: 'circle',
     color: color,
@@ -140,8 +140,8 @@ const populateWorld = () => {
     ntype: NType.Object,
     nid: 504,
     x: 0,
-    y: -8,
-    width: 16,
+    y: -26,
+    width: 53,
     height: 1,
     shape: 'circle',
     color: color,
@@ -172,6 +172,9 @@ const update = () => {
     if (networkEvent.type === NetworkEvent.UserConnected) {
       const { user } = networkEvent;
       console.log('user connected', user);
+      const viewSize = 1100;
+      const view = new AABB2D(0, 0, viewSize, viewSize);
+      main.subscribe(user, view);
     }
 
     if (networkEvent.type === NetworkEvent.UserDisconnected) {
@@ -202,7 +205,6 @@ const update = () => {
             try {
               const player = createPlayerEntity(user, usernameCommand);
               if (player) {
-                main.subscribe(user, player.view);
                 main.addEntity(player);
                 world.addBody(player.body);
                 playerEntities.set(player.nid, player);
@@ -224,7 +226,7 @@ const update = () => {
   }
 
   // Move the physics world forward
-  world.step(1 / worldConfig.serverTickRate);
+  world.step(worldConfig.worldStepRate);
 
   // Check for collisions between players and objects
   world.on('beginContact', event => {
