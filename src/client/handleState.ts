@@ -10,7 +10,7 @@ import {
 } from '@/common/types';
 import { createPlayerGraphics } from '@/client/graphics/playerGraphics';
 import { createObjectGraphics } from '@/client/graphics/objectGraphics';
-import { NetworkType } from '@/common/NType';
+import { NetworkType } from '@/common/NetworkType';
 
 const createPlayerEntity = (
   playerEntity: PlayerEntity,

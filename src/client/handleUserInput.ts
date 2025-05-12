@@ -1,5 +1,5 @@
 import { Client } from 'nengi';
-import { NetworkType } from '@/common/NType';
+import { NetworkType } from '@/common/NetworkType';
 import { PlayerEntityMap, MoveCommand, ObjectEntityMap } from '@/common/types';
 import { playerEntitySchema } from '@/common/schemas/playerEntitySchema';
 import { InputSystem } from '@/client/InputSystem';

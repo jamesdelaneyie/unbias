@@ -1,5 +1,5 @@
 import { Client } from 'nengi';
-import { NetworkType } from '@/common/NType';
+import { NetworkType } from '@/common/NetworkType';
 import { ligtenColor } from '@/common/utils';
 
 const createNotificationBox = (document: Document) => {

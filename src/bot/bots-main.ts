@@ -1,7 +1,7 @@
 import { Client, Interpolator } from 'nengi';
 import { ncontext } from '../common/ncontext';
 import { WsClientAdapter } from 'nengi-ws-client-adapter';
-import { NetworkType } from '../common/NType';
+import { NetworkType } from '../common/NetworkType';
 
 type Bot = {
   nid: number;

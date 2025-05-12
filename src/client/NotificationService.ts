@@ -1,4 +1,4 @@
-import { NetworkType } from '@/common/NType';
+import { NetworkType } from '@/common/NetworkType';
 import { Client } from 'nengi';
 
 enum NotificationType {

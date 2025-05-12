@@ -1,5 +1,5 @@
 import { Client, PredictionErrorEntity, PredictionErrorProperty } from 'nengi';
-//import { NetworkType } from '@/common/NType';
+//import { NetworkType } from '@/common/NetworkType';
 import { IEntityMap, IEntity } from '@/common/types';
 
 export function handlePredictionErrors(client: Client, worldState: any, entities: IEntityMap) {

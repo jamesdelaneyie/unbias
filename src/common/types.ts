@@ -1,5 +1,5 @@
 import { Binary, IEntity } from 'nengi';
-import { NetworkType } from './NType';
+import { NetworkType } from './NetworkType';
 import { Container } from 'pixi.js';
 import * as p2 from 'p2-es';
 

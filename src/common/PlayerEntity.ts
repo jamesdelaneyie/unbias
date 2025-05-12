@@ -1,5 +1,5 @@
 import { User, AABB2D } from 'nengi';
-import { NetworkType } from './NType';
+import { NetworkType } from './NetworkType';
 import * as p2 from 'p2-es';
 import { worldConfig } from './worldConfig';
 
@@ -8,6 +8,7 @@ enum BodyType {
   DYNAMIC = 1,
   KINEMATIC = 4,
 }
+
 export class PlayerEntity extends User {
   nid: number;
   ntype: number;

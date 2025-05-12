@@ -1,4 +1,4 @@
-import { NetworkType } from '../common/NType';
+import { NetworkType } from '../common/NetworkType';
 import { ObjectEntity, Entity } from '../common/types';
 import { createPhysicalObject } from './EntityManager';
 //import { worldConfig } from '../common/worldConfig';

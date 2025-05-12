@@ -1,4 +1,4 @@
-import { NetworkType } from '../common/NType';
+import { NetworkType } from '../common/NetworkType';
 import { ncontext } from '../common/ncontext';
 import { Instance, NetworkEvent, ChannelAABB2D, Historian, AABB2D } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';

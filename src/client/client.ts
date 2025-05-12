@@ -1,4 +1,4 @@
-import { NetworkType } from '@/common/NType';
+import { NetworkType } from '@/common/NetworkType';
 import { ncontext } from '@/common/ncontext';
 import { Client, Interpolator } from 'nengi';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';

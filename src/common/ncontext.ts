@@ -1,6 +1,6 @@
 // ncontext is all of the schemas, like nengiConfig.js from nengi 1.x
 import { Context } from 'nengi';
-import { NetworkType } from './NType';
+import { NetworkType } from './NetworkType';
 import { playerEntitySchema } from './schemas/playerEntitySchema';
 import { objectSchema } from './schemas/objectSchema';
 import { identityMessageSchema } from './schemas/identityMessageSchema';
