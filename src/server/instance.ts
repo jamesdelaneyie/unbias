@@ -5,7 +5,7 @@ import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
 import { Command, MoveCommand, ObjectEntity, UsernameCommand, Entity } from '../common/types';
 import { PlayerEntity } from '../common/PlayerEntity';
 import { createPlayerEntity, deletePlayerEntity } from '../server/EntityManager';
-import { applyCommand } from './applyCommand';
+import { applyCommand } from './applyMoveCommand';
 import * as p2 from 'p2-es';
 import { worldConfig } from '../common/worldConfig';
 import { populateWorld } from './loadMap';
@@ -116,6 +116,9 @@ const update = () => {
 
             // Find the directly hit entity
             const hitEntity = dynamicEntities.get(impactCommand.targetNid);
+
+            //lagCompensatedHitscanCheck
+            //const hitEntity = lagCompensatedHitscanCheck(main, world, fromX, fromY, hitX, hitY, 0.1);
 
             if (hitEntity && hitEntity.body && hitEntity.body.type !== p2.Body.STATIC) {
               // Calculate relative point vector in world coords (offset from body center)
