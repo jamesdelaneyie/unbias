@@ -122,8 +122,8 @@ const generateBody = (entity: BaseObject): p2.Body => {
     mass: entity.mass,
     position: [entity.x, entity.y],
     angle: entity.rotation,
-    damping: 0.97,
-    angularDamping: 0.999,
+    //damping: 0.97,
+    //angularDamping: 0.999,
     ccdSpeedThreshold: 1,
   });
   body.addShape(createPhysicsShape(entity));

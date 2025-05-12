@@ -20,12 +20,12 @@ const createPlayerEntity = (
 ) => {
   let serverGraphics = null;
   if (playerEntity.isSelf) {
-    serverGraphics = createPlayerGraphics(playerEntity, app);
+    serverGraphics = createPlayerGraphics(playerEntity);
     playerEntity.serverGraphics = serverGraphics;
     serverGraphics.tint = 0x0000ff;
     worldContainer.addChild(serverGraphics);
   }
-  const clientGraphics = createPlayerGraphics(playerEntity, app);
+  const clientGraphics = createPlayerGraphics(playerEntity);
   playerEntity.clientGraphics = clientGraphics;
   worldContainer.addChild(clientGraphics);
 
@@ -121,7 +121,6 @@ const createObjectEntity = (
   app: Application,
   world: p2.World
 ) => {
-  const objectGraphics = createObjectGraphics(app, objectEntity, worldContainer);
   const objectBody = new p2.Body({
     mass: objectEntity.mass,
     position: [objectEntity.x, objectEntity.y],
@@ -135,11 +134,13 @@ const createObjectEntity = (
     height: objectEntity.height,
   });
 
+  const { objectSprite, objectContainer } = createObjectGraphics(objectEntity);
+  objectEntity.clientGraphics = objectSprite;
+  worldContainer.addChild(objectContainer);
   objectBody.addShape(objectShape);
   world.addBody(objectBody);
 
   objectEntity.body = objectBody;
-  objectEntity.clientGraphics = objectGraphics;
 
   objectEntity.renderTarget = {
     x: objectEntity.x,

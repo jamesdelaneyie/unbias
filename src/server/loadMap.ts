@@ -9,13 +9,18 @@ export const populateWorld = (
   dynamicEntities: Map<number, any>
 ): boolean => {
   const color = 0xffffff;
-  const numObjects = 200;
+  const numObjects = 100;
   const gridSize = 30;
 
-  for (let i = 0; i < numObjects; i++) {
+  let objectsCreated = 0;
+  const createObject = () => {
+    if (objectsCreated >= numObjects) {
+      return;
+    }
+
     const x = Math.floor(Math.random() * gridSize) - 15;
     const y = Math.floor(Math.random() * gridSize) - 15;
-    const size = Math.floor(Math.random() * 5) + 1;
+    const size = Math.floor(Math.random() * 10) + 1;
     const shape = Math.random() < 0.5 ? 'rectangle' : 'circle';
 
     const object = new DynamicObject({
@@ -34,15 +39,23 @@ export const populateWorld = (
 
     ObjectEntities.set(object.nid, object);
     dynamicEntities.set(object.nid, object);
-  }
+
+    objectsCreated++;
+    setTimeout(createObject, 50);
+  };
+
+  createObject();
+
+  const roomSize = 80;
+  const wallThickness = 1;
 
   const leftWall = {
     label: 'leftWall',
     shape: 'rectangle',
-    x: -26,
+    x: -roomSize / 2,
     y: 0,
-    width: 1,
-    height: 53,
+    width: wallThickness,
+    height: roomSize,
     color: color,
   };
 
@@ -54,10 +67,10 @@ export const populateWorld = (
   const rightWall = {
     label: 'rightWall',
     shape: 'rectangle',
-    x: 26,
+    x: roomSize / 2,
     y: 0,
-    width: 1,
-    height: 53,
+    width: wallThickness,
+    height: roomSize,
     color: color,
   };
 
@@ -70,9 +83,9 @@ export const populateWorld = (
     label: 'topWall',
     shape: 'rectangle',
     x: 0,
-    y: 26,
-    width: 53,
-    height: 1,
+    y: roomSize / 2,
+    width: roomSize,
+    height: wallThickness,
     color: color,
   };
 
@@ -85,9 +98,9 @@ export const populateWorld = (
     label: 'bottomWall',
     shape: 'rectangle',
     x: 0,
-    y: -26,
-    width: 53,
-    height: 1,
+    y: -roomSize / 2,
+    width: roomSize,
+    height: wallThickness,
     color: color,
   };
 

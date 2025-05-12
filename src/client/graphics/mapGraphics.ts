@@ -7,7 +7,6 @@ interface GridGraphicsOptions {
 }
 
 const createGridGraphics = ({ width, height, color }: GridGraphicsOptions) => {
-  // sneaky...access the global app instance
   // @ts-ignore Access PIXI app from global context
   const app = globalThis.__PIXI_APP__;
 

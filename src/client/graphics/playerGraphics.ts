@@ -1,9 +1,11 @@
-import { Application, Container, Graphics, Sprite } from 'pixi.js';
+import { Container, Graphics, Sprite } from 'pixi.js';
 import { PlayerEntity } from '@/common/types';
 import TaggedTextPlus from 'pixi-tagged-text-plus';
 import { worldConfig } from '@/common/worldConfig';
 
-const createPlayerGraphics = (entity: PlayerEntity, app: Application) => {
+const createPlayerGraphics = (entity: PlayerEntity) => {
+  // @ts-ignore Access PIXI app from global context
+  const app = globalThis.__PIXI_APP__;
   const playerSize = entity.size;
 
   const playerContainer = new Container();

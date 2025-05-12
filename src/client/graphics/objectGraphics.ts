@@ -1,8 +1,11 @@
-import { Application, Container, Graphics, Sprite } from 'pixi.js';
+import { Container, Graphics, Sprite } from 'pixi.js';
 import { ObjectEntity } from '@/common/types';
 //import { worldConfig } from '@/common/worldConfig';
 
-const createObjectGraphics = (app: Application, object: any, worldContainer: Container) => {
+const createObjectGraphics = (object: any) => {
+  // @ts-ignore Access PIXI app from global context
+  const app = globalThis.__PIXI_APP__;
+
   const objectContainer = new Container();
   objectContainer.label = 'object';
 
@@ -35,8 +38,7 @@ const createObjectGraphics = (app: Application, object: any, worldContainer: Con
   objectSprite.y = object.y;
   objectSprite.rotation = object.rotation;
   objectContainer.addChild(objectSprite);
-  worldContainer.addChild(objectContainer);
-  return objectSprite;
+  return { objectSprite, objectContainer };
 };
 
 const updateObjectGraphics = (objectEntity: ObjectEntity) => {
