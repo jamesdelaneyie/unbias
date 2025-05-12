@@ -39,6 +39,7 @@ export const populateWorld = (
   }
 
   const leftWall: ObjectEntity = {
+    label: 'leftWall',
     ntype: NetworkType.StaticObject,
     nid: 500,
     x: -26,
@@ -61,6 +62,7 @@ export const populateWorld = (
   main.addEntity(leftWall);
 
   const rightWall: ObjectEntity = {
+    label: 'rightWall',
     ntype: NetworkType.StaticObject,
     nid: 501,
     x: 26,
@@ -83,6 +85,7 @@ export const populateWorld = (
   main.addEntity(rightWall);
 
   const topWall: ObjectEntity = {
+    label: 'topWall',
     ntype: NetworkType.StaticObject,
     nid: 503,
     x: 0,
@@ -105,6 +108,7 @@ export const populateWorld = (
   main.addEntity(topWall);
 
   const bottomWall: ObjectEntity = {
+    label: 'bottomWall',
     ntype: NetworkType.StaticObject,
     nid: 504,
     x: 0,

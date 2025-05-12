@@ -28,6 +28,7 @@ type PlayerEntity = Entity & {
 };
 
 type ObjectEntity = Entity & {
+  label: string;
   width: number;
   height: number;
   shape: string;

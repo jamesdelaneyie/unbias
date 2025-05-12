@@ -121,39 +121,6 @@ const createObjectEntity = (
   app: Application,
   world: p2.World
 ) => {
-  const objectGraphics = createObjectGraphics(app, objectEntity, worldContainer);
-  const objectBody = new p2.Body({
-    mass: objectEntity.mass,
-    position: [objectEntity.x, objectEntity.y],
-    angle: objectEntity.rotation,
-    damping: 0.97,
-    angularDamping: 0.999,
-    type: objectEntity.bodyType,
-  });
-  const objectShape = new p2.Box({
-    width: objectEntity.width,
-    height: objectEntity.height,
-  });
-
-  objectBody.addShape(objectShape);
-  world.addBody(objectBody);
-
-  objectEntity.body = objectBody;
-  objectEntity.clientGraphics = objectGraphics;
-
-  objectEntity.renderTarget = {
-    x: objectEntity.x,
-    y: objectEntity.y,
-    rotation: objectEntity.rotation,
-  };
-};
-
-const createDynamicObject = (
-  objectEntity: ObjectEntity,
-  worldContainer: Container,
-  app: Application,
-  world: p2.World
-) => {
   console.log('createObjectEntity', JSON.stringify(objectEntity));
   const objectGraphics = createObjectGraphics(app, objectEntity, worldContainer);
   const objectBody = new p2.Body({
@@ -242,7 +209,7 @@ const updateLocalStates = (
         const objectEntity = entity as ObjectEntity;
         entities.set(entity.nid, entity);
         objectEntities.set(entity.nid, objectEntity);
-        createDynamicObject(objectEntity, worldContainer, app, world);
+        createObjectEntity(objectEntity, worldContainer, app, world);
       }
     });
 
