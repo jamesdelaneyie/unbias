@@ -10,7 +10,9 @@ type Entity = {
   x: number;
   y: number;
   rotation: number;
+  mass: number;
   body: p2.Body;
+  bodyType: typeof p2.Body.STATIC | typeof p2.Body.DYNAMIC | typeof p2.Body.KINEMATIC;
 };
 
 type PlayerEntity = Entity & {

@@ -47,7 +47,7 @@ const update = () => {
 
     if (networkEvent.type === NetworkEvent.UserConnected) {
       const { user } = networkEvent;
-      console.log('user connected', user);
+      //console.log('user connected', user);
       const viewSize = 1100;
       const view = new AABB2D(0, 0, viewSize, viewSize);
       main.subscribe(user, view);

@@ -148,6 +148,40 @@ const createObjectEntity = (
   };
 };
 
+const createDynamicObject = (
+  objectEntity: ObjectEntity,
+  worldContainer: Container,
+  app: Application,
+  world: p2.World
+) => {
+  console.log('createObjectEntity', JSON.stringify(objectEntity));
+  const objectGraphics = createObjectGraphics(app, objectEntity, worldContainer);
+  const objectBody = new p2.Body({
+    mass: objectEntity.mass,
+    position: [objectEntity.x, objectEntity.y],
+    angle: objectEntity.rotation,
+    damping: 0.97,
+    angularDamping: 0.999,
+    type: objectEntity.bodyType,
+  });
+  const objectShape = new p2.Box({
+    width: objectEntity.width,
+    height: objectEntity.height,
+  });
+
+  objectBody.addShape(objectShape);
+  world.addBody(objectBody);
+
+  objectEntity.body = objectBody;
+  objectEntity.clientGraphics = objectGraphics;
+
+  objectEntity.renderTarget = {
+    x: objectEntity.x,
+    y: objectEntity.y,
+    rotation: objectEntity.rotation,
+  };
+};
+
 const updateObjectEntity = (diff: IEntity, entities: ObjectEntityMap) => {
   const object = entities.get(diff.nid);
   if (!object) return;
@@ -199,11 +233,16 @@ const updateLocalStates = (
         entities.set(entity.nid, entity);
         playerEntities.set(entity.nid, playerEntity);
         createPlayerEntity(playerEntity, worldContainer, app, world);
-      } else if (entity.ntype === NetworkType.Object) {
+      } else if (entity.ntype === NetworkType.StaticObject) {
         const objectEntity = entity as ObjectEntity;
         entities.set(entity.nid, entity);
         objectEntities.set(entity.nid, objectEntity);
         createObjectEntity(objectEntity, worldContainer, app, world);
+      } else if (entity.ntype === NetworkType.DynamicObject) {
+        const objectEntity = entity as ObjectEntity;
+        entities.set(entity.nid, entity);
+        objectEntities.set(entity.nid, objectEntity);
+        createDynamicObject(objectEntity, worldContainer, app, world);
       }
     });
 

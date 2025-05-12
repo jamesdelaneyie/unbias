@@ -21,6 +21,7 @@ export class PlayerEntity extends User {
   isSelf: boolean;
   color: number;
   view: AABB2D;
+  mass: number;
   body: p2.Body;
   bodyType: BodyType;
   renderTarget: { x: number; y: number; rotation: number };
@@ -39,6 +40,7 @@ export class PlayerEntity extends User {
     this.isSelf = false;
     this.color = this.generateColor();
     this.view = new AABB2D(0, 0, worldConfig.viewSize, worldConfig.viewSize);
+    this.mass = 5;
     this.body = this.generatePlayerBody();
     this.bodyType = BodyType.DYNAMIC;
     this.renderTarget = { x: 0, y: 0, rotation: 0 };
@@ -46,7 +48,7 @@ export class PlayerEntity extends User {
 
   generatePlayerBody() {
     this.body = new p2.Body({
-      mass: 5,
+      mass: this.mass,
       position: [this.x, this.y],
       type: this.bodyType,
       ccdSpeedThreshold: 1,

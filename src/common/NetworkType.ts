@@ -1,10 +1,11 @@
 enum NetworkType {
   PlayerEntity = 1,
-  IdentityMessage = 2,
-  MoveCommand = 3,
-  Object = 4,
-  UsernameCommand = 5,
-  ShotImpactCommand = 6,
+  StaticObject = 2,
+  DynamicObject = 3,
+  IdentityMessage = 4,
+  MoveCommand = 5,
+  UsernameCommand = 7,
+  ShotImpactCommand = 8,
 }
 
 export { NetworkType };

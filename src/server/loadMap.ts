@@ -1,51 +1,45 @@
 import { NetworkType } from '../common/NetworkType';
-import { ObjectEntity, Entity } from '../common/types';
+import { ObjectEntity } from '../common/types';
 import { createPhysicalObject } from './EntityManager';
 //import { worldConfig } from '../common/worldConfig';
 import * as p2 from 'p2-es';
 import { ChannelAABB2D } from 'nengi';
+import { DynamicObject } from '../common/ObjectEntity';
 
 export const populateWorld = (
   main: ChannelAABB2D,
   world: p2.World,
-  ObjectEntities: Map<number, ObjectEntity>,
-  dynamicEntities: Map<number, Entity>
+  ObjectEntities: Map<number, any>,
+  dynamicEntities: Map<number, any>
 ): boolean => {
   const color = 0xffffff;
   const numObjects = 400;
   const gridSize = 4;
 
   for (let i = 0; i < numObjects; i++) {
-    // Random position within 4x4 grid
     const x = Math.floor(Math.random() * gridSize) + 0.5;
     const y = Math.floor(Math.random() * gridSize) + 0.5;
 
-    const object: ObjectEntity = {
-      nid: i + 1,
-      ntype: NetworkType.Object,
+    const object = new DynamicObject({
+      label: 'object',
       x: x,
       y: y,
-      width: 1,
-      height: 1,
-      shape: 'circle',
-      color: color,
       rotation: 0,
-      body: null as unknown as p2.Body,
       mass: 1,
-      bodyType: p2.Body.DYNAMIC,
-      renderTarget: { x: 0, y: 0, rotation: 0 },
-    };
+      shape: 'box',
+      shapeProps: { type: p2.Shape.BOX, width: 1, height: 1 },
+    });
+    main.addEntity(object);
 
-    const objectBody = createPhysicalObject(object);
-    object.body = objectBody;
+    object.body = object.generateBody();
+    world.addBody(object.body);
+
     ObjectEntities.set(object.nid, object);
     dynamicEntities.set(object.nid, object);
-    world.addBody(object.body);
-    main.addEntity(object);
   }
 
   const leftWall: ObjectEntity = {
-    ntype: NetworkType.Object,
+    ntype: NetworkType.StaticObject,
     nid: 500,
     x: -26,
     y: 0,
@@ -67,7 +61,7 @@ export const populateWorld = (
   main.addEntity(leftWall);
 
   const rightWall: ObjectEntity = {
-    ntype: NetworkType.Object,
+    ntype: NetworkType.StaticObject,
     nid: 501,
     x: 26,
     y: 0,
@@ -89,7 +83,7 @@ export const populateWorld = (
   main.addEntity(rightWall);
 
   const topWall: ObjectEntity = {
-    ntype: NetworkType.Object,
+    ntype: NetworkType.StaticObject,
     nid: 503,
     x: 0,
     y: 26,
@@ -111,7 +105,7 @@ export const populateWorld = (
   main.addEntity(topWall);
 
   const bottomWall: ObjectEntity = {
-    ntype: NetworkType.Object,
+    ntype: NetworkType.StaticObject,
     nid: 504,
     x: 0,
     y: -26,
