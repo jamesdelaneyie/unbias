@@ -1,5 +1,4 @@
 import { NetworkType } from './NetworkType';
-//import { BodyType, ShapeProps, ShapeType } from './types';
 import * as p2 from 'p2-es';
 
 enum BodyType {
@@ -8,30 +7,21 @@ enum BodyType {
   KINEMATIC = 4,
 }
 
-enum ShapeType {
-  CIRCLE = 1,
-  BOX = 32,
-  CONVEX = 8,
-}
-
-type CircleShape = {
-  type: ShapeType.CIRCLE;
-  radius: number;
-};
-
-type RectangleShape = {
-  type: ShapeType.BOX;
-  width: number;
-  height: number;
-};
-
 type Point = [number, number];
-type PolygonShape = {
-  type: ShapeType.CONVEX;
-  vertices: Point[];
-};
 
-type ShapeProps = CircleShape | RectangleShape | PolygonShape;
+type BaseObjectConstructorParams = {
+  label: string;
+  x: number;
+  y: number;
+  shape: string;
+  width?: number;
+  height?: number;
+  rotation?: number;
+  radius?: number;
+  vertices?: Point[];
+  color?: number;
+  mass?: number;
+};
 
 export class BaseObject {
   nid: number;
@@ -40,68 +30,71 @@ export class BaseObject {
   x: number;
   y: number;
   rotation: number;
-  color: number;
-  mass: number;
   shape: string;
-  shapeProps: ShapeProps | null;
-
-  constructor({
-    label,
-    x,
-    y,
-    rotation,
-    shape,
-    shapeProps = null,
-  }: {
-    label: string;
-    x: number;
-    y: number;
-    rotation: number;
-    shape: string;
-    shapeProps?: ShapeProps | null;
-  }) {
-    this.nid = 0;
-    this.ntype = NetworkType.DynamicObject | NetworkType.StaticObject;
-    this.label = label;
-    this.x = x;
-    this.y = y;
-    this.rotation = rotation;
-    this.color = 0xffffff;
-    this.mass = 0;
-    this.shape = shape;
-    this.shapeProps = shapeProps;
-  }
-}
-
-export class StaticObject extends BaseObject {
-  constructor({
-    label,
-    x,
-    y,
-    rotation,
-    shape,
-    shapeProps = null,
-  }: {
-    label: string;
-    x: number;
-    y: number;
-    rotation: number;
-    shape: string;
-    shapeProps?: ShapeProps | null;
-  }) {
-    super({ label, x, y, rotation, shape, shapeProps });
-    this.ntype = NetworkType.StaticObject;
-    //this.bodyType = BodyType.STATIC;
-    this.mass = 0;
-  }
-}
-
-export class DynamicObject extends BaseObject {
   width: number;
   height: number;
   radius: number;
   vertices: Point[];
-  body: p2.Body | null;
+  color: number;
+  mass: number;
+
+  constructor({
+    label,
+    x,
+    y,
+    rotation,
+    shape,
+    width,
+    height,
+    radius,
+    vertices,
+    color,
+    mass,
+  }: BaseObjectConstructorParams) {
+    this.nid = 0;
+    this.ntype = NetworkType.DynamicObject | NetworkType.StaticObject;
+    this.label = label;
+    this.x = x ?? 0;
+    this.y = y ?? 0;
+    this.rotation = rotation ?? 0;
+    this.color = color ?? 0xffffff;
+    this.mass = mass ?? 0;
+    this.shape = shape ?? 'rectangle';
+    this.width = width ?? 1;
+    this.height = height ?? 1;
+    this.radius = radius ?? 1;
+    this.vertices = vertices ?? [];
+  }
+}
+
+export class StaticObject extends BaseObject {
+  body: p2.Body;
+  constructor({
+    label,
+    x,
+    y,
+    rotation,
+    shape,
+    width,
+    height,
+    radius,
+    vertices,
+    color,
+    mass,
+  }: BaseObjectConstructorParams) {
+    super({ label, x, y, rotation, shape, width, height, radius, vertices, color, mass });
+    this.ntype = NetworkType.StaticObject;
+    this.mass = 0;
+    this.body = generateBody(this);
+  }
+}
+
+type DynamicObjectConstructorParams = BaseObjectConstructorParams & {
+  bodyType?: BodyType;
+};
+
+export class DynamicObject extends BaseObject {
+  body: p2.Body;
   bodyType: BodyType;
   constructor({
     label,
@@ -110,59 +103,43 @@ export class DynamicObject extends BaseObject {
     rotation,
     mass,
     shape,
-    shapeProps = null,
-  }: {
-    label: string;
-    x: number;
-    y: number;
-    rotation: number;
-    mass: number;
-    shape: string;
-    shapeProps?: ShapeProps | null;
-  }) {
-    super({ label, x, y, rotation, shape, shapeProps });
+    bodyType,
+    width,
+    height,
+    radius,
+    vertices,
+    color,
+  }: DynamicObjectConstructorParams) {
+    super({ label, x, y, rotation, shape, width, height, radius, vertices, color, mass });
     this.ntype = NetworkType.DynamicObject;
-    this.body = null;
-    this.bodyType = BodyType.DYNAMIC;
-    this.mass = mass;
-    // @ts-ignore
-    this.width = shapeProps?.width;
-    // @ts-ignore
-    this.height = shapeProps?.height;
-    // @ts-ignore
-    this.radius = shapeProps?.radius;
-    // @ts-ignore
-    this.vertices = shapeProps?.vertices;
-  }
-
-  generateBody() {
-    const body = new p2.Body({
-      mass: this.mass,
-      position: [this.x, this.y],
-      angle: this.rotation,
-      angularDamping: 0.999,
-      damping: 0.97,
-      type: this.bodyType ?? undefined,
-    });
-
-    let shape: p2.Shape | null = null;
-    if (this.shapeProps?.type === ShapeType.CIRCLE) {
-      shape = new p2.Circle({
-        radius: this.shapeProps.radius,
-      });
-    } else if (this.shapeProps?.type === ShapeType.BOX) {
-      shape = new p2.Box({
-        width: this.shapeProps.width,
-        height: this.shapeProps.height,
-      });
-    } else if (this.shapeProps?.type === ShapeType.CONVEX) {
-      shape = new p2.Convex({
-        vertices: this.shapeProps.vertices,
-      });
-    }
-    if (!shape) throw new Error('Invalid or missing shapeProps');
-
-    body.addShape(shape);
-    return body;
+    this.body = generateBody(this);
+    this.bodyType = bodyType ?? BodyType.DYNAMIC;
   }
 }
+
+const generateBody = (entity: BaseObject): p2.Body => {
+  const body = new p2.Body({
+    mass: entity.mass,
+    position: [entity.x, entity.y],
+    angle: entity.rotation,
+    damping: 0.97,
+    angularDamping: 0.999,
+    ccdSpeedThreshold: 1,
+  });
+  body.addShape(createPhysicsShape(entity));
+  return body;
+};
+
+const createPhysicsShape = (entity: BaseObject): p2.Shape => {
+  if (entity.shape === 'circle') {
+    return new p2.Circle({ radius: entity.radius ?? entity.width / 2 });
+  } else if (entity.shape === 'polygon') {
+    if (entity.vertices) {
+      return new p2.Convex({ vertices: entity.vertices });
+    } else {
+      return new p2.Box({ width: entity.width, height: entity.height });
+    }
+  } else {
+    return new p2.Box({ width: entity.width, height: entity.height });
+  }
+};

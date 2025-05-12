@@ -1,10 +1,6 @@
-import { NetworkType } from '../common/NetworkType';
-import { ObjectEntity } from '../common/types';
-import { createPhysicalObject } from './EntityManager';
-//import { worldConfig } from '../common/worldConfig';
 import * as p2 from 'p2-es';
 import { ChannelAABB2D } from 'nengi';
-import { DynamicObject } from '../common/ObjectEntity';
+import { DynamicObject, StaticObject } from '../common/ObjectEntity';
 
 export const populateWorld = (
   main: ChannelAABB2D,
@@ -13,12 +9,14 @@ export const populateWorld = (
   dynamicEntities: Map<number, any>
 ): boolean => {
   const color = 0xffffff;
-  const numObjects = 400;
-  const gridSize = 4;
+  const numObjects = 200;
+  const gridSize = 30;
 
   for (let i = 0; i < numObjects; i++) {
-    const x = Math.floor(Math.random() * gridSize) + 0.5;
-    const y = Math.floor(Math.random() * gridSize) + 0.5;
+    const x = Math.floor(Math.random() * gridSize) - 15;
+    const y = Math.floor(Math.random() * gridSize) - 15;
+    const size = Math.floor(Math.random() * 5) + 1;
+    const shape = Math.random() < 0.5 ? 'rectangle' : 'circle';
 
     const object = new DynamicObject({
       label: 'object',
@@ -26,109 +24,77 @@ export const populateWorld = (
       y: y,
       rotation: 0,
       mass: 1,
-      shape: 'box',
-      shapeProps: { type: p2.Shape.BOX, width: 1, height: 1 },
+      shape: shape,
+      width: size,
+      height: size,
+      radius: size / 2,
     });
     main.addEntity(object);
-
-    object.body = object.generateBody();
     world.addBody(object.body);
 
     ObjectEntities.set(object.nid, object);
     dynamicEntities.set(object.nid, object);
   }
 
-  const leftWall: ObjectEntity = {
+  const leftWall = {
     label: 'leftWall',
-    ntype: NetworkType.StaticObject,
-    nid: 500,
+    shape: 'rectangle',
     x: -26,
     y: 0,
     width: 1,
     height: 53,
-    shape: 'circle',
     color: color,
-    rotation: 0,
-    body: null as unknown as p2.Body,
-    mass: 0,
-    bodyType: p2.Body.STATIC,
-    renderTarget: { x: 0, y: 0, rotation: 0 },
   };
 
-  const leftWallBody = createPhysicalObject(leftWall);
-  leftWall.body = leftWallBody;
-  ObjectEntities.set(leftWall.nid, leftWall);
-  world.addBody(leftWall.body);
-  main.addEntity(leftWall);
+  const leftWallObject = new StaticObject(leftWall);
+  main.addEntity(leftWallObject);
+  world.addBody(leftWallObject.body);
+  ObjectEntities.set(leftWallObject.nid, leftWallObject);
 
-  const rightWall: ObjectEntity = {
+  const rightWall = {
     label: 'rightWall',
-    ntype: NetworkType.StaticObject,
-    nid: 501,
+    shape: 'rectangle',
     x: 26,
     y: 0,
     width: 1,
     height: 53,
-    shape: 'circle',
     color: color,
-    rotation: 0,
-    body: null as unknown as p2.Body,
-    mass: 0,
-    bodyType: p2.Body.STATIC,
-    renderTarget: { x: 0, y: 0, rotation: 0 },
   };
 
-  const rightWallBody = createPhysicalObject(rightWall);
-  rightWall.body = rightWallBody;
-  ObjectEntities.set(rightWall.nid, rightWall);
-  world.addBody(rightWall.body);
-  main.addEntity(rightWall);
+  const rightWallObject = new StaticObject(rightWall);
+  main.addEntity(rightWallObject);
+  world.addBody(rightWallObject.body);
+  ObjectEntities.set(rightWallObject.nid, rightWallObject);
 
-  const topWall: ObjectEntity = {
+  const topWall = {
     label: 'topWall',
-    ntype: NetworkType.StaticObject,
-    nid: 503,
+    shape: 'rectangle',
     x: 0,
     y: 26,
     width: 53,
     height: 1,
-    shape: 'circle',
     color: color,
-    rotation: 0,
-    body: null as unknown as p2.Body,
-    mass: 0,
-    bodyType: p2.Body.STATIC,
-    renderTarget: { x: 0, y: 0, rotation: 0 },
   };
 
-  const topWallBody = createPhysicalObject(topWall);
-  topWall.body = topWallBody;
-  ObjectEntities.set(topWall.nid, topWall);
-  world.addBody(topWall.body);
-  main.addEntity(topWall);
+  const topWallObject = new StaticObject(topWall);
+  main.addEntity(topWallObject);
+  world.addBody(topWallObject.body);
+  ObjectEntities.set(topWallObject.nid, topWallObject);
 
-  const bottomWall: ObjectEntity = {
+  const bottomWall = {
     label: 'bottomWall',
-    ntype: NetworkType.StaticObject,
-    nid: 504,
+    shape: 'rectangle',
     x: 0,
     y: -26,
     width: 53,
     height: 1,
-    shape: 'circle',
     color: color,
-    rotation: 0,
-    body: null as unknown as p2.Body,
-    mass: 0,
-    bodyType: p2.Body.STATIC,
-    renderTarget: { x: 0, y: 0, rotation: 0 },
   };
 
-  const bottomWallBody = createPhysicalObject(bottomWall);
-  bottomWall.body = bottomWallBody;
-  ObjectEntities.set(bottomWall.nid, bottomWall);
-  world.addBody(bottomWall.body);
-  main.addEntity(bottomWall);
+  const bottomWallObject = new StaticObject(bottomWall);
+  main.addEntity(bottomWallObject);
+  world.addBody(bottomWallObject.body);
+  ObjectEntities.set(bottomWallObject.nid, bottomWallObject);
 
   return true;
 };

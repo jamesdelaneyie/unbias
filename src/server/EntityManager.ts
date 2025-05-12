@@ -1,7 +1,6 @@
 import { User, AABB2D, ChannelAABB2D } from 'nengi';
 import { PlayerEntity } from '../common/PlayerEntity';
-import { ObjectEntity, UsernameCommand } from '../common/types';
-import * as p2 from 'p2-es';
+import { UsernameCommand } from '../common/types';
 
 const createPlayerEntity = (user: User, usernameCommand: UsernameCommand) => {
   try {
@@ -35,23 +34,4 @@ const deletePlayerEntity = (
   }
 };
 
-const createPhysicalObject = (object: ObjectEntity) => {
-  const body = new p2.Body({
-    mass: object.mass,
-    position: [object.x, object.y],
-    angle: object.rotation,
-    damping: 0.97,
-    angularDamping: 0.999,
-    type: object.bodyType,
-  });
-
-  const shape = new p2.Box({
-    width: object.width,
-    height: object.height,
-  });
-
-  body.addShape(shape);
-  return body;
-};
-
-export { createPlayerEntity, deletePlayerEntity, createPhysicalObject };
+export { createPlayerEntity, deletePlayerEntity };

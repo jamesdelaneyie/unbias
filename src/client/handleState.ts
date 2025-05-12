@@ -121,7 +121,6 @@ const createObjectEntity = (
   app: Application,
   world: p2.World
 ) => {
-  console.log('createObjectEntity', JSON.stringify(objectEntity));
   const objectGraphics = createObjectGraphics(app, objectEntity, worldContainer);
   const objectBody = new p2.Body({
     mass: objectEntity.mass,

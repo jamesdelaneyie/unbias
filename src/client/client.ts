@@ -33,7 +33,7 @@ window.addEventListener('load', async () => {
     islandSplit: true,
   });
   // @ts-ignore
-  world.solver.iterations = 5;
+  world.solver.iterations = 20;
   world.defaultContactMaterial.friction = 0;
   world.defaultContactMaterial.restitution = 0.1;
 

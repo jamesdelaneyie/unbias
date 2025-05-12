@@ -2,18 +2,28 @@ import { Application, Container, Graphics, Sprite } from 'pixi.js';
 import { ObjectEntity } from '@/common/types';
 //import { worldConfig } from '@/common/worldConfig';
 
-const createObjectGraphics = (
-  app: Application,
-  object: ObjectEntity,
-  worldContainer: Container
-) => {
+const createObjectGraphics = (app: Application, object: any, worldContainer: Container) => {
   const objectContainer = new Container();
   objectContainer.label = 'object';
 
-  const objectGraphics = new Graphics()
-    .rect(0, 0, object.width * 10, object.height * 10)
-    .stroke({ color: 0x000000, alpha: 1, width: 1, pixelLine: true })
-    .fill({ color: 0xffffff, alpha: 1 });
+  const objectGraphics = new Graphics();
+
+  if (object.shape === 'rectangle') {
+    objectGraphics
+      .rect(0, 0, object.width * 10, object.height * 10)
+      .stroke({ color: 0x000000, alpha: 1, width: 1, pixelLine: true })
+      .fill({ color: 0xffffff, alpha: 1 });
+  } else if (object.shape === 'circle') {
+    objectGraphics
+      .circle(0, 0, object.radius * 10)
+      .stroke({ color: 0x000000, alpha: 1, width: 1, pixelLine: true })
+      .fill({ color: 0xffffff, alpha: 1 });
+  } else if (object.shape === 'polygon') {
+    if (object.vertices.length > 0) {
+      objectGraphics.poly(object.vertices, true);
+    }
+  }
+
   const objectTexture = app.renderer.generateTexture(objectGraphics);
   objectGraphics.destroy();
 
