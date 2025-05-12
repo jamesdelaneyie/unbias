@@ -48,6 +48,8 @@ export class PlayerEntity extends User {
       mass: 5,
       position: [this.x, this.y],
       type: this.bodyType,
+      ccdSpeedThreshold: 1,
+      ccdIterations: 20,
     });
     const circleShape = new p2.Circle({
       radius: this.size / 2,

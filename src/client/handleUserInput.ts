@@ -1,6 +1,6 @@
 import { Client } from 'nengi';
 import { NetworkType } from '@/common/NType';
-import { PlayerEntityMap, MoveCommand } from '@/common/types';
+import { PlayerEntityMap, MoveCommand, ObjectEntityMap } from '@/common/types';
 import { playerEntitySchema } from '@/common/schemas/playerEntitySchema';
 import { InputSystem } from '@/client/InputSystem';
 import { Container } from 'pixi.js';
@@ -12,6 +12,7 @@ const handleUserInput = (
   inputSystem: InputSystem,
   worldState: any,
   playerEntities: PlayerEntityMap,
+  objectEntities: ObjectEntityMap,
   worldContainer: Container,
   delta: number,
   world: p2.World
@@ -95,7 +96,16 @@ const handleUserInput = (
     );
 
     if (inputState.leftClick) {
-      handleShot(world, myEntity.x, myEntity.y, point.x, point.y, worldContainer);
+      handleShot(
+        world,
+        myEntity.x,
+        myEntity.y,
+        point.x,
+        point.y,
+        worldContainer,
+        client,
+        objectEntities
+      );
     }
 
     return prediction;

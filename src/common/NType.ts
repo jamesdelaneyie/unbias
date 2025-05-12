@@ -4,6 +4,7 @@ enum NetworkType {
   MoveCommand = 3,
   Object = 4,
   UsernameCommand = 5,
+  ShotImpactCommand = 6,
 }
 
 export { NetworkType };

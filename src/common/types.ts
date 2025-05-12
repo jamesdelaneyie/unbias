@@ -46,8 +46,9 @@ type ObjectEntityMap = Map<Binary.UInt8, ObjectEntity>;
 
 /* Commands: Messages from the client to the server */
 type Command = {
-  ntype: NetworkType.MoveCommand | NetworkType.UsernameCommand;
+  ntype: NetworkType.MoveCommand | NetworkType.UsernameCommand | NetworkType.ShotImpactCommand;
   nid: number;
+  // additional fields for ShotImpactCommand are defined in schema
 };
 
 type MoveCommand = Command & {

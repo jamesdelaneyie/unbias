@@ -4,14 +4,11 @@ import { Instance, NetworkEvent, ChannelAABB2D, Historian, AABB2D } from 'nengi'
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
 import { Command, MoveCommand, ObjectEntity, UsernameCommand, Entity } from '../common/types';
 import { PlayerEntity } from '../common/PlayerEntity';
-import {
-  createPlayerEntity,
-  deletePlayerEntity,
-  createPhysicalObject,
-} from '../server/EntityManager';
+import { createPlayerEntity, deletePlayerEntity } from '../server/EntityManager';
 import { applyCommand } from './applyCommand';
 import * as p2 from 'p2-es';
 import { worldConfig } from '../common/worldConfig';
+import { populateWorld } from './loadMap';
 
 const instance = new Instance(ncontext);
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
@@ -26,7 +23,11 @@ const dynamicEntities: Map<number, Entity> = new Map();
 const ObjectEntities: Map<number, ObjectEntity> = new Map();
 const playerEntities: Map<number, PlayerEntity> = new Map();
 
-const world = new p2.World({ gravity: [0, 9.82] });
+const world = new p2.World({ gravity: [0, 10], islandSplit: true });
+// @ts-ignore
+world.solver.iterations = 5;
+world.defaultContactMaterial.friction = 0;
+world.defaultContactMaterial.restitution = 0.1;
 
 instance.onConnect = async (handshake: any) => {
   console.log('handshake received', handshake.token);
@@ -36,137 +37,12 @@ instance.onConnect = async (handshake: any) => {
 const queue = instance.queue;
 let worldPopulated = false;
 
-const populateWorld = () => {
-  const color = 0xffffff;
-  const numObjects = 60;
-  const gridSize = 4;
-
-  for (let i = 0; i < numObjects; i++) {
-    // Random position within 4x4 grid
-    const x = Math.floor(Math.random() * gridSize) + 0.5;
-    const y = Math.floor(Math.random() * gridSize) + 0.5;
-
-    const object: ObjectEntity = {
-      nid: i + 1,
-      ntype: NetworkType.Object,
-      x: x,
-      y: y,
-      width: 3,
-      height: 3,
-      shape: 'circle',
-      color: color,
-      rotation: 0,
-      body: null as unknown as p2.Body,
-      mass: 1,
-      bodyType: p2.Body.DYNAMIC,
-      renderTarget: { x: 0, y: 0, rotation: 0 },
-    };
-
-    const objectBody = createPhysicalObject(object);
-    object.body = objectBody;
-    ObjectEntities.set(object.nid, object);
-    dynamicEntities.set(object.nid, object);
-    world.addBody(object.body);
-    main.addEntity(object);
-  }
-
-  const leftWall: ObjectEntity = {
-    ntype: NetworkType.Object,
-    nid: 500,
-    x: -26,
-    y: 0,
-    width: 1,
-    height: 53,
-    shape: 'circle',
-    color: color,
-    rotation: 0,
-    body: null as unknown as p2.Body,
-    mass: 0,
-    bodyType: p2.Body.STATIC,
-    renderTarget: { x: 0, y: 0, rotation: 0 },
-  };
-
-  const leftWallBody = createPhysicalObject(leftWall);
-  leftWall.body = leftWallBody;
-  ObjectEntities.set(leftWall.nid, leftWall);
-  world.addBody(leftWall.body);
-  main.addEntity(leftWall);
-
-  const rightWall: ObjectEntity = {
-    ntype: NetworkType.Object,
-    nid: 501,
-    x: 26,
-    y: 0,
-    width: 1,
-    height: 53,
-    shape: 'circle',
-    color: color,
-    rotation: 0,
-    body: null as unknown as p2.Body,
-    mass: 0,
-    bodyType: p2.Body.STATIC,
-    renderTarget: { x: 0, y: 0, rotation: 0 },
-  };
-
-  const rightWallBody = createPhysicalObject(rightWall);
-  rightWall.body = rightWallBody;
-  ObjectEntities.set(rightWall.nid, rightWall);
-  world.addBody(rightWall.body);
-  main.addEntity(rightWall);
-
-  const topWall: ObjectEntity = {
-    ntype: NetworkType.Object,
-    nid: 503,
-    x: 0,
-    y: 26,
-    width: 53,
-    height: 1,
-    shape: 'circle',
-    color: color,
-    rotation: 0,
-    body: null as unknown as p2.Body,
-    mass: 0,
-    bodyType: p2.Body.STATIC,
-    renderTarget: { x: 0, y: 0, rotation: 0 },
-  };
-
-  const topWallBody = createPhysicalObject(topWall);
-  topWall.body = topWallBody;
-  ObjectEntities.set(topWall.nid, topWall);
-  world.addBody(topWall.body);
-  main.addEntity(topWall);
-
-  const bottomWall: ObjectEntity = {
-    ntype: NetworkType.Object,
-    nid: 504,
-    x: 0,
-    y: -26,
-    width: 53,
-    height: 1,
-    shape: 'circle',
-    color: color,
-    rotation: 0,
-    body: null as unknown as p2.Body,
-    mass: 0,
-    bodyType: p2.Body.STATIC,
-    renderTarget: { x: 0, y: 0, rotation: 0 },
-  };
-
-  const bottomWallBody = createPhysicalObject(bottomWall);
-  bottomWall.body = bottomWallBody;
-  ObjectEntities.set(bottomWall.nid, bottomWall);
-  world.addBody(bottomWall.body);
-  main.addEntity(bottomWall);
-
-  worldPopulated = true;
-};
-
 const update = () => {
   while (!queue.isEmpty()) {
     const networkEvent = queue.next();
 
     if (!worldPopulated) {
-      populateWorld();
+      worldPopulated = populateWorld(main, world, ObjectEntities, dynamicEntities);
     }
 
     if (networkEvent.type === NetworkEvent.UserConnected) {
@@ -220,24 +96,59 @@ const update = () => {
               console.error('Error creating player entity', error);
             }
           }
+          if (command.ntype === NetworkType.ShotImpactCommand) {
+            const impactCommand = command as any;
+
+            // Get the hit point and shot vector
+            const fromX = impactCommand.fromX;
+            const fromY = impactCommand.fromY;
+            const hitX = impactCommand.hitX;
+            const hitY = impactCommand.hitY;
+
+            // Calculate the exact shot vector direction
+            const vectorX = hitX - fromX;
+            const vectorY = hitY - fromY;
+
+            // Normalize the vector
+            const magnitude = Math.sqrt(vectorX * vectorX + vectorY * vectorY);
+            const normalizedX = vectorX / magnitude;
+            const normalizedY = vectorY / magnitude;
+
+            // Find the directly hit entity
+            const hitEntity = dynamicEntities.get(impactCommand.targetNid);
+
+            if (hitEntity && hitEntity.body && hitEntity.body.type !== p2.Body.STATIC) {
+              // Calculate relative point vector in world coords (offset from body center)
+              const relativePoint: [number, number] = [
+                hitX - hitEntity.body.position[0],
+                hitY - hitEntity.body.position[1],
+              ];
+
+              const force = impactCommand.impactForce;
+              hitEntity.body.applyImpulse(
+                [normalizedX * force, normalizedY * force],
+                relativePoint
+              );
+
+              console.log(
+                `DIRECT HIT on object ${hitEntity.nid} world hit [${hitX}, ${hitY}] relative ${relativePoint}`
+              );
+            }
+          }
         });
       }
     }
   }
 
-  // Move the physics world forward
-  world.step(worldConfig.worldStepRate);
+  world.step(worldConfig.worldStepRate * 2);
 
-  // Check for collisions between players and objects
   world.on('beginContact', event => {
     const bodyA = event.bodyA;
     const bodyB = event.bodyB;
 
-    // Find the player and object involved in collision
     let playerEntity = null;
     let objectEntity = null;
 
-    // Check if bodyA is a player and bodyB is an object
     const playerA = Array.from(playerEntities.values()).find(p => p.body === bodyA);
     const objectB = Array.from(ObjectEntities.values()).find(o => o.body === bodyB);
     if (playerA && objectB) {
@@ -245,7 +156,6 @@ const update = () => {
       objectEntity = objectB;
     }
 
-    // Check if bodyB is a player and bodyA is an object
     const playerB = Array.from(playerEntities.values()).find(p => p.body === bodyB);
     const objectA = Array.from(ObjectEntities.values()).find(o => o.body === bodyA);
     if (playerB && objectA) {
@@ -253,14 +163,11 @@ const update = () => {
       objectEntity = objectA;
     }
 
-    // Update object color when player touches it
     if (playerEntity && objectEntity) {
       objectEntity.color = playerEntity.color;
     }
   });
 
-  // update the positions of the all the dynamic entities
-  // players and dynamic (moving) objects
   dynamicEntities.forEach(entity => {
     entity.x = entity.body.position[0];
     entity.y = entity.body.position[1];
@@ -272,4 +179,4 @@ const update = () => {
 
 setInterval(() => {
   update();
-}, 1000 / worldConfig.serverTickRate); // 50
+}, 1000 / worldConfig.serverTickRate);

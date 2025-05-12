@@ -40,6 +40,8 @@ const createPlayerEntity = (
     mass: playerMass,
     position: [playerEntity.x, playerEntity.y],
     type: bodyType,
+    ccdSpeedThreshold: 1,
+    ccdIterations: 20,
   });
   const playerShape = new p2.Circle({
     radius: playerEntity.size / 2,

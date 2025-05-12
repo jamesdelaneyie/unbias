@@ -29,8 +29,13 @@ window.addEventListener('load', async () => {
     myId: null,
   };
   const world = new p2.World({
-    gravity: [0, 9.82],
+    gravity: [0, 10],
+    islandSplit: true,
   });
+  // @ts-ignore
+  world.solver.iterations = 5;
+  world.defaultContactMaterial.friction = 0;
+  world.defaultContactMaterial.restitution = 0.1;
 
   const client = new Client(ncontext, WebSocketClientAdapter, worldConfig.serverTickRate);
 
@@ -78,6 +83,7 @@ window.addEventListener('load', async () => {
       userInput,
       worldState,
       playerEntities,
+      objectEntities,
       worldContainer,
       delta,
       world
@@ -85,7 +91,7 @@ window.addEventListener('load', async () => {
 
     // update the physics world
     // applies velocities to the p2 bodies and updates their positions
-    world.step(worldConfig.worldStepRate);
+    world.step(worldConfig.worldStepRate * 2);
 
     // update the graphics of players and objects
     // based both on the prediction and the current network state

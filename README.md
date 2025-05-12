@@ -31,28 +31,28 @@ A multiplayer environment. Networked with nengi.js, rendered by pixi.js and made
 
 ## To Do
 
-Move all UI to Pixi
-Load world for players before giving username
+Network and setup objects and player classes across client/server
+
+Move all UI to pixi
+
 Add lag compensation firing
+
 check on mobile for framerate issue
+
 see if render / p2 world step on client can be seperated
-restart server after an amount of time
+
 login to vultr
-see if pixi tagged text can be removed
+
 see if the patch to nengi can be removed
-shared playerEntity and Object entity
+
 create setup world in instance
-add basic room
-try using gravity
-review schemas
+
 expand worldConfig
 review connection manager for improvements
 think of tests that could be created
 put on a server
 try with ngrok
-figure out how to test reconcile entities
 smooth moving on server for entities
-write up about it
 
 ## Architecture
 
