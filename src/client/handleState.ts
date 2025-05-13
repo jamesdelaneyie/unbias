@@ -152,22 +152,24 @@ const createObjectEntity = (
 
 const createDynamicObjectEntity = (
   objectEntity: ObjectEntity,
-  worldContainer: Container
+  worldContainer: Container,
   //app: Application,
-  //world: p2.World
+  world: p2.World
 ) => {
   const object = new DynamicObject(objectEntity);
   const { objectSprite, objectContainer } = createObjectGraphics(object);
 
-  objectEntity.clientGraphics = objectSprite;
-  worldContainer.addChild(objectContainer);
-  //world.addBody(object.body);
-
-  objectEntity.renderTarget = {
+  //@ts-ignore
+  object.clientGraphics = objectSprite;
+  //@ts-ignore
+  object.renderTarget = {
     x: objectEntity.x,
     y: objectEntity.y,
     rotation: objectEntity.rotation,
   };
+  worldContainer.addChild(objectContainer);
+  world.addBody(object.body);
+  return object;
 };
 
 const updateObjectEntity = (diff: IEntity, entities: ObjectEntityMap) => {
@@ -228,9 +230,10 @@ const updateLocalStates = (
         createObjectEntity(objectEntity, worldContainer, app, world);
       } else if (entity.ntype === NetworkType.DynamicObject) {
         const objectEntity = entity as ObjectEntity;
-        entities.set(entity.nid, entity);
-        objectEntities.set(entity.nid, objectEntity);
-        createDynamicObjectEntity(objectEntity, worldContainer);
+        const object = createDynamicObjectEntity(objectEntity, worldContainer, world);
+        entities.set(entity.nid, object);
+        //@ts-ignore
+        objectEntities.set(entity.nid, object);
       }
     });
 

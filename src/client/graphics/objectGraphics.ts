@@ -6,20 +6,29 @@ const createObjectGraphics = (object: any) => {
   const app = globalThis.__PIXI_APP__;
 
   const objectContainer = new Container();
-  objectContainer.label = 'object';
+  objectContainer.label = object.label;
 
   const objectGraphics = new Graphics();
 
   if (object.shape === 'rectangle') {
     objectGraphics
       .rect(0, 0, object.width * 10, object.height * 10)
-      .stroke({ color: 0x000000, alpha: 1, width: 1, pixelLine: true })
       .fill({ color: 0xffffff, alpha: 1 });
+    if (object.stroke) {
+      objectGraphics.stroke({ color: object.stroke, alpha: 1, width: 1, pixelLine: true });
+    }
   } else if (object.shape === 'circle') {
+    objectGraphics.circle(0, 0, object.radius * 10).fill({ color: 0xffffff, alpha: 1 });
+    if (object.stroke) {
+      objectGraphics.stroke({ color: object.stroke, alpha: 1, width: 1, pixelLine: true });
+    }
+  } else if (object.shape === 'capsule') {
     objectGraphics
-      .circle(0, 0, object.radius * 10)
-      .stroke({ color: 0x000000, alpha: 1, width: 1, pixelLine: true })
+      .roundRect(0, 0, object.width * 10, object.height * 10, object.radius * 10)
       .fill({ color: 0xffffff, alpha: 1 });
+    if (object.stroke) {
+      objectGraphics.stroke({ color: object.stroke, alpha: 1, width: 1, pixelLine: true });
+    }
   } else if (object.shape === 'polygon') {
     if (object.vertices.length > 0) {
       const scaledVertices = JSON.parse(object.vertices).map(([x, y]: [number, number]) => [
@@ -27,10 +36,10 @@ const createObjectGraphics = (object: any) => {
         y * 10,
       ]);
       const points = scaledVertices.flatMap(([x, y]: [number, number]) => [x, y]);
-      objectGraphics
-        .poly(points, true)
-        .stroke({ color: 0x000000, alpha: 1, width: 1, pixelLine: true })
-        .fill({ color: 0xffffff, alpha: 1 });
+      objectGraphics.poly(points, true).fill({ color: 0xffffff, alpha: 1 });
+      if (object.stroke) {
+        objectGraphics.stroke({ color: object.stroke, alpha: 1, width: 1, pixelLine: true });
+      }
     }
   }
 
@@ -53,6 +62,7 @@ const updateObjectGraphics = (objectEntity: ObjectEntity) => {
   const graphics = objectEntity.clientGraphics;
   const body = objectEntity.body;
   if (body && graphics) {
+    //console.log('updateObjectGraphics', objectEntity.x, objectEntity.y, objectEntity.rotation);
     graphics.x = objectEntity.x;
     graphics.y = objectEntity.y;
     graphics.rotation = objectEntity.rotation;

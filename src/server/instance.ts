@@ -19,6 +19,7 @@ uws.listen(worldConfig.port, () => {
 const historian = new Historian(ncontext, worldConfig.serverTickRate);
 const main = new ChannelAABB2D(instance.localState, historian);
 
+const staticEntities: Map<number, Entity> = new Map();
 const dynamicEntities: Map<number, Entity> = new Map();
 const ObjectEntities: Map<number, ObjectEntity> = new Map();
 const playerEntities: Map<number, PlayerEntity> = new Map();
@@ -42,7 +43,7 @@ const update = () => {
     const networkEvent = queue.next();
 
     if (!worldPopulated) {
-      worldPopulated = populateWorld(main, world, ObjectEntities, dynamicEntities);
+      worldPopulated = populateWorld(main, world, staticEntities, dynamicEntities);
     }
 
     if (networkEvent.type === NetworkEvent.UserConnected) {

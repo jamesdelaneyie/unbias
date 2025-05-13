@@ -18,6 +18,7 @@ type BaseObjectConstructorParams = {
   radius?: number;
   vertices?: string;
   color?: number;
+  stroke?: number;
   mass?: number;
 };
 
@@ -34,6 +35,7 @@ export class BaseObject {
   radius: number;
   vertices: string;
   color: number;
+  stroke: number;
   mass: number;
 
   constructor({
@@ -47,6 +49,7 @@ export class BaseObject {
     radius,
     vertices,
     color,
+    stroke,
     mass,
   }: BaseObjectConstructorParams) {
     this.nid = 0;
@@ -56,6 +59,7 @@ export class BaseObject {
     this.y = y ?? 0;
     this.rotation = rotation ?? 0;
     this.color = color ?? 0xffffff;
+    this.stroke = stroke ?? 0x000000;
     this.mass = mass ?? 0;
     this.shape = shape ?? 'rectangle';
     this.width = width ?? 1;
@@ -78,9 +82,10 @@ export class StaticObject extends BaseObject {
     radius,
     vertices,
     color,
+    stroke,
     mass,
   }: BaseObjectConstructorParams) {
-    super({ label, x, y, rotation, shape, width, height, radius, vertices, color, mass });
+    super({ label, x, y, rotation, shape, width, height, radius, vertices, color, stroke, mass });
     this.ntype = NetworkType.StaticObject;
     const dimensions = getShapeDimensions(this);
     this.width = dimensions.width;
@@ -110,8 +115,9 @@ export class DynamicObject extends BaseObject {
     radius,
     vertices,
     color,
+    stroke,
   }: DynamicObjectConstructorParams) {
-    super({ label, x, y, rotation, shape, width, height, radius, vertices, color, mass });
+    super({ label, x, y, rotation, shape, width, height, radius, vertices, color, stroke, mass });
     this.ntype = NetworkType.DynamicObject;
     this.body = generateBody(this);
     this.bodyType = bodyType ?? BodyType.DYNAMIC;
@@ -158,7 +164,7 @@ const generateBody = (entity: BaseObject): p2.Body => {
     angle: entity.rotation,
     //damping: 0.97,
     //angularDamping: 0.999,
-    ccdSpeedThreshold: 1,
+    ccdSpeedThreshold: 0.1,
   });
   body.addShape(createPhysicsShape(entity));
   return body;
@@ -168,6 +174,11 @@ const createPhysicsShape = (entity: BaseObject): p2.Shape => {
   if (entity.shape === 'circle') {
     return new p2.Circle({
       radius: entity.radius ?? entity.width / 2,
+    });
+  } else if (entity.shape === 'capsule') {
+    return new p2.Capsule({
+      radius: entity.radius ?? entity.width / 2,
+      length: entity.width - entity.radius * 2,
     });
   } else if (entity.shape === 'polygon') {
     if (entity.vertices) {

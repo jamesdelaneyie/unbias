@@ -31,8 +31,8 @@ export class PlayerEntity extends User {
     this.id = user.socket.user.id;
     this.nid = 0;
     this.ntype = NetworkType.PlayerEntity;
-    this.x = 0;
-    this.y = 0;
+    this.x = -15;
+    this.y = -15;
     this.size = worldConfig.playerSize;
     this.rotation = 0;
     this.speed = worldConfig.playerSpeed;

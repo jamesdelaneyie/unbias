@@ -1,14 +1,14 @@
 import * as p2 from 'p2-es';
 import { ChannelAABB2D } from 'nengi';
-import { StaticObject } from '../common/ObjectEntity'; //DynamicObject,
+import { DynamicObject, StaticObject } from '../common/ObjectEntity';
 
 export const populateWorld = (
   main: ChannelAABB2D,
   world: p2.World,
-  ObjectEntities: Map<number, any>,
+  staticEntities: Map<number, any>,
   dynamicEntities: Map<number, any>
 ): boolean => {
-  /*const color = 0xffffff;
+  const color = 0xffffff;
   const numObjects = 10;
   const gridSize = 30;
 
@@ -37,7 +37,6 @@ export const populateWorld = (
     main.addEntity(object);
     world.addBody(object.body);
 
-    ObjectEntities.set(object.nid, object);
     dynamicEntities.set(object.nid, object);
 
     objectsCreated++;
@@ -46,8 +45,8 @@ export const populateWorld = (
 
   createObject();
 
-  const roomSize = 80;
-  const wallThickness = 1;
+  const roomSize = 70;
+  const wallThickness = 3;
 
   const leftWall = {
     label: 'leftWall',
@@ -55,14 +54,14 @@ export const populateWorld = (
     x: -roomSize / 2,
     y: 0,
     width: wallThickness,
-    height: roomSize,
+    height: roomSize + wallThickness,
     color: color,
   };
 
   const leftWallObject = new StaticObject(leftWall);
   main.addEntity(leftWallObject);
   world.addBody(leftWallObject.body);
-  ObjectEntities.set(leftWallObject.nid, leftWallObject);
+  staticEntities.set(leftWallObject.nid, leftWallObject);
 
   const rightWall = {
     label: 'rightWall',
@@ -70,21 +69,21 @@ export const populateWorld = (
     x: roomSize / 2,
     y: 0,
     width: wallThickness,
-    height: roomSize,
+    height: roomSize + wallThickness,
     color: color,
   };
 
   const rightWallObject = new StaticObject(rightWall);
   main.addEntity(rightWallObject);
   world.addBody(rightWallObject.body);
-  ObjectEntities.set(rightWallObject.nid, rightWallObject);
+  staticEntities.set(rightWallObject.nid, rightWallObject);
 
   const topWall = {
     label: 'topWall',
     shape: 'rectangle',
     x: 0,
     y: roomSize / 2,
-    width: roomSize,
+    width: roomSize + wallThickness,
     height: wallThickness,
     color: color,
   };
@@ -92,14 +91,14 @@ export const populateWorld = (
   const topWallObject = new StaticObject(topWall);
   main.addEntity(topWallObject);
   world.addBody(topWallObject.body);
-  ObjectEntities.set(topWallObject.nid, topWallObject);
+  staticEntities.set(topWallObject.nid, topWallObject);
 
   const bottomWall = {
     label: 'bottomWall',
     shape: 'rectangle',
     x: 0,
     y: -roomSize / 2,
-    width: roomSize,
+    width: roomSize + wallThickness,
     height: wallThickness,
     color: color,
   };
@@ -107,21 +106,38 @@ export const populateWorld = (
   const bottomWallObject = new StaticObject(bottomWall);
   main.addEntity(bottomWallObject);
   world.addBody(bottomWallObject.body);
-  ObjectEntities.set(bottomWallObject.nid, bottomWallObject);*/
+  staticEntities.set(bottomWallObject.nid, bottomWallObject);
 
-  const polygonTest = {
-    label: 'polygonTest',
+  const polygon = {
+    label: 'polygon',
     shape: 'polygon',
     x: 0,
-    y: 0,
+    y: 10,
+    rotation: 90,
     vertices: '[[-7,-7], [7,-7], [7,7], [0, 13], [-7,7]]',
     color: 0xff0000,
   };
 
-  const polygonTestObject = new StaticObject(polygonTest);
-  main.addEntity(polygonTestObject);
-  world.addBody(polygonTestObject.body);
-  dynamicEntities.set(polygonTestObject.nid, polygonTestObject);
+  const polygonObject = new StaticObject(polygon);
+  main.addEntity(polygonObject);
+  world.addBody(polygonObject.body);
+  staticEntities.set(polygonObject.nid, polygonObject);
+
+  const capsule = {
+    label: 'capsule',
+    shape: 'capsule',
+    x: 0,
+    y: -10,
+    rotation: 0,
+    width: 30,
+    height: 10,
+    radius: 5,
+    color: 0x00ff00,
+  };
+  const capsuleObject = new StaticObject(capsule);
+  main.addEntity(capsuleObject);
+  world.addBody(capsuleObject.body);
+  staticEntities.set(capsuleObject.nid, capsuleObject);
 
   return true;
 };
