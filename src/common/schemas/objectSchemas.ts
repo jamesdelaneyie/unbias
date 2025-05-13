@@ -12,16 +12,20 @@ export const staticObjectSchema: Schema = defineSchema({
   radius: Binary.Float32,
   vertices: Binary.String,
   color: Binary.Float64,
+  stroke: Binary.Float64,
 });
 
 export const dynamicObjectSchema: Schema = defineSchema({
+  label: Binary.String,
   x: { type: Binary.Float32, interp: true },
   y: { type: Binary.Float32, interp: true },
   rotation: { type: Binary.Rotation32, interp: true },
+  shape: Binary.String,
   width: Binary.UInt8,
   height: Binary.UInt8,
-  mass: Binary.UInt8,
-  color: Binary.Float64,
-  shape: Binary.String,
   radius: Binary.Float32,
+  mass: Binary.UInt8,
+  vertices: Binary.String,
+  color: Binary.Float64,
+  stroke: Binary.Float64,
 });

@@ -2,8 +2,8 @@
 import { Context } from 'nengi';
 import { NetworkType } from './NetworkType';
 import { playerEntitySchema } from './schemas/playerEntitySchema';
-import { staticObjectSchema } from './schemas/objectSchema';
-import { dynamicObjectSchema } from './schemas/objectSchema';
+import { staticObjectSchema } from './schemas/objectSchemas';
+import { dynamicObjectSchema } from './schemas/objectSchemas';
 import { identityMessageSchema } from './schemas/identityMessageSchema';
 import { moveCommand } from './schemas/moveCommand';
 import { usernameSchema } from './schemas/usernameSchema';
