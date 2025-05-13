@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.vscode
+# We build this inside the Dockerfile
+dist 
+# Add any other files/directories that aren't needed for the build or runtime
