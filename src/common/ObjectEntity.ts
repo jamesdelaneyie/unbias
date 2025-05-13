@@ -221,4 +221,15 @@ const createPhysicsShape = (entity: BaseObject): p2.Shape => {
       height: entity.height,
     });
   }
+
+  /*
+  const path = [
+        [-1, 1],
+        [-1, 0],
+        [1, 0],
+        [1, 1],
+        [0.5, 0.5],
+    ]
+    concaveBody.fromPolygon(path)
+    */
 };
