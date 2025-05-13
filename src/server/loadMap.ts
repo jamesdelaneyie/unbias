@@ -1,6 +1,6 @@
 import * as p2 from 'p2-es';
 import { ChannelAABB2D } from 'nengi';
-import { DynamicObject, StaticObject } from '../common/ObjectEntity';
+import { StaticObject } from '../common/ObjectEntity'; //DynamicObject,
 
 export const populateWorld = (
   main: ChannelAABB2D,
@@ -8,8 +8,8 @@ export const populateWorld = (
   ObjectEntities: Map<number, any>,
   dynamicEntities: Map<number, any>
 ): boolean => {
-  const color = 0xffffff;
-  const numObjects = 100;
+  /*const color = 0xffffff;
+  const numObjects = 10;
   const gridSize = 30;
 
   let objectsCreated = 0;
@@ -107,7 +107,21 @@ export const populateWorld = (
   const bottomWallObject = new StaticObject(bottomWall);
   main.addEntity(bottomWallObject);
   world.addBody(bottomWallObject.body);
-  ObjectEntities.set(bottomWallObject.nid, bottomWallObject);
+  ObjectEntities.set(bottomWallObject.nid, bottomWallObject);*/
+
+  const polygonTest = {
+    label: 'polygonTest',
+    shape: 'polygon',
+    x: 0,
+    y: 0,
+    vertices: '[[-7,-7], [7,-7], [7,7], [0, 13], [-7,7]]',
+    color: 0xff0000,
+  };
+
+  const polygonTestObject = new StaticObject(polygonTest);
+  main.addEntity(polygonTestObject);
+  world.addBody(polygonTestObject.body);
+  dynamicEntities.set(polygonTestObject.nid, polygonTestObject);
 
   return true;
 };

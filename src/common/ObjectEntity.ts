@@ -7,8 +7,6 @@ enum BodyType {
   KINEMATIC = 4,
 }
 
-type Point = [number, number];
-
 type BaseObjectConstructorParams = {
   label: string;
   x: number;
@@ -18,7 +16,7 @@ type BaseObjectConstructorParams = {
   height?: number;
   rotation?: number;
   radius?: number;
-  vertices?: Point[];
+  vertices?: string;
   color?: number;
   mass?: number;
 };
@@ -34,7 +32,7 @@ export class BaseObject {
   width: number;
   height: number;
   radius: number;
-  vertices: Point[];
+  vertices: string;
   color: number;
   mass: number;
 
@@ -63,7 +61,7 @@ export class BaseObject {
     this.width = width ?? 1;
     this.height = height ?? 1;
     this.radius = radius ?? 1;
-    this.vertices = vertices ?? [];
+    this.vertices = vertices ?? '';
   }
 }
 
@@ -84,6 +82,9 @@ export class StaticObject extends BaseObject {
   }: BaseObjectConstructorParams) {
     super({ label, x, y, rotation, shape, width, height, radius, vertices, color, mass });
     this.ntype = NetworkType.StaticObject;
+    const dimensions = getShapeDimensions(this);
+    this.width = dimensions.width;
+    this.height = dimensions.height;
     this.mass = 0;
     this.body = generateBody(this);
   }
@@ -117,6 +118,39 @@ export class DynamicObject extends BaseObject {
   }
 }
 
+const getShapeDimensions = (entity: BaseObject): { width: number; height: number } => {
+  if (entity.shape === 'circle') {
+    const diameter = (entity.radius ?? entity.width) * 2;
+    return {
+      width: diameter,
+      height: diameter,
+    };
+  } else if (entity.shape === 'polygon' && entity.vertices) {
+    const vertices = JSON.parse(entity.vertices);
+    let minX = Infinity,
+      maxX = -Infinity;
+    let minY = Infinity,
+      maxY = -Infinity;
+
+    vertices.forEach(([x, y]: [number, number]) => {
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    });
+
+    return {
+      width: maxX - minX,
+      height: maxY - minY,
+    };
+  } else {
+    return {
+      width: entity.width,
+      height: entity.height,
+    };
+  }
+};
+
 const generateBody = (entity: BaseObject): p2.Body => {
   const body = new p2.Body({
     mass: entity.mass,
@@ -132,14 +166,48 @@ const generateBody = (entity: BaseObject): p2.Body => {
 
 const createPhysicsShape = (entity: BaseObject): p2.Shape => {
   if (entity.shape === 'circle') {
-    return new p2.Circle({ radius: entity.radius ?? entity.width / 2 });
+    return new p2.Circle({
+      radius: entity.radius ?? entity.width / 2,
+    });
   } else if (entity.shape === 'polygon') {
     if (entity.vertices) {
-      return new p2.Convex({ vertices: entity.vertices });
+      const rawVertices: [number, number][] = JSON.parse(entity.vertices);
+
+      // Calculate bounding box center of rawVertices
+      let minX = Infinity,
+        maxX = -Infinity;
+      let minY = Infinity,
+        maxY = -Infinity;
+      rawVertices.forEach(([x, y]) => {
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+      });
+      const bbCenterX = (minX + maxX) / 2;
+      const bbCenterY = (minY + maxY) / 2;
+
+      // Shift vertices so their BB is centered at (0,0)
+      const centeredVertices = rawVertices.map(([x, y]): [number, number] => [
+        x - bbCenterX,
+        y - bbCenterY,
+      ]);
+
+      return new p2.Convex({
+        vertices: centeredVertices,
+      });
     } else {
-      return new p2.Box({ width: entity.width, height: entity.height });
+      // Fallback for polygon without vertices: treat as a box
+      return new p2.Box({
+        width: entity.width,
+        height: entity.height,
+      });
     }
   } else {
-    return new p2.Box({ width: entity.width, height: entity.height });
+    // Default to Box for unspecified or 'rectangle' shapes
+    return new p2.Box({
+      width: entity.width,
+      height: entity.height,
+    });
   }
 };

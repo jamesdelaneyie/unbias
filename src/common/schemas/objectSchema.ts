@@ -10,7 +10,7 @@ export const staticObjectSchema: Schema = defineSchema({
   width: Binary.UInt8,
   height: Binary.UInt8,
   radius: Binary.Float32,
-  vertices: Binary.Float32Array,
+  vertices: Binary.String,
   color: Binary.Float64,
 });
 

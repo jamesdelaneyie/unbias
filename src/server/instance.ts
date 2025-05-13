@@ -143,7 +143,7 @@ const update = () => {
     }
   }
 
-  world.step(worldConfig.worldStepRate * 2);
+  world.step(worldConfig.worldStepRate);
 
   world.on('beginContact', event => {
     const bodyA = event.bodyA;

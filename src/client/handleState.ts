@@ -11,6 +11,7 @@ import {
 import { createPlayerGraphics } from '@/client/graphics/playerGraphics';
 import { createObjectGraphics } from '@/client/graphics/objectGraphics';
 import { NetworkType } from '@/common/NetworkType';
+import { DynamicObject } from '@/common/ObjectEntity';
 
 const createPlayerEntity = (
   playerEntity: PlayerEntity,
@@ -149,6 +150,26 @@ const createObjectEntity = (
   };
 };
 
+const createDynamicObjectEntity = (
+  objectEntity: ObjectEntity,
+  worldContainer: Container
+  //app: Application,
+  //world: p2.World
+) => {
+  const object = new DynamicObject(objectEntity);
+  const { objectSprite, objectContainer } = createObjectGraphics(object);
+
+  objectEntity.clientGraphics = objectSprite;
+  worldContainer.addChild(objectContainer);
+  //world.addBody(object.body);
+
+  objectEntity.renderTarget = {
+    x: objectEntity.x,
+    y: objectEntity.y,
+    rotation: objectEntity.rotation,
+  };
+};
+
 const updateObjectEntity = (diff: IEntity, entities: ObjectEntityMap) => {
   const object = entities.get(diff.nid);
   if (!object) return;
@@ -209,7 +230,7 @@ const updateLocalStates = (
         const objectEntity = entity as ObjectEntity;
         entities.set(entity.nid, entity);
         objectEntities.set(entity.nid, objectEntity);
-        createObjectEntity(objectEntity, worldContainer, app, world);
+        createDynamicObjectEntity(objectEntity, worldContainer);
       }
     });
 

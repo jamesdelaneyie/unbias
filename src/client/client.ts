@@ -91,7 +91,7 @@ window.addEventListener('load', async () => {
 
     // update the physics world
     // applies velocities to the p2 bodies and updates their positions
-    world.step(worldConfig.worldStepRate * 2);
+    world.step(worldConfig.worldStepRate);
 
     // update the graphics of players and objects
     // based both on the prediction and the current network state

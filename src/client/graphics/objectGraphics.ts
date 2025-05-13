@@ -1,6 +1,5 @@
 import { Container, Graphics, Sprite } from 'pixi.js';
 import { ObjectEntity } from '@/common/types';
-//import { worldConfig } from '@/common/worldConfig';
 
 const createObjectGraphics = (object: any) => {
   // @ts-ignore Access PIXI app from global context
@@ -23,7 +22,15 @@ const createObjectGraphics = (object: any) => {
       .fill({ color: 0xffffff, alpha: 1 });
   } else if (object.shape === 'polygon') {
     if (object.vertices.length > 0) {
-      objectGraphics.poly(object.vertices, true);
+      const scaledVertices = JSON.parse(object.vertices).map(([x, y]: [number, number]) => [
+        x * 10,
+        y * 10,
+      ]);
+      const points = scaledVertices.flatMap(([x, y]: [number, number]) => [x, y]);
+      objectGraphics
+        .poly(points, true)
+        .stroke({ color: 0x000000, alpha: 1, width: 1, pixelLine: true })
+        .fill({ color: 0xffffff, alpha: 1 });
     }
   }
 
