@@ -1,4 +1,4 @@
-import { PredictionErrorFrame, PredictionErrorEntity, PredictionErrorProperty } from 'nengi';
+/*import { PredictionErrorFrame, PredictionErrorEntity, PredictionErrorProperty } from 'nengi';
 import { IEntityMap, PlayerEntity } from '@/common/types';
 import { worldConfig } from '@/common/worldConfig';
 
@@ -23,7 +23,7 @@ const reconcileEntities = (
 
     // Correct state and physics body
     predictionErrorEntity.errors.forEach((predictionError: PredictionErrorProperty) => {
-      const actualValue = predictionError.actualValue;
+      /*const actualValue = predictionError.actualValue;
 
       // Always update the entity state directly for nengi
       entity[predictionError.prop] = actualValue;
@@ -61,8 +61,8 @@ const reconcileEntities = (
       entity.body.position[1] = entity.y;
       entity.body.angle = entity.rotation;
     }
-    */
+   
   });
 };
 
-export default reconcileEntities;
+export default reconcileEntities; */

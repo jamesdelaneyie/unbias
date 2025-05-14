@@ -1,40 +1,28 @@
-    # ---- Builder Stage ----
-    FROM node:22.14.0-alpine AS builder
+# ---- Builder Stage ----
+# (Name this stage, e.g., app_builder, for Docker Compose to reference if needed, though direct copy is often simpler)
+FROM node:22-slim AS builder
+WORKDIR /usr/src/app
 
-    WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm ci
 
-    # Install dependencies
-    # Copy package.json and package-lock.json (or npm-shrinkwrap.json)
-    COPY package*.json ./
-    # Install all dependencies, including devDependencies needed for build
-    RUN npm ci
+COPY . .
+# This npm run build will create dist/server/main.js AND dist/public/*
+RUN npm run build
 
-    # Copy the rest of the application code
-    COPY . .
+# Prune devDependencies for the production stage if you copy node_modules
+# If you only copy dist and package.json, and run npm ci --omit=dev in prod stage, this is less critical here.
+RUN npm prune --production
 
-    # Build the application
-    # This runs 'npx tsc' as per your package.json
-    RUN npm run build
 
-    # Prune devDependencies for a cleaner production install
-    RUN npm prune --production
+# ---- Production Stage ----
+FROM node:22-slim
+WORKDIR /usr/src/app
 
-    # ---- Production Stage ----
-    FROM node:22.14.0-alpine
+# Copy essential files from builder
+COPY --from=builder /usr/src/app/package*.json ./
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/node_modules ./node_modules
 
-    WORKDIR /usr/src/app
-
-    # Copy built artifacts and production node_modules from the builder stage
-    COPY --from=builder /usr/src/app/dist ./dist
-    COPY --from=builder /usr/src/app/node_modules ./node_modules\
-    # Needed for npm to know how to run, and for metadata
-
-    COPY package*.json ./ 
-    # Expose the port your application runs on
-    # You'll need to replace 3000 with the actual port your server listens on.
-    # This might be defined in src/server/instance.ts or via an environment variable.
-    EXPOSE 3000
-
-    # Command to run the application
-    # Replace 'dist/server/instance.js' with the actual path to your compiled server entry point.
-    CMD [ "node", "dist/server/instance.js" ]
+# EXPOSE 9001 # Not strictly necessary if only accessed via Docker Compose network
+CMD [ "node", "dist/server/main.js" ]

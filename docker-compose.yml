@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: . # Path to your Node.js app's Dockerfile
+      dockerfile: Dockerfile # Explicitly name it if not default
+    container_name: unbias-node-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=9001 # Your app reads this (e.g., worldConfig.port)
+    # No ports exposed directly to host here; Nginx will handle that.
+
+  nginx:
+    image: nginx:alpine
+    container_name: unbias-nginx
+    restart: unless-stopped
+    ports:
+      - '9001:80'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./dist/public:/usr/share/nginx/html:ro # Mount local build output
+    depends_on:
+      - app
