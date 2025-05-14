@@ -24,7 +24,7 @@ const setupUI = (app: Application) => {
   UserInterfaceContainer.zIndex = 1000;
   app.stage.addChild(UserInterfaceContainer);
 
-  drawBasicText(UserInterfaceContainer, 'BIAS 2.0', 10, 10);
+  drawBasicText(UserInterfaceContainer, 'UNBIAS', 10, 10);
 
   UserInterfaceContainer.layout = {
     width: app.screen.width,

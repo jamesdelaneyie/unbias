@@ -1,4 +1,4 @@
-# BIAS2
+# UNBIAS
 
 A multiplayer environment. Networked with nengi.js, rendered by pixi.js and made physical with p2.js.
 
@@ -8,7 +8,7 @@ A multiplayer environment. Networked with nengi.js, rendered by pixi.js and made
 
    ```bash
    git clone <repository-url>
-   cd bias2
+   cd unbias
    ```
 
 2. Install dependencies:
