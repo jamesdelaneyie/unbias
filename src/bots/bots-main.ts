@@ -18,11 +18,10 @@ async function createBot() {
   // this is the only thing that clears the network data
   // otherwise the client will just hoard it until it crashes
   const interpolator = new Interpolator(client);
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const host = window.location.host;
-  const hostArray = host.split(':');
-  const port = 9001; // Includes port if non-standard (e.g., yourdomain.com:9001)
-  const wsUrl = `${protocol}//${hostArray[0]}:${port}/`;
+  const protocol = 'ws:';
+  const host = 'localhost';
+  const port = 9001;
+  const wsUrl = `${protocol}//${host}:${port}/`;
   await client.connect(wsUrl, { token: 12345 });
   const username = Array.from({ length: 3 }, () =>
     String.fromCharCode(65 + Math.floor(Math.random() * 26))
