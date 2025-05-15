@@ -7,7 +7,11 @@ let reconnectTimeout: number | null = null;
 
 const connectToServer = async (client: Client) => {
   try {
-    const res = await client.connect('ws://localhost:9001', { token: 12345 });
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host; // Includes port if non-standard (e.g., yourdomain.com:9001)
+    const wsUrl = `${protocol}//${host}/`; // Assumes WebSocket is at the root path via Nginx
+
+    const res = await client.connect(wsUrl, { token: 12345 });
     if (res === 'accepted') {
       notificationService.addNotification(
         reconnectAttempts > 0 ? 'Reconnected to server' : 'Connected to server',
