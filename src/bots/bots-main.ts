@@ -91,4 +91,4 @@ setInterval(
   (1 / 30) * 1000
 );
 
-connectBots(50);
+connectBots(5);
