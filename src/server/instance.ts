@@ -134,9 +134,9 @@ const update = () => {
                 relativePoint
               );
 
-              console.log(
-                `DIRECT HIT on object ${hitEntity.nid} world hit [${hitX}, ${hitY}] relative ${relativePoint}`
-              );
+              //console.log(
+              //  `DIRECT HIT on object ${hitEntity.nid} world hit [${hitX}, ${hitY}] relative ${relativePoint}`
+              //);
             }
           }
         });

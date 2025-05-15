@@ -21,6 +21,8 @@ type InputState = {
 export class InputSystem {
   frameState: InputState;
   currentState: InputState;
+  private lastShotTime: number;
+  private shotCooldown: number = 500;
   private keyMapping: KeyMapping = {
     w: 'w',
     ArrowUp: 'w',
@@ -33,7 +35,19 @@ export class InputSystem {
     Space: 'space',
     ' ': 'space',
   };
+  private shotQueuedForNextFrame: boolean = false;
+
   constructor() {
+    this.lastShotTime = 0;
+    console.log(
+      'InputSystem constructor: Initial lastShotTime:',
+      this.lastShotTime,
+      'Current Date.now():',
+      Date.now(),
+      'shotCooldown:',
+      this.shotCooldown
+    );
+
     this.currentState = {
       w: false,
       s: false,
@@ -52,7 +66,6 @@ export class InputSystem {
       const stateKey = this.keyMapping[event.key];
       if (stateKey) {
         this.currentState[stateKey] = true;
-        this.frameState[stateKey] = true;
       }
     });
 
@@ -70,6 +83,20 @@ export class InputSystem {
 
     document.addEventListener('mousedown', () => {
       this.currentState.leftClick = true;
+      const now = Date.now();
+      if (now - this.lastShotTime >= this.shotCooldown) {
+        this.shotQueuedForNextFrame = true;
+        this.lastShotTime = now;
+      } else {
+        console.log(
+          'Shot cooldown not met. Now:',
+          now,
+          'LastShotTime:',
+          this.lastShotTime,
+          'Diff:',
+          now - this.lastShotTime
+        );
+      }
     });
 
     document.addEventListener('mouseup', () => {
@@ -83,9 +110,24 @@ export class InputSystem {
     });
   }
 
-  releaseKeys() {
-    Object.assign(this.frameState, this.currentState);
+  prepareFrameInput() {
+    this.frameState.w = this.currentState.w;
+    this.frameState.s = this.currentState.s;
+    this.frameState.a = this.currentState.a;
+    this.frameState.d = this.currentState.d;
+    this.frameState.space = this.currentState.space;
+    this.frameState.mx = this.currentState.mx;
+    this.frameState.my = this.currentState.my;
+    this.frameState.rotation = this.currentState.rotation;
+
+    if (this.shotQueuedForNextFrame) {
+      this.frameState.leftClick = true;
+      this.shotQueuedForNextFrame = false;
+    } else {
+      this.frameState.leftClick = false;
+    }
   }
+
   resetKeys() {
     this.currentState = {
       w: false,
@@ -98,5 +140,6 @@ export class InputSystem {
       my: this.currentState.my,
       leftClick: false,
     };
+    this.shotQueuedForNextFrame = false;
   }
 }

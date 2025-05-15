@@ -33,6 +33,9 @@ const handleShot = (
   let endX = tx;
   let endY = ty;
 
+  // Draw visual effect
+  drawHitscan(worldContainer, x, y, endX, endY, 0xffffff);
+
   if (result.hasHit()) {
     // Get precise hit coordinates
     const hitPoint = result.getHitPoint([], ray);
@@ -64,15 +67,15 @@ const handleShot = (
         console.warn('Could not find object nid for hit body');
       }
       // Calculate the exact vector based on the ray's direction
-      const vectorX = to[0] - from[0];
-      const vectorY = to[1] - from[1];
-      const magnitude = Math.sqrt(vectorX * vectorX + vectorY * vectorY);
-      const normalizedX = vectorX / magnitude;
-      const normalizedY = vectorY / magnitude;
+      //const vectorX = to[0] - from[0];
+      //const vectorY = to[1] - from[1];
+      //const magnitude = Math.sqrt(vectorX * vectorX + vectorY * vectorY);
+      //const normalizedX = vectorX / magnitude;
+      //const normalizedY = vectorY / magnitude;
 
       // Log hit information for debugging
-      console.log(`Shot hit: ${result.body.id} at exact point [${endX}, ${endY}]`);
-      console.log(`Shot vector: [${normalizedX}, ${normalizedY}]`);
+      //console.log(`Shot hit: ${result.body.id} at exact point [${endX}, ${endY}]`);
+      //console.log(`Shot vector: [${normalizedX}, ${normalizedY}]`);
 
       client.addCommand({
         ntype: NetworkType.ShotImpactCommand,
@@ -82,13 +85,10 @@ const handleShot = (
         fromY: y,
         hitX: endX,
         hitY: endY,
-        impactForce: 20, // Even more force for clarity
+        impactForce: 200, // Even more force for clarity
       });
     }
   }
-
-  // Draw visual effect
-  drawHitscan(worldContainer, x, y, endX, endY, 0xffffff);
 };
 
 export { handleShot };

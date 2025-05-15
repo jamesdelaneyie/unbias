@@ -8,9 +8,12 @@ let reconnectTimeout: number | null = null;
 const connectToServer = async (client: Client) => {
   try {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host; // Includes port if non-standard (e.g., yourdomain.com:9001)
-    const wsUrl = `${protocol}//${host}/`; // Assumes WebSocket is at the root path via Nginx
+    const host = window.location.host;
+    const hostArray = host.split(':');
 
+    const port = 9001; // Includes port if non-standard (e.g., yourdomain.com:9001)
+    const wsUrl = `${protocol}//${hostArray[0]}:${port}/`; // Assumes WebSocket is at the root path via Nginx
+    console.log('Connecting to server at:', wsUrl);
     const res = await client.connect(wsUrl, { token: 12345 });
     if (res === 'accepted') {
       notificationService.addNotification(

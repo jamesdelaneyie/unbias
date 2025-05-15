@@ -19,8 +19,8 @@ const handleUserInput = (
 ) => {
   if (document.hidden) return;
 
+  inputSystem.prepareFrameInput();
   const inputState = inputSystem.frameState;
-  inputSystem.releaseKeys();
 
   const { myId } = worldState;
   const myEntity = playerEntities.get(myId);
