@@ -11,7 +11,7 @@ import {
 import { createPlayerGraphics } from '@/client/graphics/playerGraphics';
 import { createObjectGraphics } from '@/client/graphics/objectGraphics';
 import { NetworkType } from '@/common/NetworkType';
-import { DynamicObject } from '@/common/ObjectEntity';
+import { DynamicObject, StaticObject } from '@/common/ObjectEntity';
 
 const createPlayerEntity = (
   playerEntity: PlayerEntity,
@@ -126,6 +126,7 @@ const createObjectEntity = (
     mass: objectEntity.mass,
     position: [objectEntity.x, objectEntity.y],
     angle: objectEntity.rotation,
+    angularVelocity: 1,
     damping: 0.97,
     angularDamping: 0.999,
     type: objectEntity.bodyType,
@@ -134,6 +135,7 @@ const createObjectEntity = (
     width: objectEntity.width,
     height: objectEntity.height,
   });
+  console.log('checker');
 
   const { objectSprite, objectContainer } = createObjectGraphics(objectEntity);
   objectEntity.clientGraphics = objectSprite;
@@ -148,6 +150,48 @@ const createObjectEntity = (
     y: objectEntity.y,
     rotation: objectEntity.rotation,
   };
+};
+
+const createStaticObjectEntity = (
+  objectEntity: ObjectEntity,
+  worldContainer: Container,
+  app: Application,
+  world: p2.World
+) => {
+  const object = new StaticObject(objectEntity);
+  const { objectSprite, objectContainer } = createObjectGraphics(object);
+  objectEntity.clientGraphics = objectSprite;
+  worldContainer.addChild(objectContainer);
+  world.addBody(object.body);
+  return object;
+  /*const objectBody = new p2.Body({
+    mass: objectEntity.mass,
+    position: [objectEntity.x, objectEntity.y],
+    angle: objectEntity.rotation,
+    angularVelocity: 1,
+    damping: 0.97,
+    angularDamping: 0.999,
+    type: objectEntity.bodyType,
+  });
+  const objectShape = new p2.Box({
+    width: objectEntity.width,
+    height: objectEntity.height,
+  });
+  console.log('checker');
+
+  const { objectSprite, objectContainer } = createObjectGraphics(objectEntity);
+  objectEntity.clientGraphics = objectSprite;
+  worldContainer.addChild(objectContainer);
+  objectBody.addShape(objectShape);
+  world.addBody(objectBody);
+
+  objectEntity.body = objectBody;
+
+  objectEntity.renderTarget = {
+    x: objectEntity.x,
+    y: objectEntity.y,
+    rotation: objectEntity.rotation,
+  };*/
 };
 
 const createDynamicObjectEntity = (
@@ -227,7 +271,7 @@ const updateLocalStates = (
         const objectEntity = entity as ObjectEntity;
         entities.set(entity.nid, entity);
         objectEntities.set(entity.nid, objectEntity);
-        createObjectEntity(objectEntity, worldContainer, app, world);
+        createStaticObjectEntity(objectEntity, worldContainer, app, world);
       } else if (entity.ntype === NetworkType.DynamicObject) {
         const objectEntity = entity as ObjectEntity;
         const object = createDynamicObjectEntity(objectEntity, worldContainer, world);

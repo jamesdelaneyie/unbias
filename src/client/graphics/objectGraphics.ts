@@ -10,22 +10,24 @@ const createObjectGraphics = (object: any) => {
 
   const objectGraphics = new Graphics();
 
+  const objectColor = object.color ?? 0xffffff;
+
   if (object.shape === 'rectangle') {
     objectGraphics
       .rect(0, 0, object.width * 10, object.height * 10)
-      .fill({ color: 0xffffff, alpha: 1 });
+      .fill({ color: objectColor, alpha: 1 });
     if (object.stroke) {
       objectGraphics.stroke({ color: object.stroke, alpha: 1, width: 1, pixelLine: true });
     }
   } else if (object.shape === 'circle') {
-    objectGraphics.circle(0, 0, object.radius * 10).fill({ color: 0xffffff, alpha: 1 });
+    objectGraphics.circle(0, 0, object.radius * 10).fill({ color: objectColor, alpha: 1 });
     if (object.stroke) {
       objectGraphics.stroke({ color: object.stroke, alpha: 1, width: 1, pixelLine: true });
     }
   } else if (object.shape === 'capsule') {
     objectGraphics
       .roundRect(0, 0, object.width * 10, object.height * 10, object.radius * 10)
-      .fill({ color: 0xffffff, alpha: 1 });
+      .fill({ color: objectColor, alpha: 1 });
     if (object.stroke) {
       objectGraphics.stroke({ color: object.stroke, alpha: 1, width: 1, pixelLine: true });
     }
@@ -36,7 +38,7 @@ const createObjectGraphics = (object: any) => {
         y * 10,
       ]);
       const points = scaledVertices.flatMap(([x, y]: [number, number]) => [x, y]);
-      objectGraphics.poly(points, true).fill({ color: 0xffffff, alpha: 1 });
+      objectGraphics.poly(points, true).fill({ color: objectColor, alpha: 1 });
       if (object.stroke) {
         objectGraphics.stroke({ color: object.stroke, alpha: 1, width: 1, pixelLine: true });
       }

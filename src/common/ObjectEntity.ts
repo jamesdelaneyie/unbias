@@ -164,7 +164,7 @@ const generateBody = (entity: BaseObject): p2.Body => {
     angle: entity.rotation,
     //damping: 0.97,
     //angularDamping: 0.999,
-    ccdSpeedThreshold: 0.1,
+    //ccdSpeedThreshold: 0.1,
   });
   body.addShape(createPhysicsShape(entity));
   return body;
@@ -176,9 +176,22 @@ const createPhysicsShape = (entity: BaseObject): p2.Shape => {
       radius: entity.radius ?? entity.width / 2,
     });
   } else if (entity.shape === 'capsule') {
+    // A capsule's radius corresponds to the "thickness" of the pill (the half-height),
+    // while its length is the distance between the two semicircle centers (i.e. the
+    // overall width minus the two radii). Using the width to derive the radius causes
+    // degenerate (circle-only) capsules when width > height. The correct default is
+    // to derive the radius from the *height*.
+
+    // Determine radius: prefer explicit radius, otherwise use half of the height.
+    const radius = entity.radius ?? entity.height / 2;
+
+    // Ensure non-negative length. If the provided width is smaller than the diameter
+    // we fall back to zero (which results in a pure circle – still valid).
+    const length = Math.max(0, entity.width - radius * 2);
+
     return new p2.Capsule({
-      radius: entity.radius ?? entity.width / 2,
-      length: entity.width - entity.radius * 2,
+      radius,
+      length,
     });
   } else if (entity.shape === 'polygon') {
     if (entity.vertices) {

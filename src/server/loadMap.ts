@@ -9,7 +9,7 @@ export const populateWorld = (
   dynamicEntities: Map<number, any>
 ): boolean => {
   const color = 0xffffff;
-  const numObjects = 10;
+  const numObjects = 0;
   const gridSize = 30;
 
   let objectsCreated = 0;

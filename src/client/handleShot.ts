@@ -14,30 +14,51 @@ const handleShot = (
   client: any,
   objectEntities: ObjectEntityMap
 ) => {
+  /*
+  var result = new p2.RaycastResult();
+  var hitPoint = p2.vec2.create();
+  var rayClosest = new p2.Ray({
+    mode: p2.Ray.CLOSEST,
+  });
+
+  p2.vec2.copy(rayClosest.from, [x, y]);
+  p2.vec2.copy(rayClosest.to, [tx, ty]);
+  rayClosest.update();
+  result.reset();
+  world.raycast(result, rayClosest);
+  result.getHitPoint(hitPoint, rayClosest);
+
+  const debugMarker = new Graphics()
+    .circle(hitPoint[0], hitPoint[1], 0.3)
+    .fill({ color: 0xff0000 });
+  debugMarker.zIndex = 100;
+  worldContainer.addChild(debugMarker);
+  */
   // Create ray from origin to target with precise settings
   const from = [x, y];
   const to = [tx, ty];
   const ray = new p2.Ray({
     from: from,
     to: to,
-    mode: p2.Ray.CLOSEST,
-    skipBackfaces: true,
-    collisionMask: 0xffffffff, // Ensure we check against all collision groups
+    mode: p2.Ray.ALL,
+    collisionMask: 0xffffffff,
+    callback: function (result) {
+      console.log(result);
+    }, // Ensure we check against all collision groups
   });
+  // Ensure internal ray data (direction, aabb) is up-to-date before raycasting
+  ray.update();
 
   // Prepare result container
   const result = new p2.RaycastResult();
+  console.log(result);
   world.raycast(result, ray);
 
-  // Determine endpoint
+  // Determine endpoint based on raycast result
   let endX = tx;
   let endY = ty;
-
-  // Draw visual effect
-  drawHitscan(worldContainer, x, y, endX, endY, 0xffffff);
-
   if (result.hasHit()) {
-    // Get precise hit coordinates
+    // Get precise hit coordinates on the actual shape surface
     const hitPoint = result.getHitPoint([], ray);
     endX = hitPoint[0];
     endY = hitPoint[1];
@@ -66,16 +87,6 @@ const handleShot = (
       if (targetNid === 0) {
         console.warn('Could not find object nid for hit body');
       }
-      // Calculate the exact vector based on the ray's direction
-      //const vectorX = to[0] - from[0];
-      //const vectorY = to[1] - from[1];
-      //const magnitude = Math.sqrt(vectorX * vectorX + vectorY * vectorY);
-      //const normalizedX = vectorX / magnitude;
-      //const normalizedY = vectorY / magnitude;
-
-      // Log hit information for debugging
-      //console.log(`Shot hit: ${result.body.id} at exact point [${endX}, ${endY}]`);
-      //console.log(`Shot vector: [${normalizedX}, ${normalizedY}]`);
 
       client.addCommand({
         ntype: NetworkType.ShotImpactCommand,
@@ -89,6 +100,9 @@ const handleShot = (
       });
     }
   }
+
+  // Draw visual effect AFTER we know the final end point of the hitscan
+  drawHitscan(worldContainer, x, y, endX, endY, 0xffffff);
 };
 
 export { handleShot };
