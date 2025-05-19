@@ -40,8 +40,9 @@ const handleShot = (
   const ray = new p2.Ray({
     from: from,
     to: to,
-    mode: p2.Ray.ALL,
+    mode: p2.Ray.CLOSEST,
     collisionMask: 0xffffffff,
+    skipBackfaces: true,
     callback: function (result) {
       console.log(result);
     }, // Ensure we check against all collision groups
@@ -51,6 +52,7 @@ const handleShot = (
 
   // Prepare result container
   const result = new p2.RaycastResult();
+  console.log('result', result);
   console.log(result);
   world.raycast(result, ray);
 
@@ -86,6 +88,7 @@ const handleShot = (
       }
       if (targetNid === 0) {
         console.warn('Could not find object nid for hit body');
+        console.log(result.body);
       }
 
       client.addCommand({

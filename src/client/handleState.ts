@@ -65,6 +65,8 @@ const createPlayerEntity = (
     rotation: playerEntity.rotation,
   };
 
+  playerEntity.body.label = 'player';
+
   playerBody.addShape(playerShape);
   world.addBody(playerBody);
 };
@@ -77,6 +79,12 @@ const updatePlayerEntity = (diff: IEntity, worldState: any, entities: IEntityMap
   if (!player) return;
 
   if (diff.nid === worldState.myId) {
+    if (property === 'x') {
+      player.body.position[0] = value;
+    }
+    if (property === 'y') {
+      player.body.position[1] = value;
+    }
     if (property === 'rotation') {
       player.rotation = value;
     }
@@ -267,7 +275,9 @@ const updateLocalStates = (
         entities.set(entity.nid, entity);
         playerEntities.set(entity.nid, playerEntity);
         createPlayerEntity(playerEntity, worldContainer, app, world);
+        console.log('player entity');
       } else if (entity.ntype === NetworkType.StaticObject) {
+        console.log('static object');
         const objectEntity = entity as ObjectEntity;
         entities.set(entity.nid, entity);
         objectEntities.set(entity.nid, objectEntity);

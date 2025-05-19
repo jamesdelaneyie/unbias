@@ -95,11 +95,20 @@ const handleUserInput = (
       playerEntitySchema
     );
 
+    // Calculate nose tip position based on player position and rotation
+    const noseLength = myEntity.size * 0.8666; // Same as nose shape length in createPlayerEntity
+    const noseTipX = myEntity.x + Math.cos(rotation) * noseLength;
+    const noseTipY = myEntity.y + Math.sin(rotation) * noseLength;
+
+    // Update prediction to use nose tip position
+    //prediction.x = noseTipX;
+    //prediction.y = noseTipY;
+
     if (inputState.leftClick) {
       handleShot(
         world,
-        myEntity.x,
-        myEntity.y,
+        noseTipX,
+        noseTipY,
         point.x,
         point.y,
         worldContainer,
