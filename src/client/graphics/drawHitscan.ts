@@ -9,12 +9,11 @@ const drawHitscan = (
   color: number // This is the beam color, let's keep it for the line
 ) => {
   const duration = 350; // Duration for visuals to remain visible
-  console.log('drawHitscan', x, y, targetX, targetY, color);
   // Graphics for the beam line
   const lineGraphics = new Graphics()
     .moveTo(x, y)
     .lineTo(targetX, targetY)
-    .stroke({ width: 1, color: 0xffffff, pixelLine: true });
+    .stroke({ width: 1, color: color, pixelLine: true });
   lineGraphics.zIndex = 1;
   layer.addChild(lineGraphics);
 

@@ -15,6 +15,9 @@ import { updateGraphics } from '@/client/graphics/updateGraphics';
 import { updatePerformanceStats } from './GPUUI';
 import { worldConfig } from '@/common/worldConfig';
 import { handlePredictionErrors } from '@/client/handlePredictionError';
+import Stats from 'stats.js';
+import { drawHitscan } from '@/client/graphics/drawHitscan';
+
 let connectedToServer = false;
 
 let entities: IEntityMap = new Map();
@@ -36,6 +39,18 @@ window.addEventListener('load', async () => {
     networkBytesOut: 0,
   };
   setupUI(app);
+
+  const fpsStats = new Stats();
+  fpsStats.showPanel(0);
+  const msStats = new Stats();
+  msStats.showPanel(1);
+  msStats.dom.style.left = '80px';
+  const memoryStats = new Stats();
+  memoryStats.showPanel(2);
+  memoryStats.dom.style.left = '160px';
+  document.body.appendChild(fpsStats.dom);
+  document.body.appendChild(msStats.dom);
+  document.body.appendChild(memoryStats.dom);
 
   const worldState = {
     myId: null,
@@ -71,6 +86,9 @@ window.addEventListener('load', async () => {
         console.log('IdentityMessage', message);
         worldState.myId = message.myId;
         console.log(worldState);
+      }
+      if (message.ntype === NetworkType.ShotImpactMessage) {
+        drawHitscan(worldContainer, message.fromX, message.fromY, message.x, message.y, 0x0000ff);
       }
       performanceStats.networkMessages++;
     }
@@ -117,7 +135,13 @@ window.addEventListener('load', async () => {
 
   let prev = performance.now();
   const loop = () => {
+    fpsStats.begin();
+    msStats.begin();
+    memoryStats.begin();
     window.requestAnimationFrame(loop);
+    fpsStats.end();
+    msStats.end();
+    memoryStats.end();
     const now = performance.now();
     const delta = (now - prev) / 1000;
     prev = now;

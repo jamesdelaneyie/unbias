@@ -44,11 +44,13 @@
     "nengi-ws-client-adapter": "^0.3.0",
     "p2-es": "^1.2.3",
     "pixi-tagged-text-plus": "^0.0.1-next.2",
-    "pixi.js": "^8.9.1"
+    "pixi.js": "^8.9.1",
+    "stats.js": "^0.17.0"
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.6",
     "@types/node": "^20.11.24",
+    "@types/stats.js": "^0.17.4",
     "@typescript-eslint/eslint-plugin": "^8.31.0",
     "@typescript-eslint/parser": "^8.31.0",
     "concurrently": "^8.2.2",

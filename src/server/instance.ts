@@ -1,6 +1,6 @@
 import { NetworkType } from '../common/NetworkType';
 import { ncontext } from '../common/ncontext';
-import { Instance, NetworkEvent, ChannelAABB2D, Historian, AABB2D } from 'nengi';
+import { Instance, NetworkEvent, ChannelAABB2D, Historian, AABB2D, User } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
 import { Command, MoveCommand, ObjectEntity, UsernameCommand, Entity } from '../common/types';
 import { PlayerEntity } from '../common/PlayerEntity';
@@ -18,6 +18,8 @@ uws.listen(worldConfig.port, () => {
 
 const historian = new Historian(ncontext, worldConfig.serverTickRate);
 const main = new ChannelAABB2D(instance.localState, historian);
+//const main = new Channel(instance.localState, historian);
+const users = new Map<number, User>();
 
 const staticEntities: Map<number, Entity> = new Map();
 const dynamicEntities: Map<number, Entity> = new Map();
@@ -49,7 +51,7 @@ const update = () => {
     if (networkEvent.type === NetworkEvent.UserConnected) {
       const { user } = networkEvent;
       //console.log('user connected', user);
-      const viewSize = 1100;
+      const viewSize = 2200;
       const view = new AABB2D(0, 0, viewSize, viewSize);
       main.subscribe(user, view);
     }
@@ -83,9 +85,11 @@ const update = () => {
               const player = createPlayerEntity(user, usernameCommand);
               if (player) {
                 main.addEntity(player);
+                main.subscribe(user, player.view);
                 world.addBody(player.body);
                 playerEntities.set(player.nid, player);
                 dynamicEntities.set(player.nid, player);
+                users.set(user.id, user);
                 console.log('player created', player?.username);
                 user.queueMessage({
                   myId: player.nid,
@@ -117,7 +121,7 @@ const update = () => {
 
             // Find the directly hit entity
             const hitEntity = dynamicEntities.get(impactCommand.targetNid);
-
+            //console.log('hitEntity', hitEntity);
             //lagCompensatedHitscanCheck
             //const hitEntity = lagCompensatedHitscanCheck(main, world, fromX, fromY, hitX, hitY, 0.1);
 
@@ -133,10 +137,16 @@ const update = () => {
                 [normalizedX * force, normalizedY * force],
                 relativePoint
               );
-
-              //console.log(
-              //  `DIRECT HIT on object ${hitEntity.nid} world hit [${hitX}, ${hitY}] relative ${relativePoint}`
-              //);
+              // local messages must include x and y for view culling
+              main.addMessage({
+                ntype: NetworkType.ShotImpactMessage,
+                targetNid: hitEntity.nid,
+                x: hitX,
+                y: hitY,
+                fromX: fromX,
+                fromY: fromY,
+                force: impactCommand.impactForce,
+              });
             }
           }
         });

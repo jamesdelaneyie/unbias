@@ -65,8 +65,6 @@ const createPlayerEntity = (
     rotation: playerEntity.rotation,
   };
 
-  playerEntity.body.label = 'player';
-
   playerBody.addShape(playerShape);
   world.addBody(playerBody);
 };
