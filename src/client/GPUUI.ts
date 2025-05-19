@@ -1,5 +1,6 @@
 import '@pixi/layout';
-import { Application, Container } from 'pixi.js'; //HTMLText, Text
+import { Client } from 'nengi';
+import { Application, Container, Text } from 'pixi.js'; //HTMLText, Text
 import TaggedTextPlus from 'pixi-tagged-text-plus';
 import { createGridGraphics } from '@/client/graphics/mapGraphics';
 //import { TextDecoration } from 'pixi-tagged-text-plus/dist/types';
@@ -18,6 +19,33 @@ const drawBasicText = (masterContainer: Container, text: string, x: number, y: n
   masterContainer.addChild(taggedText);
 };
 
+const updatePerformanceStats = (
+  delta: number,
+  client: Client,
+  performanceStats: any,
+  app: Application
+) => {
+  const fps = delta > 0 ? 1 / delta : 0;
+  const clientTick = client.network.clientTick;
+  const latency = client.network.latency;
+  const avgTimeDifference = client.network.chronus.averageTimeDifference;
+  performanceStats.fps = fps;
+  performanceStats.clientTick = clientTick;
+  performanceStats.latency = latency;
+  performanceStats.avgTimeDifference = avgTimeDifference;
+  // @ts-ignore
+  performanceStats.memory = Math.round(performance.memory.usedJSHeapSize / (1024 * 1024));
+  // @ts-ignore
+  performanceStats.totalMemory = Math.round(performance.memory.totalJSHeapSize / (1024 * 1024));
+  // @ts-ignore
+  const statsText = app.stage
+    .getChildByLabel('UserInterfaceContainer')
+    .getChildByLabel('StatsContainer')
+    .getChildByLabel('StatsText');
+  // @ts-ignore
+  statsText.text = `fps: ${fps.toFixed(2)}\nclientTick: ${clientTick}\nlatency: ${latency}ms\navgTimeDifference: ${avgTimeDifference.toFixed(2)}s\nmemory: ${performanceStats.memory}\ntotalMemory: ${performanceStats.totalMemory}\nnetworkMessages: ${performanceStats.networkMessages}`;
+};
+
 const setupUI = (app: Application) => {
   const UserInterfaceContainer = new Container();
   UserInterfaceContainer.label = 'UserInterfaceContainer';
@@ -29,9 +57,31 @@ const setupUI = (app: Application) => {
   UserInterfaceContainer.layout = {
     width: app.screen.width,
     height: app.screen.height,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    padding: 10,
   };
+
+  const statsContainer = new Container();
+  statsContainer.label = 'StatsContainer';
+  statsContainer.zIndex = 1000;
+  statsContainer.layout = true;
+  app.stage.addChild(statsContainer);
+
+  const statsText = new Text({
+    text: ``,
+    style: {
+      fill: 'white',
+      fontSize: 10,
+    },
+  });
+  statsText.label = 'StatsText';
+  statsText.layout = true;
+  statsText.alpha = 1;
+  statsContainer.addChild(statsText);
+
+  UserInterfaceContainer.addChild(statsContainer);
+
   /*
   const textContainer = new Container({
     layout: {
@@ -162,4 +212,4 @@ const setupGraphicsWorld = (app: Application) => {
   return worldContainer;
 };
 
-export { drawBasicText, setupUI, setupGraphicsWorld };
+export { drawBasicText, setupUI, setupGraphicsWorld, updatePerformanceStats };

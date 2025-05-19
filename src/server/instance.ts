@@ -26,7 +26,7 @@ const playerEntities: Map<number, PlayerEntity> = new Map();
 
 const world = new p2.World({ gravity: [0, 10], islandSplit: true });
 // @ts-ignore
-world.solver.iterations = 30;
+world.solver.iterations = 10;
 world.defaultContactMaterial.friction = 0;
 world.defaultContactMaterial.restitution = 0.1;
 

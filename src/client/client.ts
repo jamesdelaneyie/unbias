@@ -12,6 +12,7 @@ import { IEntityMap, PlayerEntityMap, ObjectEntityMap } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
 import { updateGraphics } from '@/client/graphics/updateGraphics';
+import { updatePerformanceStats } from './GPUUI';
 import { worldConfig } from '@/common/worldConfig';
 import { handlePredictionErrors } from '@/client/handlePredictionError';
 let connectedToServer = false;
@@ -23,6 +24,17 @@ let objectEntities: ObjectEntityMap = new Map();
 window.addEventListener('load', async () => {
   const app = await initRenderer();
   const worldContainer = setupGraphicsWorld(app);
+  const performanceStats = {
+    fps: 0,
+    clientTick: 0,
+    latency: 0,
+    avgTimeDifference: 0,
+    memory: 0,
+    totalMemory: 0,
+    networkMessages: 0,
+    networkBytesIn: 0,
+    networkBytesOut: 0,
+  };
   setupUI(app);
 
   const worldState = {
@@ -33,7 +45,7 @@ window.addEventListener('load', async () => {
     islandSplit: true,
   });
   // @ts-ignore
-  world.solver.iterations = 20;
+  world.solver.iterations = 10;
   world.defaultContactMaterial.friction = 0;
   world.defaultContactMaterial.restitution = 0.1;
 
@@ -60,6 +72,7 @@ window.addEventListener('load', async () => {
         worldState.myId = message.myId;
         console.log(worldState);
       }
+      performanceStats.networkMessages++;
     }
 
     updateLocalStates(
@@ -96,6 +109,8 @@ window.addEventListener('load', async () => {
     // update the graphics of players and objects
     // based both on the prediction and the current network state
     updateGraphics(prediction, playerEntities, objectEntities, delta);
+
+    updatePerformanceStats(delta, client, performanceStats, app);
 
     client.flush();
   };
