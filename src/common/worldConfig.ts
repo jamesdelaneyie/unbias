@@ -10,4 +10,5 @@ export const worldConfig = {
   playerSmoothing: 12,
   objectSmoothing: 12,
   reconciliationSmoothing: 10,
+  shotForce: 200,
 };

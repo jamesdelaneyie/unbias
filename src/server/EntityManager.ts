@@ -1,6 +1,7 @@
 import { User, AABB2D, ChannelAABB2D } from 'nengi';
 import { PlayerEntity } from '../common/PlayerEntity';
 import { UsernameCommand } from '../common/types';
+import { World } from 'p2-es';
 
 const createPlayerEntity = (user: User, usernameCommand: UsernameCommand) => {
   try {
@@ -19,7 +20,8 @@ const createPlayerEntity = (user: User, usernameCommand: UsernameCommand) => {
 const deletePlayerEntity = (
   user: User,
   main: ChannelAABB2D,
-  playerEntities: Map<number, PlayerEntity>
+  playerEntities: Map<number, PlayerEntity>,
+  world: World
 ) => {
   try {
     const playerEntity = Array.from(playerEntities.values()).find(entity => entity.id === user.id);
@@ -27,6 +29,7 @@ const deletePlayerEntity = (
       const nId = playerEntity.nid;
       main.unsubscribe(user);
       main.removeEntity(playerEntity);
+      world.removeBody(playerEntity.body);
       playerEntities.delete(nId);
     }
   } catch (error) {

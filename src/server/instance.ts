@@ -1,6 +1,6 @@
 import { NetworkType } from '../common/NetworkType';
 import { ncontext } from '../common/ncontext';
-import { Instance, NetworkEvent, ChannelAABB2D, Historian, AABB2D, User } from 'nengi';
+import { Instance, NetworkEvent, ChannelAABB2D, Historian, AABB2D, User, Channel } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
 import { Command, MoveCommand, ObjectEntity, UsernameCommand, Entity } from '../common/types';
 import { PlayerEntity } from '../common/PlayerEntity';
@@ -17,8 +17,8 @@ uws.listen(worldConfig.port, () => {
 });
 
 const historian = new Historian(ncontext, worldConfig.serverTickRate);
-const main = new ChannelAABB2D(instance.localState, historian);
-//const main = new Channel(instance.localState, historian);
+const space = new ChannelAABB2D(instance.localState, historian);
+const main = new Channel(instance.localState);
 const users = new Map<number, User>();
 
 const staticEntities: Map<number, Entity> = new Map();
@@ -45,7 +45,7 @@ const update = () => {
     const networkEvent = queue.next();
 
     if (!worldPopulated) {
-      worldPopulated = populateWorld(main, world, staticEntities, dynamicEntities);
+      worldPopulated = populateWorld(space, world, staticEntities, dynamicEntities);
     }
 
     if (networkEvent.type === NetworkEvent.UserConnected) {
@@ -53,12 +53,16 @@ const update = () => {
       //console.log('user connected', user);
       const viewSize = 2200;
       const view = new AABB2D(0, 0, viewSize, viewSize);
-      main.subscribe(user, view);
+      space.subscribe(user, view);
+      main.addMessage({
+        ntype: NetworkType.ServerMessage,
+        message: 'Anonymous has joined the server',
+      });
     }
 
     if (networkEvent.type === NetworkEvent.UserDisconnected) {
       const { user } = networkEvent;
-      deletePlayerEntity(user, main, playerEntities);
+      deletePlayerEntity(user, space, playerEntities, world);
     }
 
     if (networkEvent.type === NetworkEvent.CommandSet) {
@@ -84,8 +88,10 @@ const update = () => {
             try {
               const player = createPlayerEntity(user, usernameCommand);
               if (player) {
+                space.addEntity(player);
                 main.addEntity(player);
-                main.subscribe(user, player.view);
+                space.subscribe(user, player.view);
+                main.subscribe(user);
                 world.addBody(player.body);
                 playerEntities.set(player.nid, player);
                 dynamicEntities.set(player.nid, player);
@@ -95,6 +101,10 @@ const update = () => {
                   myId: player.nid,
                   ntype: NetworkType.IdentityMessage,
                   username: usernameCommand.username,
+                });
+                main.addMessage({
+                  ntype: NetworkType.ServerMessage,
+                  message: `${usernameCommand.username} has joined the game`,
                 });
               }
             } catch (error) {
@@ -138,7 +148,7 @@ const update = () => {
                 relativePoint
               );
               // local messages must include x and y for view culling
-              main.addMessage({
+              space.addMessage({
                 ntype: NetworkType.ShotImpactMessage,
                 targetNid: hitEntity.nid,
                 x: hitX,

@@ -42,15 +42,31 @@ window.addEventListener('load', async () => {
 
   const fpsStats = new Stats();
   fpsStats.showPanel(0);
+  fpsStats.dom.style.left = '10px';
+  fpsStats.dom.style.bottom = '10px';
+  fpsStats.dom.style.top = 'initial';
   const msStats = new Stats();
   msStats.showPanel(1);
-  msStats.dom.style.left = '80px';
+  msStats.dom.style.left = '90px';
+  msStats.dom.style.bottom = '10px';
+  msStats.dom.style.top = 'initial';
   const memoryStats = new Stats();
   memoryStats.showPanel(2);
-  memoryStats.dom.style.left = '160px';
+  memoryStats.dom.style.left = '170px';
+  memoryStats.dom.style.bottom = '10px';
+  memoryStats.dom.style.top = 'initial';
+  let latencyMaxYAxis = 0;
+  const latencyStatsPanel = new Stats.Panel('ms Lag', '#0ff', '#002');
+  const latencyStats = new Stats();
+  latencyStats.showPanel(3);
+  latencyStats.addPanel(latencyStatsPanel);
+  latencyStats.dom.style.left = '250px';
+  latencyStats.dom.style.bottom = '10px';
+  latencyStats.dom.style.top = 'initial';
   document.body.appendChild(fpsStats.dom);
   document.body.appendChild(msStats.dom);
   document.body.appendChild(memoryStats.dom);
+  document.body.appendChild(latencyStats.dom);
 
   const worldState = {
     myId: null,
@@ -83,12 +99,13 @@ window.addEventListener('load', async () => {
       const message = client.network.messages.pop();
       console.log('Received message:', message);
       if (message.ntype === NetworkType.IdentityMessage) {
-        console.log('IdentityMessage', message);
         worldState.myId = message.myId;
-        console.log(worldState);
       }
       if (message.ntype === NetworkType.ShotImpactMessage) {
         drawHitscan(worldContainer, message.fromX, message.fromY, message.x, message.y, 0x0000ff);
+      }
+      if (message.ntype === NetworkType.ServerMessage) {
+        console.log('Server message:', message.message);
       }
       performanceStats.networkMessages++;
     }
@@ -138,10 +155,14 @@ window.addEventListener('load', async () => {
     fpsStats.begin();
     msStats.begin();
     memoryStats.begin();
+    latencyStats.begin();
+    latencyMaxYAxis = Math.max(100, client.network.latency * 1.2);
+    latencyStatsPanel.update(client.network.latency, latencyMaxYAxis);
     window.requestAnimationFrame(loop);
     fpsStats.end();
     msStats.end();
     memoryStats.end();
+    latencyStats.end();
     const now = performance.now();
     const delta = (now - prev) / 1000;
     prev = now;

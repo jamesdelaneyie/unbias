@@ -39,14 +39,6 @@ export class InputSystem {
 
   constructor() {
     this.lastShotTime = 0;
-    console.log(
-      'InputSystem constructor: Initial lastShotTime:',
-      this.lastShotTime,
-      'Current Date.now():',
-      Date.now(),
-      'shotCooldown:',
-      this.shotCooldown
-    );
 
     this.currentState = {
       w: false,

@@ -6,17 +6,24 @@ export function handlePredictionErrors(client: Client, worldState: any, entities
   // errors in clientside prediction (determined based on fresh server data this frame)
   while (client.network.predictionErrorFrames.length > 0) {
     const predictionErrorFrame = client.network.predictionErrorFrames.pop();
-    //console.log('predictionErrorFrame', predictionErrorFrame);
+    if (!predictionErrorFrame) return;
+
     const entityState = entities.get(worldState.myId);
     const entity: IEntity | undefined = entityState;
 
     if (entity !== undefined) {
-      //console.log('correcting');
       predictionErrorFrame.entities.forEach((predictionErrorEntity: PredictionErrorEntity) => {
         // correct any prediction errors with server values...
         predictionErrorEntity.errors.forEach((predictionErrorProperty: PredictionErrorProperty) => {
           const { prop, actualValue } = predictionErrorProperty;
           entity[prop] = actualValue;
+          if (prop === 'x') {
+            entity.body.position[0] = actualValue;
+          } else if (prop === 'y') {
+            entity.body.position[1] = actualValue;
+          } else if (prop === 'rotation') {
+            entity.body.angle = actualValue;
+          }
         });
 
         // and then re-apply any commands issued since the frame that had the prediction error
