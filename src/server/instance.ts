@@ -147,6 +147,10 @@ const update = () => {
                 [normalizedX * force, normalizedY * force],
                 relativePoint
               );
+              main.addMessage({
+                ntype: NetworkType.ServerMessage,
+                message: `${hitEntity.nid} was hit by a bullet`,
+              });
               // local messages must include x and y for view culling
               space.addMessage({
                 ntype: NetworkType.ShotImpactMessage,

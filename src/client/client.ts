@@ -12,11 +12,11 @@ import { IEntityMap, PlayerEntityMap, ObjectEntityMap } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
 import { updateGraphics } from '@/client/graphics/updateGraphics';
-import { updatePerformanceStats } from './GPUUI';
 import { worldConfig } from '@/common/worldConfig';
 import { handlePredictionErrors } from '@/client/handlePredictionError';
 import Stats from 'stats.js';
 import { drawHitscan } from '@/client/graphics/drawHitscan';
+import '@pixi/layout/devtools';
 
 let connectedToServer = false;
 
@@ -39,6 +39,8 @@ window.addEventListener('load', async () => {
     networkBytesOut: 0,
   };
   setupUI(app);
+  // Initialize the Pixi-based notification log
+  notificationService.setupPixi(app);
 
   const fpsStats = new Stats();
   fpsStats.showPanel(0);
@@ -105,7 +107,7 @@ window.addEventListener('load', async () => {
         drawHitscan(worldContainer, message.fromX, message.fromY, message.x, message.y, 0x0000ff);
       }
       if (message.ntype === NetworkType.ServerMessage) {
-        console.log('Server message:', message.message);
+        notificationService.addNotification(message.message, NotificationType.INFO);
       }
       performanceStats.networkMessages++;
     }
@@ -145,8 +147,7 @@ window.addEventListener('load', async () => {
     // based both on the prediction and the current network state
     updateGraphics(prediction, playerEntities, objectEntities, delta);
 
-    updatePerformanceStats(delta, client, performanceStats, app);
-
+    //client.network.clientTick;
     client.flush();
   };
 
