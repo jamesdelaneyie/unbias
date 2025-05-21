@@ -1,5 +1,5 @@
 import { Client } from 'nengi';
-import { worldConfig } from '@/common/worldConfig';
+import { config } from '@/common/config';
 import { notificationService, NotificationType } from '@/client/NotificationService';
 
 let reconnectAttempts = 0;
@@ -42,7 +42,7 @@ const connectToServer = async (client: Client) => {
 };
 
 const scheduleReconnect = (client: Client) => {
-  if (reconnectAttempts >= worldConfig.maxReconnectAttempts) {
+  if (reconnectAttempts >= config.maxReconnectAttempts) {
     notificationService.addNotification(
       'Max reconnection attempts reached',
       NotificationType.ERROR
@@ -51,7 +51,7 @@ const scheduleReconnect = (client: Client) => {
   }
   reconnectAttempts++;
   notificationService.addNotification(
-    `Attempting to reconnect (${reconnectAttempts}/${worldConfig.maxReconnectAttempts})...`,
+    `Attempting to reconnect (${reconnectAttempts}/${config.maxReconnectAttempts})...`,
     NotificationType.INFO
   );
   reconnectTimeout = window.setTimeout(async () => {
@@ -59,7 +59,7 @@ const scheduleReconnect = (client: Client) => {
     if (!success) {
       scheduleReconnect(client);
     }
-  }, worldConfig.reconnectDelay);
+  }, config.reconnectDelay);
 };
 
 export { connectToServer, scheduleReconnect };

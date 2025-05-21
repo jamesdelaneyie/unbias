@@ -69,7 +69,7 @@ const updateObjectGraphics = (objectEntity: ObjectEntity) => {
     graphics.y = objectEntity.y;
     graphics.rotation = objectEntity.rotation;
     graphics.tint = objectEntity.color;
-    /*const t = Math.min(1, worldConfig.objectSmoothing * delta);
+    /*const t = Math.min(1, config.objectSmoothing * delta);
     graphics.x += (body.position[0] - graphics.x) * t;
     graphics.y += (body.position[1] - graphics.y) * t;
     graphics.rotation += (body.angle - graphics.rotation) * t;

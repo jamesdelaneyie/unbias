@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - PORT=9001 # Your app reads this (e.g., worldConfig.port)
+      - PORT=9001 # Your app reads this (e.g., config.port)
     # No ports exposed directly to host here; Nginx will handle that.
 
   nginx:

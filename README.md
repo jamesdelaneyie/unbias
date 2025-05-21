@@ -41,7 +41,7 @@ A multiplayer environment. Networked with nengi.js, rendered by pixi.js and made
 
 ~~create setup world in instance~~
 
-~~expand worldConfig~~
+~~expand config~~
 
 13th May:
 Get docker version working locally

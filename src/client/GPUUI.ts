@@ -2,23 +2,51 @@ import '@pixi/layout';
 // import { Client } from 'nengi';
 import { Application, Container } from 'pixi.js'; //HTMLText, Text
 import TaggedTextPlus from 'pixi-tagged-text-plus';
+import { TextDecoration } from 'pixi-tagged-text-plus/dist/types';
 import { createGridGraphics } from '@/client/graphics/mapGraphics';
+import { config } from '@/common/config';
 //import { LayoutContainer } from '@pixi/layout/components';
 //import { ScrollBox } from '@pixi/ui';
 //import { TextDecoration } from 'pixi-tagged-text-plus/dist/types';
 
-const drawBasicText = (masterContainer: Container, text: string, x: number, y: number) => {
-  const taggedText = new TaggedTextPlus(text, {
+const drawLinkText = (container: Container, text: string, href: string, x: number, y: number) => {
+  const underline: TextDecoration = 'underline';
+  const navLinkTextStyles = {
     default: {
-      fontSize: '24px',
       fill: '#fff',
-      align: 'left',
     },
+    underline: {
+      fill: '#ffffff',
+      textDecoration: underline,
+      underlineColor: '#ffffff',
+      underlineThickness: 1,
+      underlineOffset: 1,
+    },
+  };
+
+  const linkText = text;
+  const linkTextUnderlined = '<underline>' + text + '</underline>';
+
+  const link = new TaggedTextPlus(linkText, navLinkTextStyles, {
+    drawWhitespace: true,
   });
-  taggedText.x = x;
-  taggedText.y = y;
-  taggedText.label = 'World Title';
-  masterContainer.addChild(taggedText);
+  link.x = x;
+  link.y = y;
+  link.interactive = true;
+  link.cursor = 'pointer';
+
+  link.on('pointerover', function () {
+    link.setText(linkTextUnderlined);
+  });
+  link.on('pointerout', function () {
+    link.setText(linkText);
+  });
+
+  link.on('pointerdown', function () {
+    window.open(href, '_blank');
+  });
+
+  container.addChild(link);
 };
 
 const setupUI = (app: Application) => {
@@ -27,12 +55,12 @@ const setupUI = (app: Application) => {
   UserInterfaceContainer.zIndex = 1000;
   app.stage.addChild(UserInterfaceContainer);
 
-  drawBasicText(UserInterfaceContainer, 'UNBIAS', 10, 10);
+  drawLinkText(UserInterfaceContainer, 'UNBIAS', config.repoLink, 10, 10);
 
   UserInterfaceContainer.layout = {
     width: app.screen.width,
     height: app.screen.height,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'flex-end',
     padding: 10,
   };
@@ -57,27 +85,4 @@ const setupGraphicsWorld = (app: Application) => {
   return worldContainer;
 };
 
-/*
-const aboutLinkText = 'About';
-  const aboutLinkUnderlineText = '<underline>About</underline>';
-
-  const aboutLink = new TaggedTextPlus(aboutLinkText, navLinkTextStyles, {
-    drawWhitespace: true,
-  });
-  aboutLink.interactive = true;
-
-  aboutLink.on('pointerover', function () {
-    aboutLink.setText(aboutLinkUnderlineText);
-  });
-
-  aboutLink.on('pointerdown', function () {
-    console.log('pointerdown');
-  });
-  aboutLink.on('pointerout', function () {
-    aboutLink.setText(aboutLinkText);
-  });
-
-  textContainer.addChild(aboutLink);
-  */
-
-export { drawBasicText, setupUI, setupGraphicsWorld };
+export { drawLinkText, setupUI, setupGraphicsWorld };

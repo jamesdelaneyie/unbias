@@ -12,7 +12,7 @@ import { IEntityMap, PlayerEntityMap, ObjectEntityMap } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
 import * as p2 from 'p2-es';
 import { updateGraphics } from '@/client/graphics/updateGraphics';
-import { worldConfig } from '@/common/worldConfig';
+import { config } from '@/common/config';
 import { handlePredictionErrors } from '@/client/handlePredictionError';
 import Stats from 'stats.js';
 import { drawHitscan } from '@/client/graphics/drawHitscan';
@@ -82,7 +82,7 @@ window.addEventListener('load', async () => {
   world.defaultContactMaterial.friction = 0;
   world.defaultContactMaterial.restitution = 0.1;
 
-  const client = new Client(ncontext, WebSocketClientAdapter, worldConfig.serverTickRate);
+  const client = new Client(ncontext, WebSocketClientAdapter, config.serverTickRate);
 
   notificationService.addNotification('Local app loaded', NotificationType.INFO);
 
@@ -141,7 +141,7 @@ window.addEventListener('load', async () => {
 
     // update the physics world
     // applies velocities to the p2 bodies and updates their positions
-    world.step(worldConfig.worldStepRate);
+    world.step(config.worldStepRate);
 
     // update the graphics of players and objects
     // based both on the prediction and the current network state

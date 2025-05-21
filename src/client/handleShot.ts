@@ -3,7 +3,7 @@ import * as p2 from 'p2-es';
 import { Container, Graphics } from 'pixi.js';
 import { NetworkType } from '../common/NetworkType';
 import { ObjectEntityMap } from '@/common/types';
-import { worldConfig } from '@/common/worldConfig';
+import { config } from '@/common/config';
 
 const handleShot = (
   world: p2.World,
@@ -71,7 +71,7 @@ const handleShot = (
         fromY: y,
         hitX: endX,
         hitY: endY,
-        impactForce: worldConfig.shotForce,
+        impactForce: config.shotForce,
       });
     }
   }

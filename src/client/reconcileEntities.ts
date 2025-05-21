@@ -1,6 +1,6 @@
 /*import { PredictionErrorFrame, PredictionErrorEntity, PredictionErrorProperty } from 'nengi';
 import { IEntityMap, PlayerEntity } from '@/common/types';
-import { worldConfig } from '@/common/worldConfig';
+import { config } from '@/common/config';
 
 const reconcileEntities = (
   predictionErrorFrame: PredictionErrorFrame | null,
@@ -31,7 +31,7 @@ const reconcileEntities = (
       // === Physics Body Correction ===
       if (entity.body) {
         // Use a smoothing factor based on delta time
-        const smoothingFactor = Math.min(1, worldConfig.reconciliationSmoothing * delta);
+        const smoothingFactor = Math.min(1, config.reconciliationSmoothing * delta);
 
         if (predictionError.prop === 'x') {
           const errorX = (actualValue as number) - entity.body.position[0];

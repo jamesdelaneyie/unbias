@@ -1,6 +1,6 @@
 import { NetworkType } from '@/common/NetworkType';
 import { Client } from 'nengi';
-import { Application, Container, HTMLText } from 'pixi.js';
+import { Application, Container, HTMLText, HTMLTextStyle } from 'pixi.js';
 import { ScrollBox } from '@pixi/ui';
 import { LayoutContainer } from '@pixi/layout/components';
 
@@ -103,22 +103,27 @@ class NotificationService {
     const color = this.getColor(type);
     const htmlStr = `<time>[${timestamp}]</time> <span style="color:${color}">${message}</span>`;
 
-    const htmlText = new HTMLText({
-      text: htmlStr,
-      style: {
-        fill: 'white',
-        fontSize: 10,
-        lineHeight: 12,
-        padding: 4,
-        fontFamily: 'monospace',
-        wordWrap: true,
-        wordWrapWidth: 290,
-        tagStyles: {
-          time: {
-            fill: 'white',
-          },
+    const style = new HTMLTextStyle({
+      fill: 'white',
+      fontSize: 10,
+      lineHeight: 12,
+      padding: 4,
+      fontFamily: 'monospace',
+      wordWrap: true,
+      wordWrapWidth: 290,
+      tagStyles: {
+        time: {
+          fill: 'white',
         },
       },
+    });
+
+    style.addOverride('font-smoothing: antialiased');
+    style.addOverride('-webkit-font-smoothing: antialiased');
+
+    const htmlText = new HTMLText({
+      text: htmlStr,
+      style: style,
     });
 
     this.scrollBox.addItem(htmlText);

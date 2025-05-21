@@ -1,7 +1,7 @@
 import { User, AABB2D } from 'nengi';
 import { NetworkType } from './NetworkType';
 import * as p2 from 'p2-es';
-import { worldConfig } from './worldConfig';
+import { config } from './config';
 
 enum BodyType {
   STATIC = 2,
@@ -33,13 +33,13 @@ export class PlayerEntity extends User {
     this.ntype = NetworkType.PlayerEntity;
     this.x = -15;
     this.y = -15;
-    this.size = worldConfig.playerSize;
+    this.size = config.playerSize;
     this.rotation = 0;
-    this.speed = worldConfig.playerSpeed;
+    this.speed = config.playerSpeed;
     this.username = username;
     this.isSelf = false;
     this.color = this.generateColor();
-    this.view = new AABB2D(0, 0, worldConfig.viewSize, worldConfig.viewSize);
+    this.view = new AABB2D(0, 0, config.viewSize, config.viewSize);
     this.mass = 5;
     this.body = this.generatePlayerBody();
     this.bodyType = BodyType.DYNAMIC;

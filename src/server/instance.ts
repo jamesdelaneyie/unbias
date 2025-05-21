@@ -7,16 +7,16 @@ import { PlayerEntity } from '../common/PlayerEntity';
 import { createPlayerEntity, deletePlayerEntity } from '../server/EntityManager';
 import { applyCommand } from './applyMoveCommand';
 import * as p2 from 'p2-es';
-import { worldConfig } from '../common/worldConfig';
+import { config } from '../common/config';
 import { populateWorld } from './loadMap';
 
 const instance = new Instance(ncontext);
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
-uws.listen(worldConfig.port, () => {
-  console.log(`uws adapter is listening on ${worldConfig.port}`);
+uws.listen(config.port, () => {
+  console.log(`uws adapter is listening on ${config.port}`);
 });
 
-const historian = new Historian(ncontext, worldConfig.serverTickRate);
+const historian = new Historian(ncontext, config.serverTickRate);
 const space = new ChannelAABB2D(instance.localState, historian);
 const main = new Channel(instance.localState);
 const users = new Map<number, User>();
@@ -168,7 +168,7 @@ const update = () => {
     }
   }
 
-  world.step(worldConfig.worldStepRate);
+  world.step(config.worldStepRate);
 
   world.on('beginContact', event => {
     const bodyA = event.bodyA;
@@ -207,4 +207,4 @@ const update = () => {
 
 setInterval(() => {
   update();
-}, 1000 / worldConfig.serverTickRate);
+}, 1000 / config.serverTickRate);

@@ -1,4 +1,5 @@
-export const worldConfig = {
+export const config = {
+  repoLink: 'https://github.com/jamesdelaneyie/unbias',
   port: 9001,
   maxReconnectAttempts: 5,
   reconnectDelay: 2000,
@@ -6,7 +7,7 @@ export const worldConfig = {
   worldStepRate: 1 / 60,
   viewSize: 1100,
   playerSize: 5,
-  playerSpeed: 60,
+  playerSpeed: 120,
   playerSmoothing: 12,
   objectSmoothing: 12,
   reconciliationSmoothing: 10,

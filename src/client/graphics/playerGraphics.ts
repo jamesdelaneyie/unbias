@@ -1,7 +1,7 @@
 import { Container, Graphics, Sprite } from 'pixi.js';
 import { PlayerEntity } from '@/common/types';
 import TaggedTextPlus from 'pixi-tagged-text-plus';
-import { worldConfig } from '@/common/worldConfig';
+import { config } from '@/common/config';
 
 const createPlayerGraphics = (entity: PlayerEntity) => {
   // @ts-ignore Access PIXI app from global context
@@ -84,7 +84,7 @@ const createPlayerGraphics = (entity: PlayerEntity) => {
 const updateRemotePlayerGraphics = (playerEntity: PlayerEntity, delta: number) => {
   const graphics = playerEntity.clientGraphics;
   if (!graphics || !playerEntity.renderTarget) return;
-  const t = Math.min(1, worldConfig.playerSmoothing * delta);
+  const t = Math.min(1, config.playerSmoothing * delta);
   graphics.x += (playerEntity.renderTarget.x - graphics.x) * t;
   graphics.y += (playerEntity.renderTarget.y - graphics.y) * t;
   const playerBodyContainer = graphics.getChildByLabel('playerBodyContainer');
@@ -118,7 +118,7 @@ const updateLocalPlayerGraphicsWithPrediction = (
   const graphics = playerEntity.clientGraphics;
   if (!graphics) return;
   // t is the interpolation factor
-  const t = Math.min(1, worldConfig.playerSmoothing * delta);
+  const t = Math.min(1, config.playerSmoothing * delta);
   graphics.x += (prediction.x - graphics.x) * t;
   graphics.y += (prediction.y - graphics.y) * t;
   const playerBodyContainer = graphics.getChildByLabel('playerBodyContainer');
