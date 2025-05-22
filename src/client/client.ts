@@ -39,8 +39,6 @@ window.addEventListener('load', async () => {
     networkBytesOut: 0,
   };
   setupUI(app);
-  // Initialize the Pixi-based notification log
-  notificationService.setupPixi(app);
 
   const fpsStats = new Stats();
   fpsStats.showPanel(0);
@@ -84,6 +82,9 @@ window.addEventListener('load', async () => {
 
   const client = new Client(ncontext, WebSocketClientAdapter, config.serverTickRate);
 
+  // Initialize the Pixi-based notification log
+  notificationService.setupPixi(app, client);
+
   notificationService.addNotification('Local app loaded', NotificationType.INFO);
 
   connectedToServer = await connectToServer(client);
@@ -107,7 +108,7 @@ window.addEventListener('load', async () => {
         drawHitscan(worldContainer, message.fromX, message.fromY, message.x, message.y, 0x0000ff);
       }
       if (message.ntype === NetworkType.ServerMessage) {
-        notificationService.addNotification(message.message, NotificationType.INFO);
+        notificationService.addNotification(message.message, NotificationType.INFO, message.type);
       }
       performanceStats.networkMessages++;
     }
@@ -147,7 +148,6 @@ window.addEventListener('load', async () => {
     // based both on the prediction and the current network state
     updateGraphics(prediction, playerEntities, objectEntities, delta);
 
-    //client.network.clientTick;
     client.flush();
   };
 

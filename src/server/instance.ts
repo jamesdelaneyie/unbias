@@ -10,6 +10,7 @@ import * as p2 from 'p2-es';
 import { config } from '../common/config';
 import { loadMap } from './loadMap';
 import lagCompensatedHitscanCheck from './lagCompensatedHitscanCheck';
+import { ServerMessageType } from '../common/schemas/serverMessageSchema';
 
 const instance = new Instance(ncontext);
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
@@ -60,6 +61,7 @@ const update = () => {
       main.addMessage({
         ntype: NetworkType.ServerMessage,
         message: 'Anonymous has joined the server',
+        type: ServerMessageType.global,
       });
     }
 
@@ -109,7 +111,15 @@ const update = () => {
                 });
                 main.addMessage({
                   ntype: NetworkType.ServerMessage,
-                  message: `${usernameCommand.username} has joined the game`,
+                  message: `${usernameCommand.username} has joined the server`,
+                  type: ServerMessageType.global,
+                });
+                space.addMessage({
+                  ntype: NetworkType.ServerMessage,
+                  message: `${usernameCommand.username} has joined the area`,
+                  type: ServerMessageType.local,
+                  x: player.x,
+                  y: player.y,
                 });
               }
             } catch (error) {
@@ -190,12 +200,11 @@ const update = () => {
 
             //console.log('hitEntity', hitEntity);
             //lagCompensatedHitscanCheck
-            console.log('impactCommand', impactCommand.originNid);
+            //console.log('impactCommand', impactCommand.originNid);
             const player = playerEntities.get(impactCommand.originNid);
-            console.log('player', player);
             // @ts-ignore
             const timeAgo = player?.socket.user.latency + 100;
-            console.log('timeAgo', timeAgo);
+            //console.log('timeAgo', timeAgo);
             lagCompensatedHitscanCheck(space, world, fromX, fromY, hitX, hitY, timeAgo);
 
             if (hitEntity && hitEntity.body && hitEntity.body.type !== p2.Body.STATIC) {
@@ -237,6 +246,7 @@ const update = () => {
               main.addMessage({
                 ntype: NetworkType.ServerMessage,
                 message: `${hitEntity.nid} was hit by a bullet`,
+                type: ServerMessageType.global,
               });
             }
 
@@ -244,10 +254,10 @@ const update = () => {
             space.addMessage({
               ntype: NetworkType.ShotImpactMessage,
               targetNid: hitEntity?.nid,
-              x: impactPoint[0],
-              y: impactPoint[1],
               fromX: fromX,
               fromY: fromY,
+              x: impactPoint[0],
+              y: impactPoint[1],
               force: impactCommand.impactForce,
             });
           }

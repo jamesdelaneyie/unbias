@@ -64,6 +64,8 @@ const setupUI = (app: Application) => {
     alignItems: 'flex-end',
     padding: 10,
   };
+
+  return UserInterfaceContainer;
 };
 
 const setupGraphicsWorld = (app: Application) => {

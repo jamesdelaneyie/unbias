@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@pixi/layout": "^3.0.2",
-    "@pixi/ui": "^2.2.3",
+    "@pixi/ui": "^2.2.4",
     "nengi": "^2.0.0-alpha.173",
     "nengi-buffers": "^0.5.0",
     "nengi-uws-instance-adapter": "^0.6.0",

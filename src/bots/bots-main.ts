@@ -72,9 +72,6 @@ async function createBot() {
 
 async function connectBots(quantity: number) {
   for (let i = 0; i < quantity; i++) {
-    // we don't await this even though it is async
-    // this allows multiple connections to be opened in parallel
-    // add await to open them one at a time
     createBot();
   }
 }
@@ -169,4 +166,4 @@ setInterval(
   (1 / 30) * 1000
 );
 
-connectBots(3);
+connectBots(50);
