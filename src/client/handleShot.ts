@@ -12,6 +12,7 @@ const handleShot = (
   tx: number,
   ty: number,
   worldContainer: Container,
+  originNid: any,
   client: any,
   objectEntities: ObjectEntityMap,
   playerEntities: PlayerEntityMap
@@ -50,7 +51,7 @@ const handleShot = (
       debugMarker.destroy();
     }, 1000);
 
-    if (result.body && client) {
+    if (result.body) {
       // find nid of hit object
       let targetNid = 0;
       for (const [nid, obj] of objectEntities) {
@@ -72,7 +73,8 @@ const handleShot = (
 
       client.addCommand({
         ntype: NetworkType.ShotImpactCommand,
-        nid: client.myId,
+        nid: originNid,
+        originNid: originNid,
         targetNid: targetNid,
         fromX: x,
         fromY: y,

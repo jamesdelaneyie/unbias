@@ -9,6 +9,7 @@ import { applyCommand } from './applyMoveCommand';
 import * as p2 from 'p2-es';
 import { config } from '../common/config';
 import { loadMap } from './loadMap';
+import lagCompensatedHitscanCheck from './lagCompensatedHitscanCheck';
 
 const instance = new Instance(ncontext);
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
@@ -124,7 +125,7 @@ const update = () => {
             const hitX = impactCommand.hitX;
             const hitY = impactCommand.hitY;
 
-            console.log('shot impact', fromX, fromY, hitX, hitY);
+            //console.log('shot impact', fromX, fromY, hitX, hitY);
 
             // Calculate the exact shot vector direction
             const vectorX = hitX - fromX;
@@ -137,9 +138,10 @@ const update = () => {
 
             const dynamicAndPlayerEntities = new Map([...dynamicEntities, ...playerEntities]);
             // Find the directly hit entity
-            console.log(impactCommand.targetNid);
+            //console.log(impactCommand.targetNid);
             let hitEntity = dynamicAndPlayerEntities.get(impactCommand.targetNid);
-
+            let relativePoint: [number, number] = [hitX, hitY];
+            let impactPoint: [number, number] = [hitX, hitY];
             if (!hitEntity) {
               const from = [fromX, fromY];
               const to = [hitX, hitY];
@@ -150,7 +152,7 @@ const update = () => {
                 collisionMask: 0xffffffff,
                 skipBackfaces: true,
                 callback: function (result) {
-                  console.log(result);
+                  console.log('result', result);
                 },
               });
               ray.update();
@@ -158,39 +160,68 @@ const update = () => {
               const result = new p2.RaycastResult();
               world.raycast(result, ray);
 
+              //console.log('result', result);
+
               if (result.hasHit()) {
+                const hitPoint = result.getHitPoint([], ray);
+                impactPoint = [hitPoint[0], hitPoint[1]];
+
                 let targetNid = 0;
                 for (const [nid] of playerEntities) {
                   // @ts-ignore
-                  if (nid === result.body?.nid) {
+                  if (nid === result.body?.nid && nid !== impactCommand.originNid) {
+                    targetNid = nid;
+                    break;
+                  }
+                }
+                // @ts-ignore
+                for (const nid in Object.keys(ObjectEntities)) {
+                  // @ts-ignore
+                  if (nid === result.body?.nid && nid !== impactCommand.originNid) {
+                    // @ts-ignore
                     targetNid = nid;
                     break;
                   }
                 }
                 hitEntity = playerEntities.get(targetNid);
-                console.log('bot hit', hitEntity?.username);
+                //console.log('bot hit', hitEntity?.username);
               }
             }
+
             //console.log('hitEntity', hitEntity);
             //lagCompensatedHitscanCheck
-            //const hitEntity = lagCompensatedHitscanCheck(main, world, fromX, fromY, hitX, hitY, 0.1);
+            console.log('impactCommand', impactCommand.originNid);
+            const player = playerEntities.get(impactCommand.originNid);
+            console.log('player', player);
+            // @ts-ignore
+            const timeAgo = player?.socket.user.latency + 100;
+            console.log('timeAgo', timeAgo);
+            lagCompensatedHitscanCheck(space, world, fromX, fromY, hitX, hitY, timeAgo);
 
             if (hitEntity && hitEntity.body && hitEntity.body.type !== p2.Body.STATIC) {
               // Calculate relative point vector in world coords (offset from body center)
-              const relativePoint: [number, number] = [
+              relativePoint = [
                 hitX - hitEntity.body.position[0],
                 hitY - hitEntity.body.position[1],
               ];
 
               const force = impactCommand.impactForce;
+              // @ts-ignore
               if (hitEntity.username !== null) {
                 const playerEntity = hitEntity as PlayerEntity;
-                console.log(force);
+                //console.log(force);
                 playerEntity.health = Math.max(0, playerEntity.health - force);
-                console.log('damage', playerEntity.health);
+                //console.log('damage', playerEntity.health);
               }
 
+              hitEntity.body.applyImpulse(
+                [normalizedX * force, normalizedY * force],
+                relativePoint
+              );
+
+              // @ts-ignore
               if (hitEntity.health <= 0) {
+                // @ts-ignore
                 console.log('playerEntity died', hitEntity.health);
                 const playerEntity = hitEntity as PlayerEntity;
                 playerEntity.isAlive = false;
@@ -203,10 +234,6 @@ const update = () => {
                 //deletePlayerEntity(playerEntity, main, space, playerEntities, world);
               }
 
-              hitEntity.body.applyImpulse(
-                [normalizedX * force, normalizedY * force],
-                relativePoint
-              );
               main.addMessage({
                 ntype: NetworkType.ServerMessage,
                 message: `${hitEntity.nid} was hit by a bullet`,
@@ -217,8 +244,8 @@ const update = () => {
             space.addMessage({
               ntype: NetworkType.ShotImpactMessage,
               targetNid: hitEntity?.nid,
-              x: hitX,
-              y: hitY,
+              x: impactPoint[0],
+              y: impactPoint[1],
               fromX: fromX,
               fromY: fromY,
               force: impactCommand.impactForce,

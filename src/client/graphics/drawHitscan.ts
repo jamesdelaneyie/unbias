@@ -17,20 +17,18 @@ const drawHitscan = (
   lineGraphics.zIndex = 1;
   layer.addChild(lineGraphics);
 
+  const origin = new Graphics();
+  origin.zIndex = 2;
+  origin.circle(x, y, 0.5);
+  origin.fill({ color: 0xffffff });
+  layer.addChild(origin);
+
   // Graphics for the red impact dot
   const impactDotGraphics = new Graphics();
   impactDotGraphics.zIndex = 2;
-  impactDotGraphics.fill({ color: 0xff0000 }); // Red color for the dot
-  impactDotGraphics.circle(targetX, targetY, 0.05); // Small radius for the dot
-  //layer.addChild(impactDotGraphics);
-
-  // Graphics for the white circle
-  const whiteCircleRadius = 0.5; // Radius for the larger white circle
-  const whiteCircleGraphics = new Graphics();
-  whiteCircleGraphics.zIndex = 2;
-  whiteCircleGraphics.stroke({ width: 0.03, color: 0xffffff }); // White color for the circle
-  whiteCircleGraphics.circle(targetX, targetY, whiteCircleRadius);
-  //layer.addChild(whiteCircleGraphics);
+  impactDotGraphics.circle(targetX, targetY, 0.5); // Small radius for the dot
+  impactDotGraphics.fill({ color: 0xff0000 });
+  layer.addChild(impactDotGraphics);
 
   // Remove all graphics after the duration
   setTimeout(() => {
@@ -44,10 +42,10 @@ const drawHitscan = (
     }
     impactDotGraphics.destroy({ children: true, texture: true });
 
-    if (whiteCircleGraphics.parent) {
-      layer.removeChild(whiteCircleGraphics);
+    if (origin.parent) {
+      layer.removeChild(origin);
     }
-    whiteCircleGraphics.destroy({ children: true, texture: true });
+    origin.destroy({ children: true, texture: true });
   }, duration);
 };
 

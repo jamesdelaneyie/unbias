@@ -3,6 +3,7 @@ import { ncontext } from '../common/ncontext';
 import { WsClientAdapter } from 'nengi-ws-client-adapter';
 import { NetworkType } from '../common/NetworkType';
 import { IEntityFrame } from 'nengi/build/client/Frame';
+import { config } from '../common/config';
 
 type Bot = {
   nid: number;
@@ -11,6 +12,7 @@ type Bot = {
   isAlive: boolean;
   x: number;
   y: number;
+  size: number;
   rotation: number;
   mouseX: number;
   mouseY: number;
@@ -61,6 +63,7 @@ async function createBot() {
     isAlive: true,
     x: 0,
     y: 0,
+    size: config.playerSize,
     rotation: 0,
     mouseX: 0,
     mouseY: 0,
@@ -127,21 +130,25 @@ setInterval(
         bot.controls.space = Math.random() > 0.5;
         bot.controls.rotation = Math.random() * 2 * Math.PI;
       }
-      if (Math.random() > 0.99) {
-        const noseLength = 100;
+      if (Math.random() > 0.95 && bot.client.network.clientTick > 200) {
+        // Calculate nose tip position (where shot originates from)
+        const noseLength = bot.size * 0.8666; // Small offset from center
         const noseTipX = bot.x + Math.cos(bot.controls.rotation) * noseLength;
         const noseTipY = bot.y + Math.sin(bot.controls.rotation) * noseLength;
-        bot.mouseX = bot.x + Math.cos(bot.controls.rotation) * 1000;
-        bot.mouseY = bot.y + Math.sin(bot.controls.rotation) * 1000;
-        //console.log('bot shot', bot.mouseX, bot.mouseY);
-        //console.log('bot nose', noseTipX, noseTipY);
+
+        // Calculate target point 500 units away along same angle
+        const targetDistance = 500;
+        const targetX = bot.x + Math.cos(bot.controls.rotation) * targetDistance;
+        const targetY = bot.y + Math.sin(bot.controls.rotation) * targetDistance;
+
         bot.client.addCommand({
           ntype: NetworkType.ShotImpactCommand,
+          originNid: bot.nid,
           targetNid: 0,
           fromX: noseTipX,
           fromY: noseTipY,
-          hitX: bot.mouseX,
-          hitY: bot.mouseY,
+          hitX: targetX,
+          hitY: targetY,
           impactForce: 200,
         });
       }
@@ -162,4 +169,4 @@ setInterval(
   (1 / 30) * 1000
 );
 
-connectBots(5);
+connectBots(3);

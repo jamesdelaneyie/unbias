@@ -25,11 +25,12 @@ const createPlayerGraphics = (entity: PlayerEntity) => {
 
   const playerBody = new Graphics()
     .circle(0, 0, playerSize * 100)
-    .fill({ color: entity.color, alpha: 1 });
+    .fill({ color: 0xffffff, alpha: 1 });
 
   const playerBodyTexture = app.renderer.generateTexture(playerBody);
   const playerBodySprite = new Sprite(playerBodyTexture);
   playerBodySprite.label = 'playerBody';
+  playerBodySprite.tint = entity.color;
   playerBodySprite.anchor.set(0.5);
   playerBodySprite.width = entity.size;
   playerBodySprite.height = entity.size;
@@ -39,12 +40,13 @@ const createPlayerGraphics = (entity: PlayerEntity) => {
     .moveTo(0, (-playerSize / 2) * 100)
     .lineTo(playerSize * 0.666 * 100, 0)
     .lineTo(0, (playerSize / 2) * 100)
-    .fill({ color: entity.color, alpha: 1 });
+    .fill({ color: 0xffffff, alpha: 1 });
 
   const playerNoseTexture = app.renderer.generateTexture(playerNose);
 
   const playerNoseSprite = new Sprite(playerNoseTexture);
   playerNoseSprite.label = 'playerNose';
+  playerNoseSprite.tint = entity.color;
   playerNoseSprite.anchor.set(0.5);
   playerNoseSprite.width = 3;
   playerNoseSprite.height = 4;
@@ -74,6 +76,7 @@ const createPlayerGraphics = (entity: PlayerEntity) => {
   const usernameTexture = app.renderer.generateTexture(username);
   username.destroy();
   const usernameSprite = new Sprite(usernameTexture);
+  usernameSprite.label = 'username';
   usernameSprite.anchor.set(0.5);
   usernameSprite.scale.set(0.015);
   usernameSprite.x = 0;
@@ -97,15 +100,19 @@ const updateRemotePlayerGraphics = (playerEntity: PlayerEntity, delta: number) =
     let diff = targetRotation - currentRotation;
     while (diff < -Math.PI) diff += 2 * Math.PI;
     while (diff > Math.PI) diff -= 2 * Math.PI;
-    playerBodyContainer.rotation += diff * t;
+    playerBodyContainer.rotation = playerEntity.rotation; //+= diff * t;
     const playerBody = playerBodyContainer.getChildByLabel('playerBody');
     const playerNose = playerBodyContainer.getChildByLabel('playerNose');
+    const username = graphics.getChildByLabel('username');
     if (playerEntity.isAlive === false) {
       if (playerBody) {
         playerBody.tint = 0xff0000;
       }
       if (playerNose) {
         playerNose.tint = 0xff0000;
+      }
+      if (username) {
+        username.alpha = 0.5;
       }
     }
   }

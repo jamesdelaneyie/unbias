@@ -2,6 +2,7 @@ import { Binary, defineSchema, Schema } from 'nengi';
 
 export const shotImpactCommand: Schema = defineSchema({
   targetNid: Binary.UInt32,
+  originNid: Binary.UInt32,
   fromX: Binary.Float32,
   fromY: Binary.Float32,
   hitX: Binary.Float32,

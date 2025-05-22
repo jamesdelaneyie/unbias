@@ -107,6 +107,7 @@ const handleUserInput = (
         point.x,
         point.y,
         worldContainer,
+        myEntity.nid,
         client,
         objectEntities,
         playerEntities

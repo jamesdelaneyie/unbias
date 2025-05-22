@@ -17,6 +17,8 @@ const lagCompensatedHitscanCheck = (
   if (historian) {
     const compensatedEntityPositions = historian.getComputedLagCompensatedState(timeAgo);
 
+    console.log('compensatedEntityPositions', compensatedEntityPositions);
+
     compensatedEntityPositions.forEach(entityProxy => {
       // look up the real entity
       const realEntity = channel.entities.get(entityProxy.nid) as Entity | undefined;

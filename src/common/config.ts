@@ -7,7 +7,7 @@ export const config = {
   worldStepRate: 1 / 60,
   viewSize: 1100,
   playerSize: 5,
-  playerSpeed: 120,
+  playerSpeed: 60,
   playerSmoothing: 12,
   objectSmoothing: 12,
   reconciliationSmoothing: 10,
