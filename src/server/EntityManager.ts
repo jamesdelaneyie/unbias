@@ -1,4 +1,4 @@
-import { User, AABB2D, ChannelAABB2D } from 'nengi';
+import { User, AABB2D, ChannelAABB2D, Channel } from 'nengi';
 import { PlayerEntity } from '../common/PlayerEntity';
 import { UsernameCommand } from '../common/types';
 import { World } from 'p2-es';
@@ -19,7 +19,8 @@ const createPlayerEntity = (user: User, usernameCommand: UsernameCommand) => {
 
 const deletePlayerEntity = (
   user: User,
-  main: ChannelAABB2D,
+  main: Channel,
+  space: ChannelAABB2D,
   playerEntities: Map<number, PlayerEntity>,
   world: World
 ) => {
@@ -29,6 +30,8 @@ const deletePlayerEntity = (
       const nId = playerEntity.nid;
       main.unsubscribe(user);
       main.removeEntity(playerEntity);
+      space.unsubscribe(user);
+      space.removeEntity(playerEntity);
       world.removeBody(playerEntity.body);
       playerEntities.delete(nId);
     }

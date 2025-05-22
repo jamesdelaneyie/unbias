@@ -8,7 +8,7 @@ import { createPlayerEntity, deletePlayerEntity } from '../server/EntityManager'
 import { applyCommand } from './applyMoveCommand';
 import * as p2 from 'p2-es';
 import { config } from '../common/config';
-import { populateWorld } from './loadMap';
+import { loadMap } from './loadMap';
 
 const instance = new Instance(ncontext);
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
@@ -38,14 +38,16 @@ instance.onConnect = async (handshake: any) => {
 };
 
 const queue = instance.queue;
-let worldPopulated = false;
+let mapLoaded = false;
+
+const mapName = 'debugMap';
 
 const update = () => {
   while (!queue.isEmpty()) {
     const networkEvent = queue.next();
 
-    if (!worldPopulated) {
-      worldPopulated = populateWorld(space, world, staticEntities, dynamicEntities);
+    if (!mapLoaded) {
+      mapLoaded = loadMap(space, world, staticEntities, dynamicEntities, mapName);
     }
 
     if (networkEvent.type === NetworkEvent.UserConnected) {
@@ -62,7 +64,7 @@ const update = () => {
 
     if (networkEvent.type === NetworkEvent.UserDisconnected) {
       const { user } = networkEvent;
-      deletePlayerEntity(user, space, playerEntities, world);
+      deletePlayerEntity(user, main, space, playerEntities, world);
     }
 
     if (networkEvent.type === NetworkEvent.CommandSet) {
@@ -93,6 +95,8 @@ const update = () => {
                 space.subscribe(user, player.view);
                 main.subscribe(user);
                 world.addBody(player.body);
+                // @ts-ignore
+                player.body.nid = player.nid;
                 playerEntities.set(player.nid, player);
                 dynamicEntities.set(player.nid, player);
                 users.set(user.id, user);
@@ -120,6 +124,8 @@ const update = () => {
             const hitX = impactCommand.hitX;
             const hitY = impactCommand.hitY;
 
+            console.log('shot impact', fromX, fromY, hitX, hitY);
+
             // Calculate the exact shot vector direction
             const vectorX = hitX - fromX;
             const vectorY = hitY - fromY;
@@ -129,8 +135,42 @@ const update = () => {
             const normalizedX = vectorX / magnitude;
             const normalizedY = vectorY / magnitude;
 
+            const dynamicAndPlayerEntities = new Map([...dynamicEntities, ...playerEntities]);
             // Find the directly hit entity
-            const hitEntity = dynamicEntities.get(impactCommand.targetNid);
+            console.log(impactCommand.targetNid);
+            let hitEntity = dynamicAndPlayerEntities.get(impactCommand.targetNid);
+
+            if (!hitEntity) {
+              const from = [fromX, fromY];
+              const to = [hitX, hitY];
+              const ray = new p2.Ray({
+                from: from,
+                to: to,
+                mode: p2.Ray.CLOSEST,
+                collisionMask: 0xffffffff,
+                skipBackfaces: true,
+                callback: function (result) {
+                  console.log(result);
+                },
+              });
+              ray.update();
+
+              const result = new p2.RaycastResult();
+              world.raycast(result, ray);
+
+              if (result.hasHit()) {
+                let targetNid = 0;
+                for (const [nid] of playerEntities) {
+                  // @ts-ignore
+                  if (nid === result.body?.nid) {
+                    targetNid = nid;
+                    break;
+                  }
+                }
+                hitEntity = playerEntities.get(targetNid);
+                console.log('bot hit', hitEntity?.username);
+              }
+            }
             //console.log('hitEntity', hitEntity);
             //lagCompensatedHitscanCheck
             //const hitEntity = lagCompensatedHitscanCheck(main, world, fromX, fromY, hitX, hitY, 0.1);
@@ -143,6 +183,26 @@ const update = () => {
               ];
 
               const force = impactCommand.impactForce;
+              if (hitEntity.username !== null) {
+                const playerEntity = hitEntity as PlayerEntity;
+                console.log(force);
+                playerEntity.health = Math.max(0, playerEntity.health - force);
+                console.log('damage', playerEntity.health);
+              }
+
+              if (hitEntity.health <= 0) {
+                console.log('playerEntity died', hitEntity.health);
+                const playerEntity = hitEntity as PlayerEntity;
+                playerEntity.isAlive = false;
+                playerEntity.color = 0xff0000;
+                playerEntity.body.type = p2.Body.STATIC;
+                playerEntity.body.mass = 0;
+                playerEntity.body.velocity = [0, 0];
+                playerEntity.body.angularVelocity = 0;
+                playerEntity.body.updateMassProperties();
+                //deletePlayerEntity(playerEntity, main, space, playerEntities, world);
+              }
+
               hitEntity.body.applyImpulse(
                 [normalizedX * force, normalizedY * force],
                 relativePoint
@@ -151,17 +211,18 @@ const update = () => {
                 ntype: NetworkType.ServerMessage,
                 message: `${hitEntity.nid} was hit by a bullet`,
               });
-              // local messages must include x and y for view culling
-              space.addMessage({
-                ntype: NetworkType.ShotImpactMessage,
-                targetNid: hitEntity.nid,
-                x: hitX,
-                y: hitY,
-                fromX: fromX,
-                fromY: fromY,
-                force: impactCommand.impactForce,
-              });
             }
+
+            // local messages must include x and y for view culling
+            space.addMessage({
+              ntype: NetworkType.ShotImpactMessage,
+              targetNid: hitEntity?.nid,
+              x: hitX,
+              y: hitY,
+              fromX: fromX,
+              fromY: fromY,
+              force: impactCommand.impactForce,
+            });
           }
         });
       }

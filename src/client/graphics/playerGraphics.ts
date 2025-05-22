@@ -29,6 +29,7 @@ const createPlayerGraphics = (entity: PlayerEntity) => {
 
   const playerBodyTexture = app.renderer.generateTexture(playerBody);
   const playerBodySprite = new Sprite(playerBodyTexture);
+  playerBodySprite.label = 'playerBody';
   playerBodySprite.anchor.set(0.5);
   playerBodySprite.width = entity.size;
   playerBodySprite.height = entity.size;
@@ -43,6 +44,7 @@ const createPlayerGraphics = (entity: PlayerEntity) => {
   const playerNoseTexture = app.renderer.generateTexture(playerNose);
 
   const playerNoseSprite = new Sprite(playerNoseTexture);
+  playerNoseSprite.label = 'playerNose';
   playerNoseSprite.anchor.set(0.5);
   playerNoseSprite.width = 3;
   playerNoseSprite.height = 4;
@@ -96,6 +98,16 @@ const updateRemotePlayerGraphics = (playerEntity: PlayerEntity, delta: number) =
     while (diff < -Math.PI) diff += 2 * Math.PI;
     while (diff > Math.PI) diff -= 2 * Math.PI;
     playerBodyContainer.rotation += diff * t;
+    const playerBody = playerBodyContainer.getChildByLabel('playerBody');
+    const playerNose = playerBodyContainer.getChildByLabel('playerNose');
+    if (playerEntity.isAlive === false) {
+      if (playerBody) {
+        playerBody.tint = 0xff0000;
+      }
+      if (playerNose) {
+        playerNose.tint = 0xff0000;
+      }
+    }
   }
 };
 

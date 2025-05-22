@@ -18,7 +18,9 @@ export class PlayerEntity extends User {
   rotation: number;
   speed: number;
   username: string;
+  health: number;
   isSelf: boolean;
+  isAlive: boolean;
   color: number;
   view: AABB2D;
   mass: number;
@@ -37,7 +39,9 @@ export class PlayerEntity extends User {
     this.rotation = 0;
     this.speed = config.playerSpeed;
     this.username = username;
+    this.health = 100;
     this.isSelf = false;
+    this.isAlive = true;
     this.color = this.generateColor();
     this.view = new AABB2D(0, 0, config.viewSize, config.viewSize);
     this.mass = 5;

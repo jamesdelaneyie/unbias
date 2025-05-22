@@ -9,7 +9,7 @@
     "dev:server": "NODE_OPTIONS='--no-warnings --loader ts-node/esm' nodemon --watch 'src/**/*.ts' src/server/instance.ts",
     "dev:client": "vite",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "bots": "nodemon src/bot/bots-main.ts",
+    "bots": "nodemon src/bots/bots-main.ts",
     "clean": "rimraf dist",
     "typecheck": "npx tsc --project tsconfig.test.json",
     "build:bots": "esbuild src/bots/bots-main.ts --bundle --outfile=dist/bots/main.js --platform=node --format=esm --external:nengi --external:nengi-ws-client-adapter",

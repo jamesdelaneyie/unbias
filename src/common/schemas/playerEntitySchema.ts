@@ -8,4 +8,6 @@ export const playerEntitySchema: Schema = defineSchema({
   color: Binary.Float64,
   username: Binary.String,
   speed: Binary.UInt8,
+  health: Binary.UInt8,
+  isAlive: Binary.Boolean,
 });

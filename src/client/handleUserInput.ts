@@ -108,7 +108,8 @@ const handleUserInput = (
         point.y,
         worldContainer,
         client,
-        objectEntities
+        objectEntities,
+        playerEntities
       );
     }
 

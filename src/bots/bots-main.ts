@@ -1,13 +1,27 @@
-import { Client, Interpolator } from 'nengi';
+import { Client, IEntity, Interpolator } from 'nengi';
 import { ncontext } from '../common/ncontext';
 import { WsClientAdapter } from 'nengi-ws-client-adapter';
 import { NetworkType } from '../common/NetworkType';
+import { IEntityFrame } from 'nengi/build/client/Frame';
 
 type Bot = {
   nid: number;
   client: Client;
   interpolator: Interpolator;
-  controls: { w: boolean; a: boolean; s: boolean; d: boolean; space: boolean; rotation: number };
+  isAlive: boolean;
+  x: number;
+  y: number;
+  rotation: number;
+  mouseX: number;
+  mouseY: number;
+  controls: {
+    w: boolean;
+    a: boolean;
+    s: boolean;
+    d: boolean;
+    space: boolean;
+    rotation: number;
+  };
 };
 
 const bots: Set<Bot> = new Set();
@@ -39,7 +53,18 @@ async function createBot() {
     space: false,
     rotation: 0,
   };
-  bots.add({ client, interpolator, controls, nid: 0 });
+  bots.add({
+    client,
+    interpolator,
+    controls,
+    nid: 0,
+    isAlive: true,
+    x: 0,
+    y: 0,
+    rotation: 0,
+    mouseX: 0,
+    mouseY: 0,
+  });
 }
 
 async function connectBots(quantity: number) {
@@ -54,17 +79,45 @@ async function connectBots(quantity: number) {
 setInterval(
   () => {
     bots.forEach(bot => {
-      bot.interpolator.getInterpolatedState(100);
+      if (!bot.isAlive) {
+        return;
+      }
+
+      const istate = bot.interpolator.getInterpolatedState(100);
 
       while (bot.client.network.messages.length > 0) {
         const message = bot.client.network.messages.pop();
-        console.log('Received message:', message);
         if (message.ntype === NetworkType.IdentityMessage) {
-          console.log('IdentityMessage', message);
           bot.nid = message.myId;
           console.log(bot.nid);
         }
       }
+
+      istate.forEach((snapshot: IEntityFrame) => {
+        snapshot.updateEntities.forEach((entity: IEntity) => {
+          if (entity.nid === bot.nid) {
+            if (entity.prop === 'x') {
+              bot.x = entity.value;
+            }
+            if (entity.prop === 'y') {
+              bot.y = entity.value;
+            }
+            if (entity.prop === 'rotation') {
+              bot.rotation = entity.value;
+            }
+            if (entity.prop === 'isAlive') {
+              console.log('bot is alive', entity.value);
+              bot.isAlive = entity.value;
+            }
+          }
+        });
+        snapshot.deleteEntities.forEach((nid: number) => {
+          if (nid === bot.nid) {
+            console.log('bot died');
+            bot.isAlive = false;
+          }
+        });
+      });
 
       if (Math.random() > 0.95) {
         bot.controls.w = Math.random() > 0.5;
@@ -73,6 +126,24 @@ setInterval(
         bot.controls.d = Math.random() > 0.5;
         bot.controls.space = Math.random() > 0.5;
         bot.controls.rotation = Math.random() * 2 * Math.PI;
+      }
+      if (Math.random() > 0.99) {
+        const noseLength = 100;
+        const noseTipX = bot.x + Math.cos(bot.controls.rotation) * noseLength;
+        const noseTipY = bot.y + Math.sin(bot.controls.rotation) * noseLength;
+        bot.mouseX = bot.x + Math.cos(bot.controls.rotation) * 1000;
+        bot.mouseY = bot.y + Math.sin(bot.controls.rotation) * 1000;
+        //console.log('bot shot', bot.mouseX, bot.mouseY);
+        //console.log('bot nose', noseTipX, noseTipY);
+        bot.client.addCommand({
+          ntype: NetworkType.ShotImpactCommand,
+          targetNid: 0,
+          fromX: noseTipX,
+          fromY: noseTipY,
+          hitX: bot.mouseX,
+          hitY: bot.mouseY,
+          impactForce: 200,
+        });
       }
       bot.client.addCommand({
         ntype: NetworkType.MoveCommand,

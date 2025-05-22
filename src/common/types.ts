@@ -18,6 +18,7 @@ type Entity = {
 type PlayerEntity = Entity & {
   username: string;
   isSelf: boolean;
+  isAlive: boolean;
   color: number;
   speed: number;
   size: number;

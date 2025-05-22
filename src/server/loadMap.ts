@@ -2,14 +2,70 @@ import * as p2 from 'p2-es';
 import { ChannelAABB2D } from 'nengi';
 import { DynamicObject, StaticObject } from '../common/ObjectEntity';
 
-export const populateWorld = (
+const createRoom = (width: number, height: number, wallThickness: number, color: number) => {
+  const entities = [];
+
+  const leftWall = {
+    label: 'leftWall',
+    shape: 'rectangle',
+    x: -width / 2,
+    y: 0,
+    width: wallThickness,
+    height: height + wallThickness,
+    color: color,
+  };
+
+  const leftWallObject = new StaticObject(leftWall);
+  entities.push(leftWallObject);
+
+  const rightWall = {
+    label: 'rightWall',
+    shape: 'rectangle',
+    x: width / 2,
+    y: 0,
+    width: wallThickness,
+    height: height + wallThickness,
+    color: color,
+  };
+
+  const rightWallObject = new StaticObject(rightWall);
+  entities.push(rightWallObject);
+
+  const topWall = {
+    label: 'topWall',
+    shape: 'rectangle',
+    x: 0,
+    y: height / 2,
+    width: width + wallThickness,
+    height: wallThickness,
+    color: color,
+  };
+
+  const topWallObject = new StaticObject(topWall);
+  entities.push(topWallObject);
+  const bottomWall = {
+    label: 'bottomWall',
+    shape: 'rectangle',
+    x: 0,
+    y: -height / 2,
+    width: width + wallThickness,
+    height: wallThickness,
+    color: color,
+  };
+
+  const bottomWallObject = new StaticObject(bottomWall);
+  entities.push(bottomWallObject);
+
+  return entities;
+};
+
+export const debugMap = (
   main: ChannelAABB2D,
   world: p2.World,
   staticEntities: Map<number, any>,
   dynamicEntities: Map<number, any>
 ): boolean => {
-  const color = 0xffffff;
-  const numObjects = 20;
+  const numObjects = 0;
   const gridSize = 30;
 
   let objectsCreated = 0;
@@ -45,70 +101,14 @@ export const populateWorld = (
 
   createObject();
 
-  const roomSize = 70;
-  const wallThickness = 3;
+  const walls = createRoom(50, 50, 3, 0xffffff);
+  walls.forEach(wall => {
+    main.addEntity(wall);
+    world.addBody(wall.body);
+    staticEntities.set(wall.nid, wall);
+  });
 
-  const leftWall = {
-    label: 'leftWall',
-    shape: 'rectangle',
-    x: -roomSize / 2,
-    y: 0,
-    width: wallThickness,
-    height: roomSize + wallThickness,
-    color: color,
-  };
-
-  const leftWallObject = new StaticObject(leftWall);
-  main.addEntity(leftWallObject);
-  world.addBody(leftWallObject.body);
-  staticEntities.set(leftWallObject.nid, leftWallObject);
-
-  const rightWall = {
-    label: 'rightWall',
-    shape: 'rectangle',
-    x: roomSize / 2,
-    y: 0,
-    width: wallThickness,
-    height: roomSize + wallThickness,
-    color: color,
-  };
-
-  const rightWallObject = new StaticObject(rightWall);
-  main.addEntity(rightWallObject);
-  world.addBody(rightWallObject.body);
-  staticEntities.set(rightWallObject.nid, rightWallObject);
-
-  const topWall = {
-    label: 'topWall',
-    shape: 'rectangle',
-    x: 0,
-    y: roomSize / 2,
-    width: roomSize + wallThickness,
-    height: wallThickness,
-    color: color,
-  };
-
-  const topWallObject = new StaticObject(topWall);
-  main.addEntity(topWallObject);
-  world.addBody(topWallObject.body);
-  staticEntities.set(topWallObject.nid, topWallObject);
-
-  const bottomWall = {
-    label: 'bottomWall',
-    shape: 'rectangle',
-    x: 0,
-    y: -roomSize / 2,
-    width: roomSize + wallThickness,
-    height: wallThickness,
-    color: color,
-  };
-
-  const bottomWallObject = new StaticObject(bottomWall);
-  main.addEntity(bottomWallObject);
-  world.addBody(bottomWallObject.body);
-  staticEntities.set(bottomWallObject.nid, bottomWallObject);
-
-  const polygon = {
+  /*const polygon = {
     label: 'polygon',
     shape: 'polygon',
     x: 0,
@@ -137,7 +137,21 @@ export const populateWorld = (
   const capsuleObject = new StaticObject(capsule);
   main.addEntity(capsuleObject);
   world.addBody(capsuleObject.body);
-  staticEntities.set(capsuleObject.nid, capsuleObject);
+  staticEntities.set(capsuleObject.nid, capsuleObject);*/
 
   return true;
+};
+
+export const loadMap = (
+  main: ChannelAABB2D,
+  world: p2.World,
+  staticEntities: Map<number, any>,
+  dynamicEntities: Map<number, any>,
+  mapName: string = 'debugMap'
+): boolean => {
+  switch (mapName) {
+    case 'debugMap':
+    default:
+      return debugMap(main, world, staticEntities, dynamicEntities);
+  }
 };
