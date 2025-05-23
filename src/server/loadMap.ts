@@ -65,7 +65,7 @@ export const debugMap = (
   staticEntities: Map<number, any>,
   dynamicEntities: Map<number, any>
 ): boolean => {
-  const numObjects = 0;
+  const numObjects = 20;
   const gridSize = 30;
 
   let objectsCreated = 0;
