@@ -13,6 +13,11 @@ export interface PerformanceMetrics {
   memoryUsage: number;
   cpuUsage: number;
   timestamp: number;
+
+  // New physics health metrics
+  physicsBodyCount: number;
+  physicsContactPairs: number;
+  physicsSolverIterations: number;
 }
 
 export class PerformanceMonitor {
@@ -37,6 +42,9 @@ export class PerformanceMonitor {
       memoryUsage: 0,
       cpuUsage: 0,
       timestamp: 0,
+      physicsBodyCount: 0,
+      physicsContactPairs: 0,
+      physicsSolverIterations: 0,
     };
   }
 
@@ -113,6 +121,9 @@ export class PerformanceMonitor {
       memoryUsage,
       cpuUsage,
       timestamp,
+      physicsBodyCount: 0,
+      physicsContactPairs: 0,
+      physicsSolverIterations: 0,
     };
   }
 }

@@ -24,6 +24,11 @@ export const performanceMetricsSchema: Schema = defineSchema({
   memoryUsage: Binary.Float32,
   cpuUsage: Binary.Float32,
 
+  // Physics health metrics
+  physicsBodyCount: Binary.Int16,
+  physicsContactPairs: Binary.Int16,
+  physicsSolverIterations: Binary.Int8,
+
   // Timestamp for client-side tracking
   timestamp: Binary.Float32,
 });

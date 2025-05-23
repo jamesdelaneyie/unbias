@@ -88,6 +88,8 @@ const updateDetailedMetrics = (metrics: PerformanceMetrics): void => {
   const frameTimeColor = getPerformanceColor(metrics.frameTime, 16, 33);
   const physicsColor = getPerformanceColor(metrics.physicsStepTime, 5, 10);
   const memoryColor = getPerformanceColor(metrics.memoryUsage, 100, 200);
+  const bodyCountColor = getPerformanceColor(metrics.physicsBodyCount, 50, 100);
+  const contactPairsColor = getPerformanceColor(metrics.physicsContactPairs, 100, 500);
 
   content.innerHTML = `
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -128,6 +130,28 @@ const updateDetailedMetrics = (metrics: PerformanceMetrics): void => {
         <div style="margin-bottom: 4px;">
           <span style="color: #ccc;">Entity Update:</span> 
           <span style="color: #3F51B5;">${formatTime(metrics.entityUpdateTime)}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 12px;">
+      <h4 style="margin: 0 0 8px 0; color: #FF5722; font-size: 13px;">Physics World Health</h4>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div>
+          <div style="margin-bottom: 4px;">
+            <span style="color: #ccc;">Bodies in World:</span> 
+            <span style="color: ${bodyCountColor}; font-weight: bold;">${metrics.physicsBodyCount}</span>
+          </div>
+          <div style="margin-bottom: 4px;">
+            <span style="color: #ccc;">Contact Pairs:</span> 
+            <span style="color: ${contactPairsColor}; font-weight: bold;">${metrics.physicsContactPairs}</span>
+          </div>
+        </div>
+        <div>
+          <div style="margin-bottom: 4px;">
+            <span style="color: #ccc;">Solver Iterations:</span> 
+            <span style="color: #9C27B0;">${metrics.physicsSolverIterations}</span>
+          </div>
         </div>
       </div>
     </div>

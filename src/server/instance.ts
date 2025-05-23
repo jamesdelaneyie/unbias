@@ -12,6 +12,8 @@ import { loadMap } from './loadMap';
 import lagCompensatedHitscanCheck from './lagCompensatedHitscanCheck';
 import { ServerMessageType } from '../common/schemas/serverMessageSchema';
 import { PerformanceMonitor } from './PerformanceMonitor';
+import { rayPool } from './PhysicsUtils';
+import { PhysicsWorldCleaner } from './PhysicsWorldCleaner';
 
 const instance = new Instance(ncontext);
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
@@ -32,13 +34,46 @@ const playerEntities: Map<number, PlayerEntity> = new Map();
 // Performance monitoring
 const performanceMonitor = new PerformanceMonitor();
 let performanceMetricsCounter = 0;
-const PERFORMANCE_METRICS_INTERVAL = 60; // Send metrics every 60 ticks (1 second at 60 TPS)
+const PERFORMANCE_METRICS_INTERVAL = 10; // Send metrics every 60 ticks (1 second at 60 TPS)
 
 const world = new p2.World({ gravity: [0, 10], islandSplit: true });
 // @ts-ignore
 world.solver.iterations = 10;
 world.defaultContactMaterial.friction = 0;
 world.defaultContactMaterial.restitution = 0.1;
+
+// CRITICAL FIX: Move event listeners OUTSIDE the update loop
+world.on('beginContact', event => {
+  const bodyA = event.bodyA;
+  const bodyB = event.bodyB;
+
+  let playerEntity = null;
+  let objectEntity = null;
+
+  const playerA = Array.from(playerEntities.values()).find(p => p.body === bodyA);
+  const objectB = Array.from(ObjectEntities.values()).find(o => o.body === bodyB);
+  if (playerA && objectB) {
+    playerEntity = playerA;
+    objectEntity = objectB;
+  }
+
+  const playerB = Array.from(playerEntities.values()).find(p => p.body === bodyB);
+  const objectA = Array.from(ObjectEntities.values()).find(o => o.body === bodyA);
+  if (playerB && objectA) {
+    playerEntity = playerB;
+    objectEntity = objectA;
+  }
+
+  if (playerEntity && objectEntity) {
+    objectEntity.color = playerEntity.color;
+  }
+});
+
+// Track bodies to clean up
+const bodiesToRemove = new Set<p2.Body>();
+
+// Physics world maintenance
+const physicsWorldCleaner = new PhysicsWorldCleaner();
 
 instance.onConnect = async (handshake: any) => {
   console.log('handshake received', handshake.token);
@@ -169,20 +204,17 @@ const update = () => {
               const raycastStart = performanceMonitor.startTiming('raycastTime');
               const from = [fromX, fromY];
               const to = [hitX, hitY];
-              const ray = new p2.Ray({
-                from: from,
-                to: to,
-                mode: p2.Ray.CLOSEST,
-                collisionMask: 0xffffffff,
-                skipBackfaces: true,
-                callback: function (result) {
-                  console.log('result', result);
-                },
-              });
+              const ray = rayPool.getRay();
+              ray.from = from;
+              ray.to = to;
               ray.update();
 
               const result = new p2.RaycastResult();
               world.raycast(result, ray);
+
+              // Return ray to pool after use
+              rayPool.returnRay(ray);
+
               performanceMonitor.endTiming('raycastTime', raycastStart);
 
               //console.log('result', result);
@@ -250,12 +282,22 @@ const update = () => {
                 const playerEntity = hitEntity as PlayerEntity;
                 playerEntity.isAlive = false;
                 playerEntity.color = 0xff0000;
-                playerEntity.body.type = p2.Body.STATIC;
-                playerEntity.body.mass = 0;
-                playerEntity.body.velocity = [0, 0];
-                playerEntity.body.angularVelocity = 0;
-                playerEntity.body.updateMassProperties();
-                //deletePlayerEntity(playerEntity, main, space, playerEntities, world);
+
+                // CRITICAL FIX: Properly clean up dead players
+                // Mark for removal from physics world
+                bodiesToRemove.add(playerEntity.body);
+
+                // Remove from game entities
+                playerEntities.delete(playerEntity.nid);
+                dynamicEntities.delete(playerEntity.nid);
+                space.removeEntity(playerEntity);
+                main.removeEntity(playerEntity);
+
+                main.addMessage({
+                  ntype: NetworkType.ServerMessage,
+                  message: `${playerEntity.username} has died`,
+                  type: ServerMessageType.global,
+                });
               }
 
               main.addMessage({
@@ -292,31 +334,15 @@ const update = () => {
   performanceMonitor.endTiming('worldStepTime', worldStepStart);
   performanceMonitor.endTiming('physicsStepTime', physicsStart);
 
-  world.on('beginContact', event => {
-    const bodyA = event.bodyA;
-    const bodyB = event.bodyB;
-
-    let playerEntity = null;
-    let objectEntity = null;
-
-    const playerA = Array.from(playerEntities.values()).find(p => p.body === bodyA);
-    const objectB = Array.from(ObjectEntities.values()).find(o => o.body === bodyB);
-    if (playerA && objectB) {
-      playerEntity = playerA;
-      objectEntity = objectB;
-    }
-
-    const playerB = Array.from(playerEntities.values()).find(p => p.body === bodyB);
-    const objectA = Array.from(ObjectEntities.values()).find(o => o.body === bodyA);
-    if (playerB && objectA) {
-      playerEntity = playerB;
-      objectEntity = objectA;
-    }
-
-    if (playerEntity && objectEntity) {
-      objectEntity.color = playerEntity.color;
+  // CRITICAL FIX: Clean up physics bodies after world step
+  bodiesToRemove.forEach(body => {
+    try {
+      world.removeBody(body);
+    } catch (error) {
+      console.warn('Failed to remove body from physics world:', error);
     }
   });
+  bodiesToRemove.clear();
 
   // Entity updates with performance monitoring
   const entityUpdateStart = performanceMonitor.startTiming('entityUpdateTime');
@@ -332,6 +358,15 @@ const update = () => {
   performanceMonitor.setMetric('playerCount', playerEntities.size);
   performanceMonitor.setMetric('dynamicEntityCount', dynamicEntities.size);
   performanceMonitor.setMetric('tickRate', config.serverTickRate);
+
+  // CRITICAL MONITORING: Track physics world health
+  performanceMonitor.setMetric('physicsBodyCount', world.bodies.length);
+  performanceMonitor.setMetric('physicsContactPairs', world.narrowphase.contactEquations.length);
+  // @ts-ignore
+  performanceMonitor.setMetric('physicsSolverIterations', world.solver.iterations);
+
+  // Periodic physics world cleanup
+  physicsWorldCleaner.cleanupWorld(world, playerEntities, ObjectEntities);
 
   // Send performance metrics to clients periodically
   performanceMetricsCounter++;
