@@ -3,7 +3,7 @@ import { NetworkType } from './NetworkType';
 import { Container } from 'pixi.js';
 import * as p2 from 'p2-es';
 
-/* Entities: Players and Objects */
+/* Base Entity */
 type Entity = {
   nid: number;
   ntype: NetworkType;
@@ -52,7 +52,6 @@ type ObjectEntityMap = Map<Binary.UInt8, ObjectEntity>;
 type Command = {
   ntype: NetworkType.MoveCommand | NetworkType.UsernameCommand | NetworkType.ShotImpactCommand;
   nid: number;
-  // additional fields for ShotImpactCommand are defined in schema
 };
 
 type MoveCommand = Command & {

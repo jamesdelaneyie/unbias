@@ -18,10 +18,7 @@ interface QueuedMessage {
   messageType: ServerMessageType;
 }
 
-class NotificationService {
-  // --- HTML bits (username field) -----------------------------
-  private notificationBox: HTMLDivElement;
-
+export class NotificationService {
   private scrollBox?: ScrollBox;
   private autoScroll = true;
   private readonly maxMessages = 200;
@@ -31,11 +28,7 @@ class NotificationService {
   private containerHeight = 100;
   private uiContainer?: Container;
 
-  constructor(document: Document) {
-    // HTML container only used for the username text field for now
-    this.notificationBox = this.createNotificationBox(document);
-    document.body.appendChild(this.notificationBox);
-  }
+  constructor() {}
 
   setupPixi(app: Application, client: Client): void {
     if (this.pixiReady) return;
@@ -64,7 +57,7 @@ class NotificationService {
     // pixi/ui ScrollBox
     const scrollBox = new ScrollBox({
       width: this.containerWidth,
-      height: this.containerHeight,
+      height: this.containerHeight - 10,
       globalScroll: false,
     });
     scrollBox.label = 'NotificationScrollBox';
@@ -175,19 +168,6 @@ class NotificationService {
     this.pending.length = 0;
   }
 
-  /**
-   * Username helpers (HTML) – kept from original implementation
-   */
-  addUsernameField(document: Document): HTMLInputElement {
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.placeholder = 'enter username';
-    input.style.fontSize = '11px';
-    input.style.margin = '10px 0';
-    this.notificationBox.appendChild(input);
-    return input;
-  }
-
   addPixiInput(app: Application, client: Client): void {
     //width and height are set by the background
     const width: number = 150;
@@ -226,48 +206,6 @@ class NotificationService {
     });
   }
 
-  setupUsername(usernameField: HTMLInputElement, client: Client): void {
-    const existingUsername = localStorage.getItem('username') || '';
-    if (existingUsername) {
-      console.log('existingUsername', existingUsername);
-      /*usernameField.value = existingUsername;
-      client.addCommand({
-        ntype: NType.UsernameCommand,
-        username: existingUsername,
-      });*/
-    }
-
-    let usernameSubmitted = false;
-    usernameField.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !usernameSubmitted) {
-        const username = (e.target as HTMLInputElement).value.trim();
-        if (username) {
-          usernameSubmitted = true;
-          localStorage.setItem('username', username);
-          client.addCommand({
-            ntype: NetworkType.UsernameCommand,
-            username,
-          });
-          usernameField.disabled = true;
-        }
-      }
-    });
-  }
-
-  /* -----------------------------------------------------------
-   *  Internals
-   * ---------------------------------------------------------*/
-
-  private createNotificationBox(document: Document): HTMLDivElement {
-    const box = document.createElement('div');
-    box.style.position = 'absolute';
-    box.style.top = '10px';
-    box.style.right = '10px';
-    box.style.width = '300px';
-    box.style.zIndex = '1000';
-    return box;
-  }
-
   private getColor(type: NotificationType): string {
     switch (type) {
       case NotificationType.ERROR:
@@ -293,6 +231,6 @@ class NotificationService {
   }
 }
 
-// Single global instance (still created eagerly for username input)
-export const notificationService = new NotificationService(document);
+// Single global instance
+export const notificationService = new NotificationService();
 export { NotificationType };

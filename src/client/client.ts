@@ -1,4 +1,3 @@
-import { NetworkType } from '@/common/NetworkType';
 import { ncontext } from '@/common/ncontext';
 import { Client, Interpolator } from 'nengi';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
@@ -6,7 +5,7 @@ import { initRenderer } from './utilities';
 import { setupGraphicsWorld, setupUI } from './GPUUI';
 import { InputSystem } from './InputSystem';
 import { handleUserInput } from '@/client/handleUserInput';
-import { notificationService, NotificationType } from './NotificationService';
+import { notificationService, NotificationType } from './UIManager';
 import { updateLocalStates } from './handleState';
 import { IEntityMap, PlayerEntityMap, ObjectEntityMap } from '@/common/types';
 import { connectToServer, scheduleReconnect } from './ConnectionManager';
@@ -14,9 +13,9 @@ import * as p2 from 'p2-es';
 import { updateGraphics } from '@/client/graphics/updateGraphics';
 import { config } from '@/common/config';
 import { handlePredictionErrors } from '@/client/handlePredictionError';
-import Stats from 'stats.js';
-import { drawHitscan } from '@/client/graphics/drawHitscan';
 import '@pixi/layout/devtools';
+import { performanceBegin, performanceEnd, setupPerformanceUI } from './performanceUI';
+import { handleMessages } from '@/client/handleMessages';
 
 let connectedToServer = false;
 
@@ -27,46 +26,9 @@ let objectEntities: ObjectEntityMap = new Map();
 window.addEventListener('load', async () => {
   const app = await initRenderer();
   const worldContainer = setupGraphicsWorld(app);
-  const performanceStats = {
-    fps: 0,
-    clientTick: 0,
-    latency: 0,
-    avgTimeDifference: 0,
-    memory: 0,
-    totalMemory: 0,
-    networkMessages: 0,
-    networkBytesIn: 0,
-    networkBytesOut: 0,
-  };
   setupUI(app);
 
-  const fpsStats = new Stats();
-  fpsStats.showPanel(0);
-  fpsStats.dom.style.left = '10px';
-  fpsStats.dom.style.bottom = '10px';
-  fpsStats.dom.style.top = 'initial';
-  const msStats = new Stats();
-  msStats.showPanel(1);
-  msStats.dom.style.left = '90px';
-  msStats.dom.style.bottom = '10px';
-  msStats.dom.style.top = 'initial';
-  const memoryStats = new Stats();
-  memoryStats.showPanel(2);
-  memoryStats.dom.style.left = '170px';
-  memoryStats.dom.style.bottom = '10px';
-  memoryStats.dom.style.top = 'initial';
-  let latencyMaxYAxis = 0;
-  const latencyStatsPanel = new Stats.Panel('ms Lag', '#0ff', '#002');
-  const latencyStats = new Stats();
-  latencyStats.showPanel(3);
-  latencyStats.addPanel(latencyStatsPanel);
-  latencyStats.dom.style.left = '250px';
-  latencyStats.dom.style.bottom = '10px';
-  latencyStats.dom.style.top = 'initial';
-  document.body.appendChild(fpsStats.dom);
-  document.body.appendChild(msStats.dom);
-  document.body.appendChild(memoryStats.dom);
-  document.body.appendChild(latencyStats.dom);
+  const stats = setupPerformanceUI();
 
   const worldState = {
     myId: null,
@@ -98,20 +60,7 @@ window.addEventListener('load', async () => {
   const tick = (delta: number) => {
     const istate = interpolator.getInterpolatedState(100);
 
-    while (client.network.messages.length > 0) {
-      const message = client.network.messages.pop();
-      console.log('Received message:', message);
-      if (message.ntype === NetworkType.IdentityMessage) {
-        worldState.myId = message.myId;
-      }
-      if (message.ntype === NetworkType.ShotImpactMessage) {
-        drawHitscan(worldContainer, message.fromX, message.fromY, message.x, message.y, 0x0000ff);
-      }
-      if (message.ntype === NetworkType.ServerMessage) {
-        notificationService.addNotification(message.message, NotificationType.INFO, message.type);
-      }
-      performanceStats.networkMessages++;
-    }
+    handleMessages(client, notificationService, worldState, worldContainer);
 
     updateLocalStates(
       istate,
@@ -153,17 +102,9 @@ window.addEventListener('load', async () => {
 
   let prev = performance.now();
   const loop = () => {
-    fpsStats.begin();
-    msStats.begin();
-    memoryStats.begin();
-    latencyStats.begin();
-    latencyMaxYAxis = Math.max(100, client.network.latency * 1.2);
-    latencyStatsPanel.update(client.network.latency, latencyMaxYAxis);
+    performanceBegin(client, stats);
     window.requestAnimationFrame(loop);
-    fpsStats.end();
-    msStats.end();
-    memoryStats.end();
-    latencyStats.end();
+    performanceEnd(stats);
     const now = performance.now();
     const delta = (now - prev) / 1000;
     prev = now;

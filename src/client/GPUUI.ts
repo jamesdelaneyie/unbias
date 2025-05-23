@@ -1,13 +1,9 @@
 import '@pixi/layout';
-// import { Client } from 'nengi';
-import { Application, Container } from 'pixi.js'; //HTMLText, Text
+import { Application, Container } from 'pixi.js';
 import TaggedTextPlus from 'pixi-tagged-text-plus';
 import { TextDecoration } from 'pixi-tagged-text-plus/dist/types';
 import { createGridGraphics } from '@/client/graphics/mapGraphics';
 import { config } from '@/common/config';
-//import { LayoutContainer } from '@pixi/layout/components';
-//import { ScrollBox } from '@pixi/ui';
-//import { TextDecoration } from 'pixi-tagged-text-plus/dist/types';
 
 const drawLinkText = (container: Container, text: string, href: string, x: number, y: number) => {
   const underline: TextDecoration = 'underline';

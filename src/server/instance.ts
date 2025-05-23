@@ -231,7 +231,7 @@ const update = () => {
               // @ts-ignore
               if (hitEntity.health <= 0) {
                 // @ts-ignore
-                console.log('playerEntity died', hitEntity.health);
+                //console.log('playerEntity died', hitEntity.health);
                 const playerEntity = hitEntity as PlayerEntity;
                 playerEntity.isAlive = false;
                 playerEntity.color = 0xff0000;
@@ -245,7 +245,8 @@ const update = () => {
 
               main.addMessage({
                 ntype: NetworkType.ServerMessage,
-                message: `${hitEntity.nid} was hit by a bullet`,
+                // @ts-ignore
+                message: `${hitEntity.username} was shot`,
                 type: ServerMessageType.global,
               });
             }

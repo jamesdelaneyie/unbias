@@ -6,10 +6,10 @@ const drawHitscan = (
   y: number,
   targetX: number,
   targetY: number,
-  color: number // This is the beam color, let's keep it for the line
+  color: number
 ) => {
-  const duration = 350; // Duration for visuals to remain visible
-  // Graphics for the beam line
+  const duration = 350;
+
   const lineGraphics = new Graphics()
     .moveTo(x, y)
     .lineTo(targetX, targetY)

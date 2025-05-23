@@ -1,6 +1,6 @@
 import { Client } from 'nengi';
 import { config } from '@/common/config';
-import { notificationService, NotificationType } from '@/client/NotificationService';
+import { notificationService, NotificationType } from '@/client/UIManager';
 
 let reconnectAttempts = 0;
 let reconnectTimeout: number | null = null;
@@ -25,10 +25,6 @@ const connectToServer = async (client: Client) => {
         clearTimeout(reconnectTimeout);
         reconnectTimeout = null;
       }
-
-      // Show username field and handle username
-      const usernameField = notificationService.addUsernameField(document);
-      notificationService.setupUsername(usernameField, client);
       return true;
     } else {
       notificationService.addNotification('Connection error', NotificationType.ERROR);
