@@ -11,6 +11,7 @@ import { config } from '../common/config';
 import { loadMap } from './loadMap';
 import lagCompensatedHitscanCheck from './lagCompensatedHitscanCheck';
 import { ServerMessageType } from '../common/schemas/serverMessageSchema';
+import { PerformanceMonitor } from './PerformanceMonitor';
 
 const instance = new Instance(ncontext);
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
@@ -27,6 +28,11 @@ const staticEntities: Map<number, Entity> = new Map();
 const dynamicEntities: Map<number, Entity> = new Map();
 const ObjectEntities: Map<number, ObjectEntity> = new Map();
 const playerEntities: Map<number, PlayerEntity> = new Map();
+
+// Performance monitoring
+const performanceMonitor = new PerformanceMonitor();
+let performanceMetricsCounter = 0;
+const PERFORMANCE_METRICS_INTERVAL = 60; // Send metrics every 60 ticks (1 second at 60 TPS)
 
 const world = new p2.World({ gravity: [0, 10], islandSplit: true });
 // @ts-ignore
@@ -45,7 +51,14 @@ let mapLoaded = false;
 const mapName = 'debugMap';
 
 const update = () => {
+  performanceMonitor.startFrame();
+
+  // Track queue size and command processing
+  let queueSize = 0;
+  const commandProcessingStart = performanceMonitor.startTiming('commandProcessingTime');
+
   while (!queue.isEmpty()) {
+    queueSize++;
     const networkEvent = queue.next();
 
     if (!mapLoaded) {
@@ -153,6 +166,7 @@ const update = () => {
             let relativePoint: [number, number] = [hitX, hitY];
             let impactPoint: [number, number] = [hitX, hitY];
             if (!hitEntity) {
+              const raycastStart = performanceMonitor.startTiming('raycastTime');
               const from = [fromX, fromY];
               const to = [hitX, hitY];
               const ray = new p2.Ray({
@@ -169,6 +183,7 @@ const update = () => {
 
               const result = new p2.RaycastResult();
               world.raycast(result, ray);
+              performanceMonitor.endTiming('raycastTime', raycastStart);
 
               //console.log('result', result);
 
@@ -267,7 +282,15 @@ const update = () => {
     }
   }
 
+  performanceMonitor.endTiming('commandProcessingTime', commandProcessingStart);
+  performanceMonitor.setMetric('messageQueueSize', queueSize);
+
+  // Physics step with performance monitoring
+  const physicsStart = performanceMonitor.startTiming('physicsStepTime');
+  const worldStepStart = performanceMonitor.startTiming('worldStepTime');
   world.step(config.worldStepRate);
+  performanceMonitor.endTiming('worldStepTime', worldStepStart);
+  performanceMonitor.endTiming('physicsStepTime', physicsStart);
 
   world.on('beginContact', event => {
     const bodyA = event.bodyA;
@@ -295,11 +318,36 @@ const update = () => {
     }
   });
 
+  // Entity updates with performance monitoring
+  const entityUpdateStart = performanceMonitor.startTiming('entityUpdateTime');
   dynamicEntities.forEach(entity => {
     entity.x = entity.body.position[0];
     entity.y = entity.body.position[1];
     entity.rotation = entity.body.angle;
   });
+  performanceMonitor.endTiming('entityUpdateTime', entityUpdateStart);
+
+  // Set entity counts
+  performanceMonitor.setMetric('entityCount', staticEntities.size + dynamicEntities.size);
+  performanceMonitor.setMetric('playerCount', playerEntities.size);
+  performanceMonitor.setMetric('dynamicEntityCount', dynamicEntities.size);
+  performanceMonitor.setMetric('tickRate', config.serverTickRate);
+
+  // Send performance metrics to clients periodically
+  performanceMetricsCounter++;
+  if (performanceMetricsCounter >= PERFORMANCE_METRICS_INTERVAL) {
+    performanceMonitor.endFrame();
+    const metrics = performanceMonitor.getMetrics();
+
+    // Send to all connected users
+    main.addMessage({
+      ntype: NetworkType.PerformanceMetrics,
+      ...metrics,
+    });
+
+    performanceMonitor.reset();
+    performanceMetricsCounter = 0;
+  }
 
   instance.step();
 };

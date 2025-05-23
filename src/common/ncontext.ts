@@ -10,6 +10,7 @@ import { usernameSchema } from './schemas/usernameSchema';
 import { shotImpactCommand } from './schemas/shotImpactCommand';
 import { shotImpactMessage } from './schemas/shotImpactMessage';
 import { serverMessageSchema } from './schemas/serverMessageSchema';
+import { performanceMetricsSchema } from './schemas/performanceMetricsSchema';
 const ncontext = new Context();
 
 ncontext.register(NetworkType.PlayerEntity, playerEntitySchema);
@@ -21,5 +22,6 @@ ncontext.register(NetworkType.UsernameCommand, usernameSchema);
 ncontext.register(NetworkType.ShotImpactCommand, shotImpactCommand);
 ncontext.register(NetworkType.ShotImpactMessage, shotImpactMessage);
 ncontext.register(NetworkType.ServerMessage, serverMessageSchema);
+ncontext.register(NetworkType.PerformanceMetrics, performanceMetricsSchema);
 
 export { ncontext };

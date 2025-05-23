@@ -3,6 +3,8 @@ import { Client } from 'nengi';
 import { NotificationService, NotificationType } from './UIManager';
 import { Container } from 'pixi.js';
 import { drawHitscan } from './graphics/drawHitscan';
+import { updateServerMetrics } from './performanceUI';
+import { updateDetailedMetrics } from './DetailedPerformanceUI';
 
 export const handleMessages = (
   client: Client,
@@ -21,6 +23,10 @@ export const handleMessages = (
     }
     if (message.ntype === NetworkType.ServerMessage) {
       notificationService.addNotification(message.message, NotificationType.INFO, message.type);
+    }
+    if (message.ntype === NetworkType.PerformanceMetrics) {
+      updateServerMetrics(message);
+      updateDetailedMetrics(message);
     }
   }
 };
