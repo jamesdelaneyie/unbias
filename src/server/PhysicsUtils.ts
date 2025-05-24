@@ -32,4 +32,4 @@ class RayPool {
 
 const rayPool = new RayPool();
 
-export { rayPool };
+export { rayPool, RayPool };

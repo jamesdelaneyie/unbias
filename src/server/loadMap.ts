@@ -101,7 +101,7 @@ export const debugMap = (
 
   createObject();
 
-  const walls = createRoom(50, 50, 1, 0xffffff);
+  const walls = createRoom(52, 52, 2, 0xffffff);
   walls.forEach(wall => {
     main.addEntity(wall);
     world.addBody(wall.body);

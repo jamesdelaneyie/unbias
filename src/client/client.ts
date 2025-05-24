@@ -16,6 +16,7 @@ import { handlePredictionErrors } from '@/client/handlePredictionError';
 import '@pixi/layout/devtools';
 import { performanceBegin, performanceEnd, setupPerformanceUI } from './performanceUI';
 import { handleMessages } from '@/client/handleMessages';
+import { RadialMenuManager } from './RadialMenuManager';
 
 let connectedToServer = false;
 
@@ -56,6 +57,10 @@ window.addEventListener('load', async () => {
 
   const userInput = new InputSystem();
   const interpolator = new Interpolator(client);
+  const radialMenuManager = new RadialMenuManager(app);
+
+  // Set the world container for backdrop blur
+  radialMenuManager.setWorldContainer(worldContainer);
 
   const tick = (delta: number) => {
     const istate = interpolator.getInterpolatedState(100);
@@ -88,6 +93,9 @@ window.addEventListener('load', async () => {
       delta,
       world
     );
+
+    // Handle radial menu input after the main input processing
+    radialMenuManager.handleInput(userInput);
 
     // update the physics world
     // applies velocities to the p2 bodies and updates their positions

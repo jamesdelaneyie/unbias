@@ -2,7 +2,7 @@ import * as p2 from 'p2-es';
 import { Historian, ChannelAABB2D } from 'nengi';
 import { Entity } from '../common/types';
 
-const lagCompensatedHitscanCheck = (
+export const lagCompensatedHitscanCheck = (
   channel: ChannelAABB2D,
   world: p2.World,
   x1: number,
@@ -61,5 +61,3 @@ const lagCompensatedHitscanCheck = (
   }
   return hits;
 };
-
-export default lagCompensatedHitscanCheck;
