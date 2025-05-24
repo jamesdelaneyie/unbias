@@ -1,15 +1,15 @@
-import { Command, Entity, ObjectEntity } from '../common/types';
-import { NetworkType } from '../common/NetworkType';
-import { PerformanceMonitor } from './PerformanceMonitor';
+import { Command, Entity, ObjectEntity } from '../../common/types';
+import { NetworkType } from '../../common/NetworkType';
+import { PerformanceMonitor } from '../PerformanceMonitor';
 import * as p2 from 'p2-es';
-import { ServerMessageType } from '../common/schemas/serverMessageSchema';
-import { PlayerEntity } from '../common/types';
+import { ServerMessageType } from '../../common/schemas/serverMessageSchema';
+import { PlayerEntity } from '../../common/types';
 import { Channel } from 'nengi';
 import { ChannelAABB2D } from 'nengi';
 import { lagCompensatedHitscanCheck } from './lagCompensatedHitscanCheck';
-import { RayPool } from './PhysicsUtils';
+import { RayPool } from '../PhysicsUtils';
 
-export const handleShot = (
+export const applyShotCommand = (
   command: Command,
   dynamicEntities: Map<number, Entity>,
   ObjectEntities: Map<number, ObjectEntity>,

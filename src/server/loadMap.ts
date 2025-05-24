@@ -108,7 +108,7 @@ export const debugMap = (
     staticEntities.set(wall.nid, wall);
   });
 
-  /*const polygon = {
+  const polygon = {
     label: 'polygon',
     shape: 'polygon',
     x: 0,
@@ -137,7 +137,7 @@ export const debugMap = (
   const capsuleObject = new StaticObject(capsule);
   main.addEntity(capsuleObject);
   world.addBody(capsuleObject.body);
-  staticEntities.set(capsuleObject.nid, capsuleObject);*/
+  staticEntities.set(capsuleObject.nid, capsuleObject);
 
   return true;
 };

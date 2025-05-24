@@ -1,4 +1,4 @@
-import { ncontext } from '@/common/ncontext';
+import { networkContext } from '@/common/networkContext';
 import { Client, Interpolator } from 'nengi';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
 import { initRenderer } from './utilities';
@@ -43,7 +43,7 @@ window.addEventListener('load', async () => {
   world.defaultContactMaterial.friction = 0;
   world.defaultContactMaterial.restitution = 0.1;
 
-  const client = new Client(ncontext, WebSocketClientAdapter, config.serverTickRate);
+  const client = new Client(networkContext, WebSocketClientAdapter, config.serverTickRate);
 
   // Initialize the Pixi-based notification log
   notificationService.setupPixi(app, client);

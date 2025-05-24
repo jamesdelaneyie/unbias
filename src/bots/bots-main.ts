@@ -1,5 +1,5 @@
 import { Client, IEntity, Interpolator } from 'nengi';
-import { ncontext } from '../common/ncontext';
+import { ncontext } from '../common/networkContext';
 import { WsClientAdapter } from 'nengi-ws-client-adapter';
 import { NetworkType } from '../common/NetworkType';
 import { IEntityFrame } from 'nengi/build/client/Frame';

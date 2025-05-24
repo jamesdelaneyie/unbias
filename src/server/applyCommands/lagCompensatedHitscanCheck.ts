@@ -1,6 +1,6 @@
 import * as p2 from 'p2-es';
 import { Historian, ChannelAABB2D } from 'nengi';
-import { Entity } from '../common/types';
+import { Entity } from '../../common/types';
 
 export const lagCompensatedHitscanCheck = (
   channel: ChannelAABB2D,

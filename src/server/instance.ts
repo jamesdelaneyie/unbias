@@ -1,29 +1,38 @@
-import { NetworkType } from '../common/NetworkType';
-import { ncontext } from '../common/ncontext';
+import * as p2 from 'p2-es';
 import { Instance, NetworkEvent, ChannelAABB2D, Historian, AABB2D, User, Channel } from 'nengi';
 import { uWebSocketsInstanceAdapter } from 'nengi-uws-instance-adapter';
+import { NetworkType } from '../common/NetworkType';
+import { networkContext } from '../common/networkContext';
+
 import { Command, MoveCommand, ObjectEntity, UsernameCommand, Entity } from '../common/types';
 import { PlayerEntity } from '../common/PlayerEntity';
 import { createPlayerEntity, deletePlayerEntity } from '../server/EntityManager';
-import { applyCommand } from './applyMoveCommand';
-import * as p2 from 'p2-es';
+
+import { applyMoveCommand } from './applyCommands/applyMoveCommand';
+import { applyShotCommand } from './applyCommands/applyShotCommand';
+
 import { config } from '../common/config';
 import { loadMap } from './loadMap';
 import { ServerMessageType } from '../common/schemas/serverMessageSchema';
 import { PerformanceMonitor } from './PerformanceMonitor';
 import { PhysicsWorldCleaner } from './PhysicsWorldCleaner';
 import { rayPool } from './PhysicsUtils';
-import { handleShot } from './handleShotServer';
 
-const instance = new Instance(ncontext);
+/* Create a nengi instance based on the shared network context */
+const instance = new Instance(networkContext);
+/* Setup the uWebsockets adapter */
 const uws = new uWebSocketsInstanceAdapter(instance.network, {});
 uws.listen(config.port, () => {
   console.log(`uws adapter is listening on ${config.port}`);
 });
 
-const historian = new Historian(ncontext, config.serverTickRate);
-const space = new ChannelAABB2D(instance.localState, historian);
+/* Create a nengi historian to track the state of the world */
+const historian = new Historian(networkContext, config.serverTickRate);
+
+/* Create a main global channel and a 2d spacial channel for entities */
 const main = new Channel(instance.localState);
+const space = new ChannelAABB2D(instance.localState, historian);
+
 const users = new Map<number, User>();
 
 const staticEntities: Map<number, Entity> = new Map();
@@ -71,7 +80,6 @@ world.on('beginContact', event => {
 
 // Track bodies to clean up
 const bodiesToRemove = new Set<p2.Body>();
-
 // Physics world maintenance
 const physicsWorldCleaner = new PhysicsWorldCleaner();
 
@@ -126,7 +134,7 @@ const update = () => {
             const player = playerEntities.get(command.nid);
             const moveCommand = command as MoveCommand;
             if (player) {
-              applyCommand(player, moveCommand);
+              applyMoveCommand(player, moveCommand);
             }
           }
           if (command.ntype === NetworkType.UsernameCommand) {
@@ -175,7 +183,7 @@ const update = () => {
             }
           }
           if (command.ntype === NetworkType.ShotImpactCommand) {
-            handleShot(
+            applyShotCommand(
               command,
               dynamicEntities,
               ObjectEntities,

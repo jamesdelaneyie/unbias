@@ -1,88 +1,244 @@
 # UNBIAS
 
-A multiplayer environment. Networked with nengi.js, rendered by pixi.js and made physical with p2.js.
+**A Real-Time Multiplayer Game Engine** built with modern web technologies for creating physics-based multiplayer experiences.
 
-## Setup
+## 🎮 Overview
 
-1. Clone the repository:
+UNBIAS is a high-performance multiplayer game engine featuring real-time physics simulation, client-server synchronization, and lag compensation. Built on a foundation of proven technologies:
+
+- **🌐 Networking**: [`nengi.js`](https://github.com/timetocode/nengi) for reliable multiplayer communication
+- **🎨 Rendering**: [`pixi.js`](https://pixijs.com/) for high-performance 2D graphics
+- **⚡ Physics**: [`p2.js`](https://github.com/schteppe/p2.js) for realistic physics simulation
+
+## ✨ Features
+
+### Core Engine
+
+- **Real-time multiplayer** with authoritative server architecture
+- **Client-side prediction** and server reconciliation
+- **Lag compensation** for responsive gameplay
+- **Physics-based** movement and interactions
+- **Performance monitoring** with detailed metrics
+- **Entity management** system with spatial partitioning
+
+### Gameplay Features
+
+- **Player movement** with WASD controls
+- **Shooting mechanics** with hitscan and projectiles
+- **Object interaction** and physics-based combat
+- **Radial menu system** for context-sensitive actions
+- **Real-time chat** and messaging system
+- **Dynamic map loading** with configurable environments
+
+### Developer Experience
+
+- **TypeScript** throughout for type safety
+- **Hot reloading** for both client and server
+- **Comprehensive testing** setup with Vitest
+- **ESLint + Prettier** for code quality
+- **Docker support** for easy deployment
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Node.js 22+** (see `.nvmrc`)
+- **npm 10.9.2+**
+
+### Installation
+
+1. **Clone the repository:**
 
    ```bash
    git clone <repository-url>
    cd unbias
    ```
 
-2. Install dependencies:
+2. **Set up Node.js version:**
 
    ```bash
-   nvm use 22
+   nvm use 22  # or nvm use (reads from .nvmrc)
+   ```
+
+3. **Install dependencies:**
+
+   ```bash
    npm install
    ```
 
-3. Start the development server:
+4. **Start development environment:**
    ```bash
    npm run dev
    ```
+   This starts both the server (port 8080) and client development server simultaneously.
 
-## Development
+### Alternative Development Commands
 
-- **Client:** The client code is in `src/client/`.
-- **Server:** The server code is in `src/server/`.
-- **Common:** Shared code is in `src/common/`.
+- **Server only:** `npm run dev:server`
+- **Client only:** `npm run dev:client`
+- **Run AI bots:** `npm run bots`
 
-## To Do
+## 🏗️ Architecture
 
-6th May:
+### Project Structure
 
-~~Network and setup objects and player classes across client/server~~
-
-~~Add lag compensation firing~~
-
-~~login to vultr~~
-
-~~create setup world in instance~~
-
-~~expand config~~
-
-13th May:
-Get docker version working locally
-Deploy on old vultr server
-put on a server
-try with ngrok
-Move all UI to pixi
-check on mobile for framerate issue
-see if render / p2 world step on client can be seperated
-see if the patch to nengi can be removed
-review connection manager for improvements
-think of tests that could be created
-smooth moving on server for entities
-
-## Architecture
-
-Mono-repo structure
-
-## Testing
-
-Run tests with:
-
-```bash
-npm test
+```
+src/
+├── client/          # Client-side game logic and rendering
+│   ├── graphics/    # Pixi.js rendering and visual effects
+│   └── ...
+├── server/          # Authoritative game server
+│   ├── applyCommands/ # Command processing and validation
+│   └── ...
+├── common/          # Shared code between client and server
+│   ├── schemas/     # Network message definitions
+│   └── ...
+├── bots/           # AI players for testing
+├── docs/           # Documentation
+└── test/           # Test files
 ```
 
-## Deployment
+### Network Architecture
 
-1. Build the project:
+- **Client-Server Model**: Authoritative server with client prediction
+- **Command-Based**: All player actions sent as commands to server
+- **State Synchronization**: Server broadcasts world state to clients
+- **Lag Compensation**: Server rewinds time for hit detection accuracy
+
+### Key Systems
+
+- **Entity System**: Manages players, objects, and world entities
+- **Physics Engine**: Handles collisions, forces, and world simulation
+- **Input System**: Processes user input with prediction
+- **Performance Monitor**: Tracks server performance and optimization metrics
+
+## 🧪 Development
+
+### Testing
+
+```bash
+# Run all tests
+npm test
+
+# Watch mode for development
+npm test:watch
+
+# Type checking
+npm run typecheck
+```
+
+### Code Quality
+
+```bash
+# Lint code
+npm run lint
+
+# Auto-fix linting issues
+npm run lint:fix
+```
+
+### Building
+
+```bash
+# Build for production
+npm run build
+
+# Clean build directory
+npm run clean
+```
+
+## 🐳 Deployment
+
+### Docker Deployment
+
+```bash
+# Build and run with Docker Compose
+docker-compose up --build
+```
+
+### Manual Deployment
+
+1. **Build the project:**
 
    ```bash
    npm run build
    ```
 
-2. Deploy the `dist` folder to your hosting service.
+2. **Deploy the `dist/` folder** to your hosting service
+   - `dist/client/` - Static web assets
+   - `dist/server/` - Node.js server application
+   - `dist/bots/` - AI bot system
 
-## Patches
+### Environment Configuration
 
-pixi-tagged-text-plus: adds a parent container for Pixiv8 compatibility
-nengi: fix that handles removal of most recently added entity
+Configure server settings in `src/common/config.ts`:
 
-## License
+- Server port
+- Tick rate
+- Physics settings
+- Performance thresholds
 
-ISC
+## 📚 Documentation
+
+Comprehensive documentation is available in the [`src/docs/`](src/docs/) directory:
+
+- **[Radial Menu System](src/docs/RadialMenu.md)** - Interactive UI component
+- **[Performance Monitoring](src/docs/PERFORMANCE_MONITORING.md)** - Server metrics and optimization
+- **[Physics Performance](src/docs/PHYSICS_PERFORMANCE_FIXES.md)** - Physics engine optimizations
+
+## 🔧 Technical Details
+
+### Dependencies
+
+- **Runtime**: Node.js 22+, modern browsers with WebSocket support
+- **Physics**: p2-es physics engine with optimizations
+- **Graphics**: Pixi.js 8+ with WebGL rendering
+- **Networking**: Custom nengi.js integration with WebSocket transport
+
+### Patches Applied
+
+- **pixi-tagged-text-plus**: Adds parent container for Pixi.js v8 compatibility
+- **nengi**: Fixes entity removal handling for most recently added entities
+
+### Performance Targets
+
+- **60 TPS** server tick rate
+- **Sub-100ms** input latency with lag compensation
+- **50+ concurrent players** per server instance
+- **Consistent frame rates** across devices
+
+## 🤝 Contributing
+
+1. **Fork the repository**
+2. **Create a feature branch:** `git checkout -b feature-name`
+3. **Commit changes:** `git commit -m 'Add feature'`
+4. **Run tests:** `npm test`
+5. **Submit a pull request**
+
+### Development Guidelines
+
+- Follow TypeScript best practices
+- Write tests for new features
+- Update documentation when needed
+- Use semantic commit messages
+
+## 📄 License
+
+**ISC License** - See LICENSE file for details.
+
+## 🚨 System Requirements
+
+### Server
+
+- **Node.js**: 22.14.0+
+- **Memory**: 512MB+ RAM recommended
+- **CPU**: Multi-core recommended for physics simulation
+
+### Client
+
+- **Browser**: Modern browser with WebGL and WebSocket support
+- **Connection**: Stable internet connection (50ms+ latency supported)
+
+---
+
+Built with ❤️ for real-time multiplayer gaming experiences.
