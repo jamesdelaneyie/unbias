@@ -1,5 +1,5 @@
 import { Client, IEntity, Interpolator } from 'nengi';
-import { ncontext } from '../common/networkContext';
+import { networkContext } from '../common/networkContext';
 import { WsClientAdapter } from 'nengi-ws-client-adapter';
 import { NetworkType } from '../common/NetworkType';
 import { IEntityFrame } from 'nengi/build/client/Frame';
@@ -29,7 +29,7 @@ type Bot = {
 const bots: Set<Bot> = new Set();
 
 async function createBot() {
-  const client = new Client(ncontext, WsClientAdapter, 20);
+  const client = new Client(networkContext, WsClientAdapter, 20);
   // we use an interpolator for the bots because as of nengi alpha.150
   // this is the only thing that clears the network data
   // otherwise the client will just hoard it until it crashes

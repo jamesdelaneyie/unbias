@@ -3,8 +3,8 @@ import { Client, Interpolator } from 'nengi';
 import { WebSocketClientAdapter } from 'nengi-websocket-client-adapter';
 import { initRenderer } from './utilities';
 import { setupGraphicsWorld, setupUI } from './GPUUI';
-import { InputSystem } from './InputSystem';
-import { handleUserInput } from '@/client/handleUserInput';
+import { InputSystem } from './inputControls/InputSystem';
+import { handleUserInput } from '@/client/inputControls/handleUserInput';
 import { notificationService, NotificationType } from './UIManager';
 import { updateLocalStates } from './handleState';
 import { IEntityMap, PlayerEntityMap, ObjectEntityMap } from '@/common/types';
@@ -16,7 +16,9 @@ import { handlePredictionErrors } from '@/client/handlePredictionError';
 import '@pixi/layout/devtools';
 import { performanceBegin, performanceEnd, setupPerformanceUI } from './performanceUI';
 import { handleMessages } from '@/client/handleMessages';
-import { RadialMenuManager } from './RadialMenuManager';
+import { RadialMenuManager } from './inputControls/RadialMenuManager';
+import { Container } from 'pixi.js';
+import { Crosshairs } from '@/client/inputControls/Crosshairs';
 
 let connectedToServer = false;
 
@@ -25,8 +27,8 @@ let playerEntities: PlayerEntityMap = new Map();
 let objectEntities: ObjectEntityMap = new Map();
 
 window.addEventListener('load', async () => {
-  const app = await initRenderer();
-  const worldContainer = setupGraphicsWorld(app);
+  const { app, viewport } = await initRenderer();
+  const worldContainer = setupGraphicsWorld(app, viewport);
   setupUI(app);
 
   const stats = setupPerformanceUI();
@@ -58,6 +60,11 @@ window.addEventListener('load', async () => {
   const userInput = new InputSystem();
   const interpolator = new Interpolator(client);
   const radialMenuManager = new RadialMenuManager(app);
+  const crosshairs = new Crosshairs();
+
+  // Add crosshairs to worldContainer with high z-index so they render on top
+  crosshairs.zIndex = 1000;
+  viewport.addChild(crosshairs);
 
   // Set the world container for backdrop blur
   radialMenuManager.setWorldContainer(worldContainer);
@@ -70,7 +77,7 @@ window.addEventListener('load', async () => {
     updateLocalStates(
       istate,
       worldState,
-      worldContainer,
+      viewport,
       app,
       world,
       entities,
@@ -79,6 +86,15 @@ window.addEventListener('load', async () => {
     );
 
     handlePredictionErrors(client, worldState, entities);
+
+    //userInput.prepareFrameInput();
+
+    const point = viewport.toLocal({
+      x: userInput.frameState.mx,
+      y: userInput.frameState.my,
+    });
+    crosshairs.x = point.x;
+    crosshairs.y = point.y;
 
     // turn the users input into a move command
     // and send it to the server and return a prediction
@@ -89,7 +105,7 @@ window.addEventListener('load', async () => {
       worldState,
       playerEntities,
       objectEntities,
-      worldContainer,
+      viewport,
       delta,
       world
     );
@@ -104,6 +120,17 @@ window.addEventListener('load', async () => {
     // update the graphics of players and objects
     // based both on the prediction and the current network state
     updateGraphics(prediction, playerEntities, objectEntities, delta);
+
+    if (worldState.myId) {
+      const player = playerEntities.get(worldState.myId);
+      if (player) {
+        viewport.follow(player.clientGraphics as Container, {
+          speed: 0,
+          acceleration: 0.2,
+          radius: 10,
+        });
+      }
+    }
 
     client.flush();
   };

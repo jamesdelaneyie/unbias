@@ -2,9 +2,9 @@ import { Client } from 'nengi';
 import { NetworkType } from '@/common/NetworkType';
 import { PlayerEntityMap, MoveCommand, ObjectEntityMap } from '@/common/types';
 import { playerEntitySchema } from '@/common/schemas/playerEntitySchema';
-import { InputSystem } from '@/client/InputSystem';
+import { InputSystem } from '@/client/inputControls/InputSystem';
 import { Container } from 'pixi.js';
-import { handleShot } from '@/client/handleShot';
+import { handleShot } from '@/client/inputControls/handleShot';
 import * as p2 from 'p2-es';
 
 const handleUserInput = (

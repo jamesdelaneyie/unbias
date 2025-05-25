@@ -1,7 +1,7 @@
 import { Application, Container } from 'pixi.js';
 import { RadialMenu, RadialMenuOption, RadialMenuConfig } from './RadialMenu';
 import { InputSystem } from './InputSystem';
-import { notificationService, NotificationType } from './UIManager';
+import { notificationService, NotificationType } from '../UIManager';
 import { ServerMessageType } from '@/common/schemas/serverMessageSchema';
 
 export class RadialMenuManager {

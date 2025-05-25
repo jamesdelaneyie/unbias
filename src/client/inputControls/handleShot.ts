@@ -1,7 +1,7 @@
-import { drawHitscan } from './graphics/drawHitscan';
+import { drawHitscan } from '../graphics/drawHitscan';
 import * as p2 from 'p2-es';
 import { Container, Graphics } from 'pixi.js';
-import { NetworkType } from '../common/NetworkType';
+import { NetworkType } from '../../common/NetworkType';
 import { ObjectEntityMap, PlayerEntityMap } from '@/common/types';
 import { config } from '@/common/config';
 

@@ -4,6 +4,7 @@ import TaggedTextPlus from 'pixi-tagged-text-plus';
 import { TextDecoration } from 'pixi-tagged-text-plus/dist/types';
 import { createGridGraphics } from '@/client/graphics/mapGraphics';
 import { config } from '@/common/config';
+import { Viewport } from 'pixi-viewport';
 
 const drawLinkText = (container: Container, text: string, href: string, x: number, y: number) => {
   const underline: TextDecoration = 'underline';
@@ -64,21 +65,21 @@ const setupUI = (app: Application) => {
   return UserInterfaceContainer;
 };
 
-const setupGraphicsWorld = (app: Application) => {
+const setupGraphicsWorld = (app: Application, viewport: Viewport) => {
   const worldContainer = new Container();
   worldContainer.label = 'worldContainer';
   worldContainer.position.x = app.screen.width / 2;
   worldContainer.position.y = app.screen.height / 2;
   worldContainer.scale.x = 10;
   worldContainer.scale.y = 10;
-  app.stage.addChild(worldContainer);
+  viewport.addChild(worldContainer);
 
   const gridGraphics = createGridGraphics({
     color: 0xffffff,
     width: 50,
     height: 50,
   });
-  worldContainer.addChild(gridGraphics);
+  viewport.addChild(gridGraphics);
 
   return worldContainer;
 };
