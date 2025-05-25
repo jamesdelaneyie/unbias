@@ -23,13 +23,16 @@ export const applyShotCommand = (
 ) => {
   const impactCommand = command as any;
 
+  // Prevent self-damage
+  if (impactCommand.originNid === impactCommand.targetNid) {
+    return;
+  }
+
   // Get the hit point and shot vector
   const fromX = impactCommand.fromX;
   const fromY = impactCommand.fromY;
   const hitX = impactCommand.hitX;
   const hitY = impactCommand.hitY;
-
-  //console.log('shot impact', fromX, fromY, hitX, hitY);
 
   // Calculate the exact shot vector direction
   const vectorX = hitX - fromX;
@@ -42,7 +45,6 @@ export const applyShotCommand = (
 
   const dynamicAndPlayerEntities = new Map([...dynamicEntities, ...playerEntities]);
   // Find the directly hit entity
-  //console.log(impactCommand.targetNid);
   let hitEntity = dynamicAndPlayerEntities.get(impactCommand.targetNid);
   let relativePoint: [number, number] = [hitX, hitY];
   let impactPoint: [number, number] = [hitX, hitY];
@@ -62,8 +64,6 @@ export const applyShotCommand = (
     rayPool.returnRay(ray);
 
     performanceMonitor.endTiming('raycastTime', raycastStart);
-
-    //console.log('result', result);
 
     if (result.hasHit()) {
       const hitPoint = result.getHitPoint([], ray);
@@ -91,13 +91,9 @@ export const applyShotCommand = (
     }
   }
 
-  //console.log('hitEntity', hitEntity);
-  //lagCompensatedHitscanCheck
-  //console.log('impactCommand', impactCommand.originNid);
   const player = playerEntities.get(impactCommand.originNid);
   // @ts-ignore
   const timeAgo = player?.socket.user.latency + 100;
-  //console.log('timeAgo', timeAgo);
   lagCompensatedHitscanCheck(space, world, fromX, fromY, hitX, hitY, timeAgo);
 
   if (hitEntity && hitEntity.body && hitEntity.body.type !== p2.Body.STATIC) {
@@ -108,10 +104,8 @@ export const applyShotCommand = (
     // @ts-ignore
     if (hitEntity.username !== null) {
       const playerEntity = hitEntity as PlayerEntity;
-      //console.log(force);
       // @ts-ignore
       playerEntity.health = Math.max(0, playerEntity.health - force);
-      //console.log('damage', playerEntity.health);
     }
 
     hitEntity.body.applyImpulse([normalizedX * force, normalizedY * force], relativePoint);
@@ -119,7 +113,6 @@ export const applyShotCommand = (
     // @ts-ignore
     if (hitEntity.health <= 0) {
       // @ts-ignore
-      //console.log('playerEntity died', hitEntity.health);
       const playerEntity = hitEntity as PlayerEntity;
       playerEntity.isAlive = false;
       playerEntity.color = 0xff0000;

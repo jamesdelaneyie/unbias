@@ -11,7 +11,7 @@ export class Crosshairs extends Container {
     this.y = 0;
     this.width = 10;
     this.height = 10;
-    this.color = 0x00ff00;
+    this.color = 0xffffff;
     this.lineWidth = 0.1;
 
     this.graphics = new Graphics();
@@ -31,11 +31,6 @@ export class Crosshairs extends Container {
       width: this.lineWidth,
     });
 
-    /*this.graphics.circle(0, 0, this.width / 2).stroke({
-      color: this.color,
-      width: this.lineWidth,
-    });*/
-
     this.graphics
       .moveTo(-width / 2, 0)
       .lineTo(width / 2, 0)
@@ -45,5 +40,6 @@ export class Crosshairs extends Container {
         color: this.color,
         width: this.lineWidth,
       });
+    this.graphics.alpha = 0.5;
   }
 }

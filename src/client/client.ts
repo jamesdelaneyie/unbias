@@ -17,8 +17,9 @@ import '@pixi/layout/devtools';
 import { performanceBegin, performanceEnd, setupPerformanceUI } from './performanceUI';
 import { handleMessages } from '@/client/handleMessages';
 import { RadialMenuManager } from './inputControls/RadialMenuManager';
-import { Container } from 'pixi.js';
+import { Container, Graphics } from 'pixi.js';
 import { Crosshairs } from '@/client/inputControls/Crosshairs';
+import { ShadertoyFilter } from './graphics/ShadertoyFilter';
 
 let connectedToServer = false;
 
@@ -66,8 +67,30 @@ window.addEventListener('load', async () => {
   crosshairs.zIndex = 1000;
   viewport.addChild(crosshairs);
 
+  // Set up immediate crosshairs update for zero lag
+  userInput.setOnMouseMoveCallback((x: number, y: number) => {
+    const point = viewport.toLocal({ x, y });
+    crosshairs.x = point.x;
+    crosshairs.y = point.y;
+  });
+
   // Set the world container for backdrop blur
   radialMenuManager.setWorldContainer(worldContainer);
+
+  // Create a circle with the custom Shadertoy filter
+  const circle = new Graphics();
+  circle.circle(0, 0, 100); // Circle with radius 100
+  circle.fill({ color: 0xffffff }); // White fill
+  circle.x = 500; // Center of the map
+  circle.y = 500; // Center of the map
+
+  // Create and apply the custom filter
+  const shadertoyFilter = new ShadertoyFilter();
+  circle.filters = [shadertoyFilter];
+  circle.zIndex = 2000;
+
+  // Add circle to the world container
+  app.stage.addChild(circle);
 
   const tick = (delta: number) => {
     const istate = interpolator.getInterpolatedState(100);
@@ -87,15 +110,6 @@ window.addEventListener('load', async () => {
 
     handlePredictionErrors(client, worldState, entities);
 
-    //userInput.prepareFrameInput();
-
-    const point = viewport.toLocal({
-      x: userInput.frameState.mx,
-      y: userInput.frameState.my,
-    });
-    crosshairs.x = point.x;
-    crosshairs.y = point.y;
-
     // turn the users input into a move command
     // and send it to the server and return a prediction
     // of the x,y,rotation of the local player
@@ -112,6 +126,9 @@ window.addEventListener('load', async () => {
 
     // Handle radial menu input after the main input processing
     radialMenuManager.handleInput(userInput);
+
+    // Update the Shadertoy filter time for animation
+    shadertoyFilter.time += delta;
 
     // update the physics world
     // applies velocities to the p2 bodies and updates their positions

@@ -38,6 +38,7 @@ export class InputSystem {
     ' ': 'space',
   };
   private shotQueuedForNextFrame: boolean = false;
+  private onMouseMoveCallback?: (x: number, y: number) => void;
 
   constructor() {
     this.lastShotTime = 0;
@@ -75,6 +76,11 @@ export class InputSystem {
     document.addEventListener('mousemove', (event: MouseEvent) => {
       this.currentState.mx = event.clientX;
       this.currentState.my = event.clientY;
+
+      // Call callback immediately for instant crosshairs update
+      if (this.onMouseMoveCallback) {
+        this.onMouseMoveCallback(event.clientX, event.clientY);
+      }
     });
 
     document.addEventListener('mousedown', (event: MouseEvent) => {
@@ -166,5 +172,9 @@ export class InputSystem {
       rightClickHeld: false,
     };
     this.shotQueuedForNextFrame = false;
+  }
+
+  setOnMouseMoveCallback(callback: (x: number, y: number) => void) {
+    this.onMouseMoveCallback = callback;
   }
 }

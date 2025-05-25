@@ -13,6 +13,8 @@ const initRenderer = async () => {
   //@ts-ignore Allows PixiJS dev tools
   globalThis.__PIXI_APP__ = app;
 
+  //app.renderer.events.cursorStyles.default = 'none';
+
   const viewport = new Viewport({
     screenWidth: window.innerWidth,
     screenHeight: window.innerHeight,
@@ -22,6 +24,7 @@ const initRenderer = async () => {
   });
 
   viewport.scale.set(10);
+  viewport.position.set(window.innerWidth / 2, window.innerHeight / 2);
 
   app.stage.addChild(viewport);
 
